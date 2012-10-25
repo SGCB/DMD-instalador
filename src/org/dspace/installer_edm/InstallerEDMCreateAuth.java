@@ -1,11 +1,13 @@
 package org.dspace.installer_edm;
 
+import org.dspace.authenticate.AuthenticationManager;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataSchema;
 import org.dspace.core.Context;
+import org.dspace.eperson.EPerson;
 import org.dspace.handle.HandleManager;
 
 import java.io.BufferedReader;
@@ -32,6 +34,10 @@ public class InstallerEDMCreateAuth implements Observer
     private final String DCSCHEMA = "http://dublincore.org/documents/dcmi-terms/";
     private InputStreamReader isr;
     private BufferedReader br;
+
+    private String user;
+    private String password;
+    private EPerson eperson;
 
     private MetadataSchema dcSchema;
     private Context context;
@@ -65,6 +71,8 @@ public class InstallerEDMCreateAuth implements Observer
 
     public boolean createAuth()
     {
+        System.out.println("User authentication");
+        if (!loginUser())return false;
         if (dcSchema == null) {
             System.out.println("There are not schema " + DCSCHEMA);
             return false;
@@ -74,7 +82,7 @@ public class InstallerEDMCreateAuth implements Observer
             if (authDCElements != null) authDCElements.clear();
             else authDCElements = new ArrayList<MetadataField>();
             while (true) {
-                System.out.println("DC elements as authorities collections (a:list all authorities / l: list all dc elements / n: enter new authority / x: exit");
+                System.out.println("DC elements as authorities collections (a:list all authorities / l: list all dc elements / n: enter new authority / x: exit)");
                 String response = null;
                 try {
                     response = br.readLine();
@@ -82,7 +90,7 @@ public class InstallerEDMCreateAuth implements Observer
                     e.printStackTrace();
                     return false;
                 }
-                if (response == null) break;
+                if (response == null || response.length() == 0) continue;
                 response = response.trim();
                 if (response.equalsIgnoreCase("a")) {
                     System.out.println("List all Authorities");
@@ -103,6 +111,44 @@ public class InstallerEDMCreateAuth implements Observer
     }
 
 
+    private boolean loginUser()
+    {
+        String user = null;
+        String password;
+        int step = 1;
+        while (true) {
+            if (step == 1) System.out.println("Email of the dspace user: ");
+            else if (step == 2) System.out.println("Password of the dspace user: ");
+            String response = null;
+            try {
+                response = br.readLine();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return false;
+            }
+            if (response == null || response.length() == 0) continue;
+            response = response.trim();
+            switch (step) {
+                case 1:
+                    user = response;
+                    step++;
+                    break;
+                case 2:
+                    password = response;
+                    int status = AuthenticationManager.authenticate(context, user, password, null, null);
+                    if (status == 1) {
+                        eperson = context.getCurrentUser();
+                        return true;
+                    } else {
+                        System.out.println("User not valid.");
+                        step = 1;
+                    }
+                    break;
+            }
+        }
+    }
+
+
     private boolean createElementAuth()
     {
         String element = null;
@@ -115,9 +161,11 @@ public class InstallerEDMCreateAuth implements Observer
 
         while (true) {
             if (element == null)
-                System.out.println("DC Element (type x to go former menu: ");
+                System.out.println("DC Element (type x to go former menu): ");
             else if (community == null)
                 System.out.println("Handle community or empty to create new: ");
+            else if (collection == null)
+                System.out.println("Handle collection or empty to create new: ");
             String response = null;
             try {
                 response = br.readLine();
@@ -148,11 +196,12 @@ public class InstallerEDMCreateAuth implements Observer
                     }
                     break;
                 case 2:
-                    if (response == null || response.length() == 0) {
+                    if (response.length() == 0) {
                         response = null;
                         int stepCommunity = 1;
                         DSpaceObject communityObjParent = null;
                         while (true) {
+                            if (stepCommunity > 2) break;
                             if (stepCommunity == 1) System.out.println("Handle of parent collection or empty: ");
                             else if (stepCommunity == 2) System.out.println("Collection name: ");
                             try {
@@ -167,10 +216,12 @@ public class InstallerEDMCreateAuth implements Observer
                             switch(stepCommunity) {
                                 case 1:
                                     try {
-                                        communityObjParent = HandleManager.resolveToObject(context, response);
-                                        if (communityObjParent != null && communityObjParent instanceof Community) {
-                                            stepCommunity++;
-                                        }
+                                        if (response.length() > 0) {
+                                            communityObjParent = HandleManager.resolveToObject(context, response);
+                                            if (communityObjParent != null && communityObjParent instanceof Community) {
+                                                stepCommunity++;
+                                            }
+                                        } else stepCommunity++;
                                     } catch (SQLException e) {
                                         e.printStackTrace();
                                     }
@@ -180,6 +231,9 @@ public class InstallerEDMCreateAuth implements Observer
                                         communityObj = Community.create((Community) communityObjParent, context);
                                         communityObj.setMetadata("name", response);
                                         communityObj.update();
+                                        context.commit();
+                                        stepCommunity = 3;
+                                        community = communityObj.getName();
                                     } catch (SQLException e) {
                                         e.printStackTrace();
                                     } catch (AuthorizeException e) {

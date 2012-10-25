@@ -8,6 +8,8 @@
  * cd /home/europeana/instalador_edm
  * jar cf out/production/instalador_edm/InstallerEDM.jar out/production/instalador_edm/org/dspace/installer_edm/*.class
  * JARS=$(echo /home/europeana/instalador_edm/lib/*.jar | sed 's/ /\:/g'); JARS2=$(echo /home/europeana/runtime/lib/*.jar | sed 's/ /\:/g'); java -cp $JARS:$JARS2:out/production/instalador_edm/InstallerEDM.jar:out/production/instalador_edm:/home/europeana/runtime/config org.dspace.installer_edm.InstallerEDM -d /home/europeana/runtime/ -t /usr/share/tomcat5.5/ -v -s 2
+ *
+ * JARS=$(echo /home/salzaru/Download/instalador_edm/lib/*.jar | sed 's/ /\:/g'); JARS2=$(echo /home/salzaru/Download/dspace/lib/*.jar | sed 's/ /\:/g'); java -cp $JARS:$JARS2:out/production/instalador_edm/InstallerEDM.jar:out/production/instalador_edm:/home/salzaru/Download/dspace/config org.dspace.installer_edm.InstallerEDM -d /home/salzaru/Download/dspace/ -t /usr/local/apache-tomcat-6.0/ -v -s 2
  */
 
 
