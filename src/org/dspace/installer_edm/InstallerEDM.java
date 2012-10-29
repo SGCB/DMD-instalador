@@ -10,6 +10,8 @@
  * JARS=$(echo /home/europeana/instalador_edm/lib/*.jar | sed 's/ /\:/g'); JARS2=$(echo /home/europeana/runtime/lib/*.jar | sed 's/ /\:/g'); java -cp $JARS:$JARS2:out/production/instalador_edm/InstallerEDM.jar:out/production/instalador_edm:/home/europeana/runtime/config org.dspace.installer_edm.InstallerEDM -d /home/europeana/runtime/ -t /usr/share/tomcat5.5/ -v -s 2
  *
  * JARS=$(echo /home/salzaru/Download/instalador_edm/lib/*.jar | sed 's/ /\:/g'); JARS2=$(echo /home/salzaru/Download/dspace/lib/*.jar | sed 's/ /\:/g'); java -cp $JARS:$JARS2:out/production/instalador_edm/InstallerEDM.jar:out/production/instalador_edm:/home/salzaru/Download/dspace/config org.dspace.installer_edm.InstallerEDM -d /home/salzaru/Download/dspace/ -t /usr/local/apache-tomcat-6.0/ -v -s 2
+ *
+ * ant jar && ./install.sh -d /home/europeana/runtime/ -t /usr/share/tomcat5.5 -v -s 2
  */
 
 
@@ -152,21 +154,36 @@ public class InstallerEDM implements Observer
         installerEDMAskosi = new InstallerEDMAskosi(DspaceDir, TomcatBase, verbose);
         sh.addObserver( installerEDMAskosi );
         File dirPackage;
-        if ((iniStep == 1 && (dirPackage = installerEDMAskosi.checkPackages()) != null && installerEDMAskosi.installPackages(dirPackage)) || iniStep > 1) {
+        if (iniStep > 0) {
             if (iniStep == 1) {
-                System.out.println("");
-                System.out.println("Askosi installed ok. Tomcat must be restarted after the end of the installation process.");
-                iniStep++;
+                if (verbose) System.out.println("Beginning step 1: Installing Askosi");
+                if ((dirPackage = installerEDMAskosi.checkPackages()) != null && installerEDMAskosi.installPackages(dirPackage)) {
+                    System.out.println("");
+                    System.out.println("Askosi installed ok. Tomcat must be restarted after the end of the installation process.");
+                    iniStep++;
+                } else {
+                    System.out.println("");
+                    System.out.println("Failed to complete step 1.");
+                }
             }
 
             if (iniStep == 2) {
+                if (verbose) System.out.println("Beginning step 2: Create Auth Items");
                 installerEDMCreateAuth = new InstallerEDMCreateAuth(DspaceDir, TomcatBase, verbose);
                 sh.addObserver( installerEDMCreateAuth );
-                installerEDMCreateAuth.createAuth();
+                if (installerEDMCreateAuth.createAuth()) iniStep++;
+                else {
+                    System.out.println("");
+                    System.out.println("Failed to complete step 2.");
+                }
+            }
+
+            if (iniStep == 3) {
+                if (verbose) System.out.println("Beginning step 3: Configuring Dspace ans Askosi");
             }
         } else {
             System.out.println("");
-            System.out.println("Askosi installation failed.");
+            System.out.println("Step not ok.");
         }
     }
 

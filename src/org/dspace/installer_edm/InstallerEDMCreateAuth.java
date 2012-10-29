@@ -275,11 +275,18 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                             Item itemAuth = null;
                             WorkspaceItem wi = WorkspaceItem.create(context, collectionObj, false);
                             itemAuth = wi.getItem();
-                            itemAuth.addMetadata(dcSchema.getName(), elementObj.getElement(), elementObj.getQualifier(), language, new String[] {dcValue.value}, new String[] {itemAuth.getHandle()}, null);
-                            itemAuth.addMetadata(dcSchema.getName(), "type", null, language, new String[] {"SKOS_AUTH"}, null, null);
                             InstallItem.installItem(context, wi, null);
-                            collectionObj.addItem(itemAuth);
-                            context.commit();
+                            String myhandle = HandleManager.findHandle(context, itemAuth);
+                            if (myhandle.equals(itemAuth.getHandle())) {
+                                if (verbose) System.out.println("Adding metadata " + elementObj.getElement() + ((elementObj.getQualifier() != null)?"." + elementObj.getQualifier():"") + " , language: " + language + " , value: " + dcValue.value);
+                                itemAuth.addMetadata(dcSchema.getName(), elementObj.getElement(), elementObj.getQualifier(), language, new String[] {dcValue.value}, new String[] {itemAuth.getHandle()}, null);
+                                itemAuth.addMetadata(dcSchema.getName(), "type", null, language, new String[] {"SKOS_AUTH"}, null, null);
+                                //collectionObj.addItem(itemAuth);
+                                itemAuth.update();
+                                context.commit();
+                            } else {
+                                System.out.println("Item " + itemAuth.getID() + " with handle " + itemAuth.getHandle() + " mismatch " + myhandle);
+                            }
                         }
                     } else if (verbose) System.out.println("Collection " + collection.getName() + " item " + item.getHandle() + " has not element " + elementObj.getElement() + ((elementObj.getQualifier() != null)?"." + elementObj.getQualifier():"") + " , language: " + language);
                 }
