@@ -20,17 +20,13 @@ public class InstallerEDMAskosi extends InstallerEDMBase implements Observer
     private final String[] packages = {"ASKOSI.jar", "askosiWebapp.zip", "classes.zip", "commons-dbcp.jar", "commons-pool.jar", "exampleAskosiData.zip", "jaxb-xalan-1.5.jar", "jsr311-api-1.1.1.jar", "jstl-1.2.jar", "log4j.jar", "openrdf-alibaba-2.0-beta6.jar", "openrdf-sesame-2.3.2-onejar.jar"};
     private final String[] packagesMD5 = {"f800262e9587383fa0dbd8f748cc831e", "ab932907d73a8031cb266d20d341a6e2", "0bffffb990ea99eb02a989d346454d8e", "2666cfeb7be74b1c2d8a1665ae21192c", "01f9bed60e2f88372132d34040ee81bb", "2be860d3a2529cb8789d6c27cfae5a92", "261968cebe30ffe8adcc201ad0bfa395", "c9803468299ec255c047a280ddec510f", "51e15f798e69358cb893e38c50596b9b", "599b8ba07d1d04f0ea34414e861d7ad1", "1f699edb215bcee75cb6f0616fa56993", "3054aa9109f78903852d38991b5a4ea8"};
 
-    private String myInstallerDirPath;
+    private File finalAskosiDataDestDirFile = null;
 
 
-    public InstallerEDMAskosi(String DspaceDir, String TomcatBase, boolean verbose)
+
+    public InstallerEDMAskosi(InstallerEDM installerEDM, String DspaceDir, String TomcatBase, boolean verbose)
     {
-        super(DspaceDir, TomcatBase, verbose);
-        try {
-            myInstallerDirPath = new File(".").getAbsolutePath();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        super(installerEDM, DspaceDir, TomcatBase, verbose);
     }
 
     public boolean installPackages(File dirPackages)
@@ -267,7 +263,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase implements Observer
 
     private boolean copyAskosiDataDir(File sourcePackageFile)
     {
-        File finalAskosiDataDestDirFile = null;
+        finalAskosiDataDestDirFile = null;
         while (true) {
             System.out.println("Directory of Askosi data: ");
             String response = null;
@@ -447,6 +443,12 @@ public class InstallerEDMAskosi extends InstallerEDMBase implements Observer
             System.out.println("Directory " + myDirPackages + " is not accesible");
         }
         return null;
+    }
+
+
+    public File getFinalAskosiDataDestDirFile()
+    {
+        return finalAskosiDataDestDirFile;
     }
 
 

@@ -23,35 +23,19 @@ import java.util.Observer;
  */
 public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
 {
-    private final String DCSCHEMA = "http://dublincore.org/documents/dcmi-terms/";
 
     private String user;
     private String password;
     private EPerson eperson;
 
-    private MetadataSchema dcSchema;
-    private Context context;
-    private MetadataField[] metadataFields;
     private ArrayList<MetadataField> authDCElements;
 
 
-    public InstallerEDMCreateAuth(String DspaceDir, String TomcatBase, boolean verbose)
+    public InstallerEDMCreateAuth(InstallerEDM installerEDM, Context context, String DspaceDir, String TomcatBase, boolean verbose)
     {
-        super(DspaceDir, TomcatBase, verbose);
-        try {
-            checkDspaceMetadataDC();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        super(installerEDM, context, DspaceDir, TomcatBase, verbose);
     }
 
-
-    private void checkDspaceMetadataDC() throws SQLException, NullPointerException
-    {
-        context = new Context();
-        dcSchema = MetadataSchema.findByNamespace(context, DCSCHEMA);
-        metadataFields = MetadataField.findAllInSchema(context, dcSchema.getSchemaID());
-    }
 
     public boolean createAuth()
     {
@@ -470,6 +454,17 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
         System.out.flush();
         System.out.println("");
         System.out.println("");
+    }
+
+
+    public ArrayList<MetadataField> getAuthDCElements()
+    {
+        return authDCElements;
+    }
+
+    public MetadataSchema getDcSchema()
+    {
+        return dcSchema;
     }
 
     @Override

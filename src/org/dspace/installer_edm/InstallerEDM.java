@@ -21,11 +21,13 @@ import com.googlecode.lanterna.TerminalFacade;
 import com.googlecode.lanterna.terminal.Terminal;
 import org.apache.commons.cli.*;
 import org.dspace.core.ConfigurationManager;
+import org.dspace.core.Context;
 import org.dspace.servicemanager.DSpaceKernelImpl;
 import org.dspace.servicemanager.DSpaceKernelInit;
 
 import java.io.File;
 import java.nio.charset.Charset;
+import java.sql.SQLException;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -47,7 +49,8 @@ public class InstallerEDM implements Observer
     private MySignalHandler sh = null;
 
     private InstallerEDMAskosi installerEDMAskosi;
-    private InstallerEDMCreateAuth installerEDMCreateAuth;
+    private InstallerEDMCreateAuth installerEDMCreateAuth = null;
+    private InstallerEDMConf installerEDMConf = null;
 
 
     public static void main(String[] args)
@@ -151,7 +154,13 @@ public class InstallerEDM implements Observer
 
     private void installEDM()
     {
-        installerEDMAskosi = new InstallerEDMAskosi(DspaceDir, TomcatBase, verbose);
+        Context context = null;
+        try {
+            context = new Context();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        installerEDMAskosi = new InstallerEDMAskosi(this, DspaceDir, TomcatBase, verbose);
         sh.addObserver( installerEDMAskosi );
         File dirPackage;
         if (iniStep > 0) {
@@ -169,7 +178,7 @@ public class InstallerEDM implements Observer
 
             if (iniStep == 2) {
                 if (verbose) System.out.println("Beginning step 2: Create Auth Items");
-                installerEDMCreateAuth = new InstallerEDMCreateAuth(DspaceDir, TomcatBase, verbose);
+                installerEDMCreateAuth = new InstallerEDMCreateAuth(this, context, DspaceDir, TomcatBase, verbose);
                 sh.addObserver( installerEDMCreateAuth );
                 if (installerEDMCreateAuth.createAuth()) iniStep++;
                 else {
@@ -179,7 +188,9 @@ public class InstallerEDM implements Observer
             }
 
             if (iniStep == 3) {
-                if (verbose) System.out.println("Beginning step 3: Configuring Dspace ans Askosi");
+                if (verbose) System.out.println("Beginning step 3: Configuring Dspace and Askosi");
+                installerEDMConf =new  InstallerEDMConf(this, context, DspaceDir, TomcatBase, verbose);
+                installerEDMConf.configureAll();
             }
         } else {
             System.out.println("");
@@ -218,6 +229,24 @@ public class InstallerEDM implements Observer
     static public DSpaceKernelImpl getKernelImpl()
     {
         return kernelImpl;
+    }
+
+
+    public InstallerEDMAskosi getInstallerEDMAskosi()
+    {
+        return installerEDMAskosi;
+    }
+
+
+    public InstallerEDMCreateAuth getInstallerEDMCreateAuth()
+    {
+        return installerEDMCreateAuth;
+    }
+
+
+    public InstallerEDMConf getInstallerEDMConf()
+    {
+        return installerEDMConf;
     }
 
     @Override
