@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 public class InstallerEDMConf extends InstallerEDMBase implements Observer
 {
 
-    private final String[] elementsNotAuth = {"identifier.uri", "date.accessioned", "date.available", "date.issued", "description.provenance"};
+    private final String[] elementsNotAuth = {"identifier.uri", "date.accessioned", "date.available", "date.issued", "description.provenance", "type"};
     private Set<String> elementsNotAuthSet;
 
 
@@ -117,34 +117,45 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
             } while (true);
         }
         org.apache.commons.io.FileUtils.copyFile(dspaceDirConfFile, dspaceDirConfNewFile);
-        HashMap<String, Integer> authDCElementsSetWritten = readDspaceCfg(dspaceDirConfFile, authDCElementsSet);
+        HashMap<String, Integer> authDCElementsSetWritten = new HashMap<String, Integer>();
+        String askosiDataDir = readDspaceCfg(dspaceDirConfNewFile, authDCElementsSet, authDCElementsSetWritten);
         Writer out = new OutputStreamWriter(new FileOutputStream(dspaceDirConfNewFile, true));
         try {
-            File askosiDataDestDirFile;
-            if (installerEDM.getInstallerEDMAskosi() != null && installerEDM.getInstallerEDMAskosi().getFinalAskosiDataDestDirFile() != null) {
-                askosiDataDestDirFile = installerEDM.getInstallerEDMAskosi().getFinalAskosiDataDestDirFile();
+            File askosiDataDestDirFile = null;
+            if (askosiDataDir != null) askosiDataDestDirFile = new File(askosiDataDir);
+            if (askosiDataDestDirFile != null && askosiDataDestDirFile.exists() && askosiDataDestDirFile.canRead()) {
+                if (verbose) System.out.println("Askosi data directory: " + askosiDataDir);
             } else {
-                System.out.println("Askosi data directory: ");
-                String response = null;
-                do {
-                    response = br.readLine();
-                    if (response == null || response.length() == 0) continue;
-                    response = response.trim();
-                    askosiDataDestDirFile = new File(response);
-                    if (askosiDataDestDirFile.exists()) {
-                        break;
-                    }
-                } while (true);
+                askosiDataDir = null;
+                if (installerEDM.getInstallerEDMAskosi() != null && installerEDM.getInstallerEDMAskosi().getFinalAskosiDataDestDirFile() != null) {
+                    askosiDataDestDirFile = installerEDM.getInstallerEDMAskosi().getFinalAskosiDataDestDirFile();
+                    if (verbose) System.out.println("Askosi data directory: " + askosiDataDestDirFile.getAbsolutePath());
+                } else {
+                    System.out.println("Askosi data directory: ");
+                    String response = null;
+                    do {
+                        response = br.readLine();
+                        if (response == null || response.length() == 0) continue;
+                        response = response.trim();
+                        askosiDataDestDirFile = new File(response);
+                        if (askosiDataDestDirFile.exists()) {
+                            break;
+                        }
+                    } while (true);
+                }
             }
-            String plugin = new StringBuilder().append("ASKOSI.directory = ").append(askosiDataDestDirFile.getAbsolutePath()).append("\nplugin.named.org.dspace.content.authority.ChoiceAuthority = \\\n").append("be.destin.dspace.AskosiPlugin = ASKOSI\n").toString();
+
             if (authDCElements.size() > 0) {
-                out.write(plugin);
+                if (askosiDataDir == null) {
+                    String plugin = new StringBuilder().append("\nASKOSI.directory = ").append(askosiDataDestDirFile.getAbsolutePath()).append("\nplugin.named.org.dspace.content.authority.ChoiceAuthority = \\\n").append("be.destin.dspace.AskosiPlugin = ASKOSI\n").toString();
+                    out.write(plugin);
+                }
                 for (MetadataField metadataField : authDCElements) {
                     String element = metadataField.getElement() + ((metadataField.getQualifier() != null)?"." + metadataField.getQualifier():"");
                     boolean isOk = false;
                     if (authDCElementsSetWritten.containsKey(element)) {
                         if (authDCElementsSetWritten.get(element).intValue() == 3) isOk = true;
-                        else if (verbose) System.out.println("Element " + element + " is not properly configured. One ok is going to be added. Please remove the bad one.");
+                        else if (verbose) System.out.println("Element " + element + " is not properly configured. The correct one is going to be added. Please remove the incorrect one.");
                     }
                     if (!isOk) {
                         if (!writeDspaceCfg(out, element)) {
@@ -159,20 +170,55 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
     }
 
 
-    private HashMap<String, Integer> readDspaceCfg(File dspaceDirConfFile, Set<String> authDCElementsSet) throws FileNotFoundException, IndexOutOfBoundsException
+    private String readDspaceCfg(File dspaceDirConfNewFile, Set<String> authDCElementsSet, HashMap<String, Integer> authDCElementsSetWritten) throws FileNotFoundException, IndexOutOfBoundsException
     {
-        HashMap<String, Integer> authDCElementsSetWritten = new HashMap<String, Integer>();
-        Scanner scanner = new Scanner(new FileInputStream(dspaceDirConfFile));
-        Pattern patternPlugin = Pattern.compile("^\\s*choices\\.plugin\\." + dcSchema.getName() + "\\.(.+)\\s*=\\s*ASKOSI\\s*$", Pattern.CASE_INSENSITIVE);
-        Pattern patternPresentation = Pattern.compile("^\\s*choices\\.presentation\\." + dcSchema.getName() + "\\.(.+)\\s*=\\s*lookup\\s*$", Pattern.CASE_INSENSITIVE);
-        Pattern patternControlled = Pattern.compile("^\\s*choices\\.controlled\\." + dcSchema.getName() + "\\.(.+)\\s*=\\s*true\\s*$", Pattern.CASE_INSENSITIVE);
+        String dataDir = null;
+        Scanner scanner = new Scanner(new FileInputStream(dspaceDirConfNewFile));
+        Pattern patternAskosiDir = Pattern.compile("^\\s*ASKOSI\\.directory\\s*=\\s*(.+)\\s*$", Pattern.CASE_INSENSITIVE);
+        Pattern patternAskosiAuthPlugin = Pattern.compile("^\\s*plugin\\.named\\.org\\.dspace\\.content\\.authority\\.ChoiceAuthority\\s*=\\s*(\\Q\\\\E|be\\.destin\\.dspace\\.AskosiPlugin\\s*=\\s*ASKOSI)\\s*$", Pattern.CASE_INSENSITIVE);
+        Pattern patternAskosiAuthPluginBe = Pattern.compile("^\\s*be\\.destin\\.dspace\\.AskosiPlugin\\s*=\\s*ASKOSI\\s*$", Pattern.CASE_INSENSITIVE);
+        Pattern patternPlugin = Pattern.compile("^\\s*choices\\.plugin\\." + dcSchema.getName() + "\\.(.+?)\\s*=\\s*ASKOSI\\s*$", Pattern.CASE_INSENSITIVE);
+        Pattern patternPresentation = Pattern.compile("^\\s*choices\\.presentation\\." + dcSchema.getName() + "\\.(.+?)\\s*=\\s*lookup\\s*$", Pattern.CASE_INSENSITIVE);
+        Pattern patternControlled = Pattern.compile("^\\s*authority\\.controlled\\." + dcSchema.getName() + "\\.(.+?)\\s*=\\s*true\\s*$", Pattern.CASE_INSENSITIVE);
+
+        boolean patternAskosiAuthPluginRead = false;
+        boolean patternAskosiAuthPluginBeRead = false;
         try {
             while (scanner.hasNextLine()) {
-                String line = scanner.nextLine();
+                String line = scanner.nextLine().trim();
+
+                if (dataDir == null) {
+                    Matcher matcherAskosiDir = patternAskosiDir.matcher(line);
+                    if (matcherAskosiDir.find()) {
+                         dataDir = (String) matcherAskosiDir.group(1);
+                        if (verbose) System.out.println("Found line: " + line + " with data dir " + dataDir);
+                    }
+                }
+                if (!patternAskosiAuthPluginRead) {
+                    Matcher matcherAskosiAuthPlugin = patternAskosiAuthPlugin.matcher(line);
+                    if (matcherAskosiAuthPlugin.find()) {
+                        patternAskosiAuthPluginRead = true;
+                        String content = (String) matcherAskosiAuthPlugin.group(1);
+                        if (verbose) System.out.println("Found line: " + line + " with content " + content);
+                        Matcher matcherAskosiAuthPluginBe = patternAskosiAuthPluginBe.matcher(content);
+                        if (matcherAskosiAuthPluginBe.find()) {
+                            patternAskosiAuthPluginBeRead = true;
+                        }
+                    }
+                }
+                if (!patternAskosiAuthPluginBeRead) {
+                    Matcher matcherAskosiAuthPluginBe = patternAskosiAuthPluginBe.matcher(line);
+                    if (matcherAskosiAuthPluginBe.find()) {
+                        if (verbose) System.out.println("Found line: " + line);
+                        patternAskosiAuthPluginBeRead = true;
+                    }
+                }
+
                 Matcher matcherPlugin = patternPlugin.matcher(line);
                 if (matcherPlugin.find()) {
                     String element = (String) matcherPlugin.group(1);
                     if (authDCElementsSet.contains(element)) {
+                        if (verbose) System.out.println("Found line: " + line + " with element " + element);
                         if (authDCElementsSetWritten.containsKey(element)) {
                             int valor = authDCElementsSetWritten.get(element).intValue() + 1;
                             authDCElementsSetWritten.put(element, Integer.valueOf(valor));
@@ -183,6 +229,7 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
                     if (matcherPresentation.find()) {
                         String element = (String) matcherPresentation.group(1);
                         if (authDCElementsSet.contains(element)) {
+                            if (verbose) System.out.println("Found line: " + line + " with element " + element);
                             if (authDCElementsSetWritten.containsKey(element)) {
                                 int valor = authDCElementsSetWritten.get(element).intValue() + 1;
                                 authDCElementsSetWritten.put(element, Integer.valueOf(valor));
@@ -193,6 +240,7 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
                         if (matcherControlled.find()) {
                             String element = (String) matcherControlled.group(1);
                             if (authDCElementsSet.contains(element)) {
+                                if (verbose) System.out.println("Found line: " + line + " with element " + element);
                                 if (authDCElementsSetWritten.containsKey(element)) {
                                     int valor = authDCElementsSetWritten.get(element).intValue() + 1;
                                     authDCElementsSetWritten.put(element, Integer.valueOf(valor));
@@ -202,10 +250,11 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
                     }
                 }
             }
+            if (dataDir != null && (!patternAskosiAuthPluginBeRead || !patternAskosiAuthPluginRead)) dataDir = null;
         } finally {
             scanner.close();
         }
-        return authDCElementsSetWritten;
+        return dataDir;
     }
 
 
@@ -227,12 +276,15 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
         language = ConfigurationManager.getProperty("default.language");
         if (language == null) language = "en";
         Collection[] listCollections = Collection.findAll(context);
+        if (verbose) System.out.println("Searching auth elements in " + listCollections.length + " collections.");
         if (listCollections.length > 0) {
             for (Collection collection : listCollections) {
+                if (verbose) System.out.println("Searching auth elements in collection: " + collection.getName() + " " + collection.getHandle());
                 ItemIterator iter = collection.getAllItems();
                 while (iter.hasNext()) {
                     Item item = iter.next();
-                    DCValue[] listDCTypeValues = item.getMetadata(dcSchema.getName(), "type", "", language);
+                    if (verbose) System.out.println("Searching auth elements in item: " + item.getName() + " " + item.getHandle());
+                    DCValue[] listDCTypeValues = item.getMetadata(dcSchema.getName(), "type", null, language);
                     if (listDCTypeValues.length > 0) {
                         for (DCValue dcTypeValue : listDCTypeValues) {
                             if (dcTypeValue.value.equals("SKOS_AUTH")) {
@@ -250,11 +302,13 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
     private void checkSkosAuthItem(ArrayList<MetadataField> authDCElements, Set<String> authDCElementsSet, Item item)
     {
         DCValue[] listDCValues = item.getMetadata(dcSchema.getName() + ".*.*");
+        if (verbose) System.out.println("Elements: " + listDCValues.length);
         if (listDCValues.length > 0) {
             for (DCValue dcValue : listDCValues) {
                 if (dcValue.value == null || dcValue.value.isEmpty()) continue;
                 String dcValueName = dcValue.element + ((dcValue.qualifier != null && !dcValue.qualifier.isEmpty())?"." + dcValue.qualifier:"");
                 if (!elementsNotAuthSet.contains(dcValueName) && !authDCElementsSet.contains(dcValueName)) {
+                    if (verbose) System.out.println("Auth element: " + dcValueName);
                     authDCElementsSet.add(dcValueName);
                     authDCElements.add(new MetadataField(dcSchema, dcValue.element, dcValue.qualifier, null));
                 }
