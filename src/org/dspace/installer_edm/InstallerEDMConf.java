@@ -40,18 +40,15 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
         File dspaceDirConfNewFile = new File(".");
         if (dspaceDirConfFile.exists() && dspaceDirConfFile.canRead() && dspaceDirConfNewFile.canWrite()) {
             ArrayList<MetadataField> authDCElements;
-            Set <String> authDCElementsSet = new HashSet<String>();
             if (installerEDM.getInstallerEDMCreateAuth() != null) {
                 authDCElements = installerEDM.getInstallerEDMCreateAuth().getAuthDCElements();
-                for (MetadataField dataF : authDCElements) {
-                    authDCElementsSet.add(dataF.getElement() + ((dataF.getQualifier() != null)?"." + dataF.getQualifier():""));
-                }
             } else {
                 authDCElements = new ArrayList<MetadataField>();
+                if (authBOHashMap == null) authBOHashMap = new HashMap<String, InstallerEDMAuthBO>();
             }
             try {
-                checkAllSkosAuthElements(authDCElements, authDCElementsSet);
-                configureDspaceCfg(dspaceDirConfFile, new File(myInstallerDirPath + System.getProperty("file.separator") + "dspace.cfg"), authDCElements, authDCElementsSet);
+                checkAllSkosAuthElements(authDCElements);
+                configureDspaceCfg(dspaceDirConfFile, new File(myInstallerDirPath + System.getProperty("file.separator") + "dspace.cfg"), authDCElements);
                 String dspaceInputFormsName = DspaceDir + "config" + System.getProperty("file.separator") + "input-forms.xml";
                 File dspaceInputFormsFile = new File(dspaceInputFormsName);
                 if (dspaceInputFormsFile.exists() && dspaceInputFormsFile.canRead()) {
@@ -98,7 +95,7 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
     }
 
 
-    private void configureDspaceCfg(File dspaceDirConfFile, File dspaceDirConfNewFile, ArrayList<MetadataField> authDCElements, Set<String> authDCElementsSet) throws FileNotFoundException, IndexOutOfBoundsException, IOException, NullPointerException
+    private void configureDspaceCfg(File dspaceDirConfFile, File dspaceDirConfNewFile, ArrayList<MetadataField> authDCElements) throws FileNotFoundException, IndexOutOfBoundsException, IOException, NullPointerException
     {
         System.out.println("");
         System.out.println("Creating new configuration dspace.cfg in " + myInstallerDirPath + " to add the authorities.\nWhen you have checked the file, replace " + dspaceDirConfFile.getAbsolutePath() + " with this new one.");
@@ -118,7 +115,7 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
         }
         org.apache.commons.io.FileUtils.copyFile(dspaceDirConfFile, dspaceDirConfNewFile);
         HashMap<String, Integer> authDCElementsSetWritten = new HashMap<String, Integer>();
-        String askosiDataDir = readDspaceCfg(dspaceDirConfNewFile, authDCElementsSet, authDCElementsSetWritten);
+        String askosiDataDir = readDspaceCfg(dspaceDirConfNewFile, authDCElementsSetWritten);
         Writer out = new OutputStreamWriter(new FileOutputStream(dspaceDirConfNewFile, true));
         try {
             File askosiDataDestDirFile = null;
@@ -170,7 +167,7 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
     }
 
 
-    private String readDspaceCfg(File dspaceDirConfNewFile, Set<String> authDCElementsSet, HashMap<String, Integer> authDCElementsSetWritten) throws FileNotFoundException, IndexOutOfBoundsException
+    private String readDspaceCfg(File dspaceDirConfNewFile, HashMap<String, Integer> authDCElementsSetWritten) throws FileNotFoundException, IndexOutOfBoundsException
     {
         String dataDir = null;
         Scanner scanner = new Scanner(new FileInputStream(dspaceDirConfNewFile));
@@ -217,7 +214,7 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
                 Matcher matcherPlugin = patternPlugin.matcher(line);
                 if (matcherPlugin.find()) {
                     String element = (String) matcherPlugin.group(1);
-                    if (authDCElementsSet.contains(element)) {
+                    if (authBOHashMap.containsKey(element)) {
                         if (verbose) System.out.println("Found line: " + line + " with element " + element);
                         if (authDCElementsSetWritten.containsKey(element)) {
                             int valor = authDCElementsSetWritten.get(element).intValue() + 1;
@@ -228,7 +225,7 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
                     Matcher matcherPresentation = patternPresentation.matcher(line);
                     if (matcherPresentation.find()) {
                         String element = (String) matcherPresentation.group(1);
-                        if (authDCElementsSet.contains(element)) {
+                        if (authBOHashMap.containsKey(element)) {
                             if (verbose) System.out.println("Found line: " + line + " with element " + element);
                             if (authDCElementsSetWritten.containsKey(element)) {
                                 int valor = authDCElementsSetWritten.get(element).intValue() + 1;
@@ -239,7 +236,7 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
                         Matcher matcherControlled = patternControlled.matcher(line);
                         if (matcherControlled.find()) {
                             String element = (String) matcherControlled.group(1);
-                            if (authDCElementsSet.contains(element)) {
+                            if (authBOHashMap.containsKey(element)) {
                                 if (verbose) System.out.println("Found line: " + line + " with element " + element);
                                 if (authDCElementsSetWritten.containsKey(element)) {
                                     int valor = authDCElementsSetWritten.get(element).intValue() + 1;
@@ -270,7 +267,7 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
         return true;
     }
 
-    private void checkAllSkosAuthElements(ArrayList<MetadataField> authDCElements, Set<String> authDCElementsSet) throws SQLException
+    private void checkAllSkosAuthElements(ArrayList<MetadataField> authDCElements) throws SQLException
     {
         String language;
         language = ConfigurationManager.getProperty("default.language");
@@ -288,7 +285,7 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
                     if (listDCTypeValues.length > 0) {
                         for (DCValue dcTypeValue : listDCTypeValues) {
                             if (dcTypeValue.value.equals("SKOS_AUTH")) {
-                                checkSkosAuthItem(authDCElements, authDCElementsSet, item);
+                                checkSkosAuthItem(authDCElements, item);
                                 break;
                             }
                         }
@@ -299,7 +296,7 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
     }
 
 
-    private void checkSkosAuthItem(ArrayList<MetadataField> authDCElements, Set<String> authDCElementsSet, Item item)
+    private void checkSkosAuthItem(ArrayList<MetadataField> authDCElements, Item item)
     {
         DCValue[] listDCValues = item.getMetadata(dcSchema.getName() + ".*.*");
         if (verbose) System.out.println("Elements: " + listDCValues.length);
@@ -307,10 +304,22 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
             for (DCValue dcValue : listDCValues) {
                 if (dcValue.value == null || dcValue.value.isEmpty()) continue;
                 String dcValueName = dcValue.element + ((dcValue.qualifier != null && !dcValue.qualifier.isEmpty())?"." + dcValue.qualifier:"");
-                if (!elementsNotAuthSet.contains(dcValueName) && !authDCElementsSet.contains(dcValueName)) {
+                if (!elementsNotAuthSet.contains(dcValueName) && !authBOHashMap.containsKey(dcValueName)) {
                     if (verbose) System.out.println("Auth element: " + dcValueName);
-                    authDCElementsSet.add(dcValueName);
-                    authDCElements.add(new MetadataField(dcSchema, dcValue.element, dcValue.qualifier, null));
+                    MetadataField metadataField = new MetadataField(dcSchema, dcValue.element, dcValue.qualifier, null);
+                    Community community = null;
+                    Collection collection = null;
+                    try {
+                        Collection[] collections = item.getCollections();
+                        if (collections.length > 0) collection = collections[0];
+                        Community[] communities = item.getCommunities();
+                        if (communities.length > 0) community = communities[0];
+                    } catch (SQLException e) {
+                        e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                    }
+                    InstallerEDMAuthBO installerEDMAuthBO = new InstallerEDMAuthBO(item, community, collection, dcSchema, metadataField);
+                    authBOHashMap.put(dcValueName, installerEDMAuthBO);
+                    authDCElements.add(metadataField);
                 }
             }
         }

@@ -8,6 +8,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.sql.SQLException;
+import java.util.HashMap;
 
 /**
  * Created with IntelliJ IDEA.
@@ -34,6 +35,8 @@ public abstract class InstallerEDMBase
     protected MetadataSchema dcSchema;
 
     protected MetadataField[] metadataFields;
+
+    protected HashMap<String, InstallerEDMAuthBO> authBOHashMap;
 
 
     public InstallerEDMBase(InstallerEDM installerEDM, String DspaceDir, String TomcatBase, boolean verbose)
@@ -72,6 +75,16 @@ public abstract class InstallerEDMBase
     private void checkDspaceMetadataDC() throws SQLException
     {
         metadataFields = MetadataField.findAllInSchema(context, dcSchema.getSchemaID());
+    }
+
+    public HashMap<String, InstallerEDMAuthBO> getAuthBOHashMap()
+    {
+        return authBOHashMap;
+    }
+
+    public MetadataSchema getDcSchema()
+    {
+        return dcSchema;
     }
 
 }

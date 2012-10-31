@@ -11,6 +11,7 @@ import org.dspace.handle.HandleManager;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -49,6 +50,8 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
             if (verbose) System.out.println("Number elements in schema " + DCSCHEMA + ": " + metadataFields.length);
             if (authDCElements != null) authDCElements.clear();
             else authDCElements = new ArrayList<MetadataField>();
+            if (authBOHashMap != null) authBOHashMap.clear();
+            else authBOHashMap = new HashMap<String, InstallerEDMAuthBO>();
             while (true) {
                 System.out.println("DC elements as authorities collections (a:list all authorities / l: list all dc elements / n: enter new authority / x: exit)");
                 String response = null;
@@ -214,6 +217,7 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
         language = ConfigurationManager.getProperty("default.language");
         if (language == null) language = "en";
         try {
+            String element = elementObj.getElement() + ((elementObj.getQualifier() != null)?"." + elementObj.getQualifier():"");
             Collection[] listCollections = Collection.findAll(context);
             for (Collection collection : listCollections) {
                 if (collection.getID() == collectionObj.getID()) continue;
@@ -262,17 +266,19 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                             InstallItem.installItem(context, wi, null);
                             String myhandle = HandleManager.findHandle(context, itemAuth);
                             if (myhandle.equals(itemAuth.getHandle())) {
-                                if (verbose) System.out.println("Adding metadata " + elementObj.getElement() + ((elementObj.getQualifier() != null)?"." + elementObj.getQualifier():"") + " , language: " + language + " , value: " + dcValue.value);
+                                if (verbose) System.out.println("Adding metadata " + element + " , language: " + language + " , value: " + dcValue.value);
                                 itemAuth.addMetadata(dcSchema.getName(), elementObj.getElement(), elementObj.getQualifier(), language, new String[] {dcValue.value}, new String[] {itemAuth.getHandle()}, null);
                                 itemAuth.addMetadata(dcSchema.getName(), "type", null, language, new String[] {"SKOS_AUTH"}, null, null);
                                 //collectionObj.addItem(itemAuth);
                                 itemAuth.update();
+                                InstallerEDMAuthBO installerEDMAuthBO = new InstallerEDMAuthBO(itemAuth, communityObj, collectionObj, dcSchema, elementObj);
+                                authBOHashMap.put(element, installerEDMAuthBO);
                                 context.commit();
                             } else {
                                 System.out.println("Item " + itemAuth.getID() + " with handle " + itemAuth.getHandle() + " mismatch " + myhandle);
                             }
                         }
-                    } else if (verbose) System.out.println("Collection " + collection.getName() + " item " + item.getHandle() + " has not element " + elementObj.getElement() + ((elementObj.getQualifier() != null)?"." + elementObj.getQualifier():"") + " , language: " + language);
+                    } else if (verbose) System.out.println("Collection " + collection.getName() + " item " + item.getHandle() + " has not element " + element + " , language: " + language);
                 }
             }
             return true;
@@ -462,10 +468,6 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
         return authDCElements;
     }
 
-    public MetadataSchema getDcSchema()
-    {
-        return dcSchema;
-    }
 
     @Override
     public void update(Observable o, Object arg)
