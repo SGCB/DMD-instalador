@@ -148,10 +148,10 @@ until [ $dir_ok -eq 1 ]; do
             read my_dir
         done
     fi
-    if [ -d "$my_dir/lib" ]; then
+    if [ -d "$my_dir/lib" -a -d -d "$my_dir/packages" ]; then
         dir_ok=1
     else
-        message_sub "${YELLOW}There is no lib directory in $my_dir${NC}"
+        message_sub "${YELLOW}There is no lib or packages directory in $my_dir${NC}"
     fi
 done
 
@@ -176,7 +176,7 @@ until [ $dir_ok -eq 1 ]; do
     if [ -z "$dir_space_runtime" -o ! -d "$dir_space_runtime" ]; then
         dir_space_runtime=""
         until [ -n "$dir_space_runtime" -a -d "$dir_space_runtime" ]; do
-            message_sub "${YELLOW}Directory running this install: ${NC}"
+            message_sub "${YELLOW}Directory where dspace is deployed: ${NC}"
             flush_stdin
             read dir_space_runtime
         done
@@ -184,8 +184,8 @@ until [ $dir_ok -eq 1 ]; do
     if [ -d "$dir_space_runtime/lib" -a -d "$dir_space_runtime/config" ]; then
         dir_ok=1
     else
-        test ! -d "$dir_space_runtime/lib" && message_sub "${YELLOW}There is no lib directory in $my_dir${NC}"
-        test ! -d "$dir_space_runtime/config" && message_sub "${YELLOW}There is no config directory in $my_dir${NC}"
+        test ! -d "$dir_space_runtime/lib" && message_sub "${YELLOW}There is no lib directory in $dir_space_runtime${NC}"
+        test ! -d "$dir_space_runtime/config" && message_sub "${YELLOW}There is no config directory in $dir_space_runtime${NC}"
     fi
 done
 
@@ -199,10 +199,10 @@ if [ -z "$tomcat_base" -o ! -d "$tomcat_base" ]; then
     done
 fi
 
-if [ -z "$step" -o $(echo "$step" | grep -q "^[123]$"; echo $?) -eq 1 ]; then
+if [ -z "$step" -o $(echo "$step" | grep -q "^[12345]$"; echo $?) -eq 1 ]; then
     step=""
-    until [ -n "$step" -a $(echo "$step" | grep -q "^[123]$"; echo $?) -eq 0 ]; do
-        message_sub "${YELLOW}Step must be 1 or 2 or 3. Step: ${NC}"
+    until [ -n "$step" -a $(echo "$step" | grep -q "^[12345]$"; echo $?) -eq 0 ]; do
+        message_sub "${YELLOW}Step must be 1 or 2 or 3 or 4 or 5. Step: ${NC}"
         flush_stdin
         read step
     done

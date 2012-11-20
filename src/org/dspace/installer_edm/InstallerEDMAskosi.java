@@ -121,7 +121,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase implements Observer
 
     private boolean copyDatabaseDrivers()
     {
-        String databaseDriverSourceDir = "." + System.getProperty("file.separator") + "lib" + System.getProperty("file.separator");
+        String databaseDriverSourceDir = myInstallerDirPath + System.getProperty("file.separator") + "lib" + System.getProperty("file.separator");
         File databaseDriverSourceDirFile = new File(databaseDriverSourceDir);
         if (databaseDriverSourceDirFile.exists() && databaseDriverSourceDirFile.canRead()) {
             FilenameFilter selectJdbc = new FileListFilter("jdbc", "jar");
@@ -401,7 +401,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase implements Observer
 
     public File checkPackages()
     {
-        String myDirPackages = myInstallerDirPath + "/packages";
+        String myDirPackages = myInstallerDirPath + System.getProperty("file.separator") + "packages";
         File dirPackages = new File(myDirPackages);
         if (dirPackages.exists() && dirPackages.isDirectory() && dirPackages.canRead()) {
             Iterator<File> fileIter = org.apache.commons.io.FileUtils.iterateFiles(dirPackages, null, false);
