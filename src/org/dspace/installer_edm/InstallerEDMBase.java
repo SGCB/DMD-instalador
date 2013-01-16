@@ -9,6 +9,8 @@ import java.io.File;
 import java.io.InputStreamReader;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created with IntelliJ IDEA.
@@ -26,6 +28,9 @@ public abstract class InstallerEDMBase
     protected boolean verbose = false;
     protected Context context;
 
+    protected Set<Integer> stepsSet = new HashSet<Integer>();
+
+
     protected String myInstallerDirPath;
 
     protected InputStreamReader isr;
@@ -38,6 +43,15 @@ public abstract class InstallerEDMBase
 
     protected HashMap<String, InstallerEDMAuthBO> authBOHashMap;
 
+    public InstallerEDMBase()
+    {
+        try {
+            isr = new InputStreamReader(System.in);
+            br = new BufferedReader(isr);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     public InstallerEDMBase(InstallerEDM installerEDM, String DspaceDir, String TomcatBase, boolean verbose)
     {
@@ -65,6 +79,22 @@ public abstract class InstallerEDMBase
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+
+    public void setDspaceDir(String DspaceDir)
+    {
+        this.DspaceDir = DspaceDir;
+    }
+
+    public void setTomcatBase(String TomcatBase)
+    {
+        this.TomcatBase = TomcatBase;
+    }
+
+    public void setVerbose(boolean verbose)
+    {
+        this.verbose = verbose;
     }
 
     private void checkDspaceDC() throws SQLException

@@ -17,8 +17,6 @@
 
 package org.dspace.installer_edm;
 
-import com.googlecode.lanterna.TerminalFacade;
-import com.googlecode.lanterna.terminal.Terminal;
 import org.apache.commons.cli.*;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
@@ -26,22 +24,16 @@ import org.dspace.servicemanager.DSpaceKernelImpl;
 import org.dspace.servicemanager.DSpaceKernelInit;
 
 import java.io.File;
-import java.nio.charset.Charset;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Observable;
 import java.util.Observer;
 
-public class InstallerEDM implements Observer
+public class InstallerEDM extends InstallerEDMBase implements Observer
 {
-    private static String DspaceDir = null;
-    private static String TomcatBase = null;
-    private static boolean verbose = false;
-    private static boolean isTerminal = false;
-    private static int iniStep = 1;
+    private static int iniStep = 0;
 
     private static String AskosiDataDir;
-
-    private static Terminal terminal;
 
     private static DSpaceKernelImpl kernelImpl;
 
@@ -51,12 +43,15 @@ public class InstallerEDM implements Observer
     private InstallerEDMAskosi installerEDMAskosi;
     private InstallerEDMCreateAuth installerEDMCreateAuth = null;
     private InstallerEDMConf installerEDMConf = null;
+    private InstallerEDMDisplay installerEDMDisplay;
 
 
     public static void main(String[] args)
     {
+        InstallerEDM installerEDM = new InstallerEDM();
+
         if (args.length < 1) {
-            System.out.println("You must provide at least one command argument");
+            installerEDM.getInstallerEDMDisplay().showQuestion(0, "error.commands");
             System.exit(1);
         }
 
@@ -71,24 +66,23 @@ public class InstallerEDM implements Observer
             } catch (Exception e1) {
             }
 
-            String message = "Failure during filter init: " + e.getMessage();
-            System.out.println(message + ":" + e);
+            String message = installerEDM.getInstallerEDMDisplay().getQuestion(0, "error.fail.init") + e.getMessage();
+            installerEDM.getInstallerEDMDisplay().showMessage(message + ":" + e);
             throw new IllegalStateException(message, e);
         }
 
 
-        InstallerEDM installerEDM = new InstallerEDM();
+
 
         try {
-
             CommandLineParser parser = new PosixParser();
             Options options = new Options();
-            options.addOption("d", "dspace_dir", true, "DSpace installation directory");
-            options.addOption("h", "help", false, "Help");
-            options.addOption("m", "terminal", false, "Use lanterna library for display");
-            options.addOption("s", "step", true, "Go to this installation step");
-            options.addOption("t", "tomcat_base", true, "Tomcat Base directory");
-            options.addOption("v", "verbose", false, "Verbosity");
+            options.addOption("d", "dspace_dir", true, installerEDM.getInstallerEDMDisplay().getQuestion(0, "dspace_dir.option"));
+            options.addOption("h", "help", false, installerEDM.getInstallerEDMDisplay().getQuestion(0, "help.option"));
+            options.addOption("m", "terminal", false, installerEDM.getInstallerEDMDisplay().getQuestion(0, "terminal.option"));
+            options.addOption("s", "step", true, installerEDM.getInstallerEDMDisplay().getQuestion(0, "step.option"));
+            options.addOption("t", "tomcat_base", true, installerEDM.getInstallerEDMDisplay().getQuestion(0, "tomcat_base.option"));
+            options.addOption("v", "verbose", false, installerEDM.getInstallerEDMDisplay().getQuestion(0, "verbose.option"));
 
             CommandLine line = parser.parse(options, args);
 
@@ -97,30 +91,30 @@ public class InstallerEDM implements Observer
             }
 
             if (line.hasOption('d')) {
-                 DspaceDir = line.getOptionValue('d') + System.getProperty("file.separator");
+                 installerEDM.setDspaceDir(line.getOptionValue('d') + System.getProperty("file.separator"));
             }
             if (line.hasOption('t')) {
-                TomcatBase = line.getOptionValue('t') + System.getProperty("file.separator");
+                installerEDM.setTomcatBase(line.getOptionValue('t') + System.getProperty("file.separator"));
             }
             if (line.hasOption('s')) {
                 iniStep = Integer.parseInt(line.getOptionValue('s').trim());
             }
 
             if (line.hasOption('m')) {
-                isTerminal = true;
+                installerEDM.getInstallerEDMDisplay().setIsTerminal(true);
             }
 
             if (line.hasOption('v')) {
-                verbose = true;
+                installerEDM.setVerbose(true);
             }
 
-            if (DspaceDir == null) {
-                System.out.println("The DSpace installation directory is no defined!!");
+            if (installerEDM.DspaceDir == null) {
+                installerEDM.getInstallerEDMDisplay().getQuestion(0, "error.dspace.dir");
                 installerEDM.HelpInstallerEDM(options);
             }
 
-            if (TomcatBase == null) {
-                System.out.println("The Tomcat Base directory is no defined!!");
+            if (installerEDM.TomcatBase == null) {
+                installerEDM.getInstallerEDMDisplay().getQuestion(0, "error.tomcat.base");
                 installerEDM.HelpInstallerEDM(options);
             }
 
@@ -130,71 +124,105 @@ public class InstallerEDM implements Observer
             System.out.println("");
             e.printStackTrace();
         } finally {
-            if (terminal != null) terminal.exitPrivateMode();
+            installerEDM.finishInstaller();
         }
     }
 
     public InstallerEDM()
     {
+        installerEDMDisplay = new InstallerEDMDisplayImpl();
         sh = new MySignalHandler();
         sh.addObserver(this);
         sh.handleSignal("INT");
 
         mySH = new MyShutdown(this);
         Runtime.getRuntime().addShutdownHook(mySH);
+    }
 
-        if (isTerminal) {
-            terminal = TerminalFacade.createTerminal(Charset.forName("UTF8"));
-            terminal.enterPrivateMode();
-            //TerminalSize screenSize = terminal.getTerminalSize();
-            terminal.clearScreen();
-        }
+
+    public InstallerEDMDisplayImpl getInstallerEDMDisplay()
+    {
+        return (InstallerEDMDisplayImpl) installerEDMDisplay;
+    }
+
+    public void finishInstaller()
+    {
+        getInstallerEDMDisplay().exitTerminal();
+        System.exit(0);
     }
 
 
     private void installEDM()
     {
+        try {
+            String[] stepsDisplay = installerEDMDisplay.getQuestion(0, "steps").split(",");
+            for (String stepDisplay: stepsDisplay) {
+                stepsSet.add(Integer.getInteger(stepDisplay));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            finishInstaller();
+        }
         Context context = null;
         try {
             context = new Context();
         } catch (SQLException e) {
+            installerEDMDisplay.showLn();
+            installerEDMDisplay.showQuestion(0, "step.fail");
             e.printStackTrace();
         }
         installerEDMAskosi = new InstallerEDMAskosi(this, DspaceDir, TomcatBase, verbose);
         sh.addObserver( installerEDMAskosi );
+        installEDM(iniStep);
+    }
+
+    private void installEDM(int step)
+    {
         File dirPackage;
-        if (iniStep > 0) {
-            if (iniStep == 1) {
-                if (verbose) System.out.println("Beginning step 1: Installing Askosi");
+        if (step > 0) {
+            if (step == 1) {
+                if (verbose) installerEDMDisplay.showTitle(1);
                 if ((dirPackage = installerEDMAskosi.checkPackages()) != null && installerEDMAskosi.installPackages(dirPackage)) {
-                    System.out.println("");
-                    System.out.println("Askosi installed ok. Tomcat must be restarted after the end of the installation process.");
+                    installerEDMDisplay.showLn();
+                    installerEDMDisplay.showQuestion(1, "ok");
                     iniStep++;
                 } else {
-                    System.out.println("");
-                    System.out.println("Failed to complete step 1.");
+                    installerEDMDisplay.showLn();
+                    installerEDMDisplay.showQuestion(1, "fail");
                 }
             }
 
-            if (iniStep == 2) {
-                if (verbose) System.out.println("Beginning step 2: Create Auth Items");
+            if (step == 2) {
+                if (verbose) installerEDMDisplay.showTitle(2);
                 installerEDMCreateAuth = new InstallerEDMCreateAuth(this, context, DspaceDir, TomcatBase, verbose);
                 sh.addObserver( installerEDMCreateAuth );
                 if (installerEDMCreateAuth.createAuth()) iniStep++;
                 else {
-                    System.out.println("");
-                    System.out.println("Failed to complete step 2.");
+                    installerEDMDisplay.showLn();
+                    installerEDMDisplay.showQuestion(2, "fail");
                 }
             }
 
-            if (iniStep == 3) {
-                if (verbose) System.out.println("Beginning step 3: Configuring Dspace and Askosi");
-                installerEDMConf =new  InstallerEDMConf(this, context, DspaceDir, TomcatBase, verbose);
+            if (step == 3) {
+                if (verbose) installerEDMDisplay.showTitle(3);
+                installerEDMConf = new  InstallerEDMConf(this, context, DspaceDir, TomcatBase, verbose);
                 installerEDMConf.configureAll();
             }
         } else {
-            System.out.println("");
-            System.out.println("Step not ok.");
+            while (true) {
+                installerEDMDisplay.showLn();
+                installerEDMDisplay.showMenu(0);
+                String response = null;
+                try {
+                    response = br.readLine();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                if ((response != null) && !response.isEmpty() && stepsSet.contains(Integer.decode(response))) {
+                    response = response.trim();
+
+                }
+            }
         }
     }
 
@@ -210,17 +238,8 @@ public class InstallerEDM implements Observer
         InstallerEDM.AskosiDataDir = AskosiDataDir;
     }
 
-    static public Terminal getTerminal()
-    {
-        return terminal;
-    }
 
-    static public boolean getIsTerminal()
-    {
-        return isTerminal;
-    }
-
-    static public boolean getVerbose()
+    public boolean getVerbose()
     {
         return verbose;
     }
@@ -270,9 +289,8 @@ class MyShutdown extends Thread
 
     @Override public void run()
     {
-        if (InstallerEDM.getVerbose()) System.out.println("MyShutdown hook called");
-        Terminal terminal = installerEDM.getTerminal();
-        if (terminal != null) terminal.exitPrivateMode();
+        if (installerEDM.getVerbose()) installerEDM.getInstallerEDMDisplay().showQuestion(0, "shutdown.hook");
+        installerEDM.finishInstaller();
         DSpaceKernelImpl kernelImpl = InstallerEDM.getKernelImpl();
         if (kernelImpl != null) kernelImpl.destroy();
     }

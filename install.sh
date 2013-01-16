@@ -148,7 +148,7 @@ until [ $dir_ok -eq 1 ]; do
             read my_dir
         done
     fi
-    if [ -d "$my_dir/lib" -a -d -d "$my_dir/packages" ]; then
+    if [ -d "$my_dir/lib" -a -d "$my_dir/packages" ]; then
         dir_ok=1
     else
         message_sub "${YELLOW}There is no lib or packages directory in $my_dir${NC}"
