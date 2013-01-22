@@ -199,10 +199,10 @@ if [ -z "$tomcat_base" -o ! -d "$tomcat_base" ]; then
     done
 fi
 
-if [ -z "$step" -o $(echo "$step" | grep -q "^[12345]$"; echo $?) -eq 1 ]; then
+if [ -z "$step" -o $(echo "$step" | grep -q "^[012345]$"; echo $?) -eq 1 ]; then
     step=""
-    until [ -n "$step" -a $(echo "$step" | grep -q "^[12345]$"; echo $?) -eq 0 ]; do
-        message_sub "${YELLOW}Step must be 1 or 2 or 3 or 4 or 5. Step: ${NC}"
+    until [ -n "$step" -a $(echo "$step" | grep -q "^[012345]$"; echo $?) -eq 0 ]; do
+        message_sub "${YELLOW}Step must be 0 or 1 or 2 or 3 or 4 or 5. Step: ${NC}"
         flush_stdin
         read step
     done

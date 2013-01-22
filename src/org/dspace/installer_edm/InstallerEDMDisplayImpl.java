@@ -41,7 +41,7 @@ public class InstallerEDMDisplayImpl implements InstallerEDMDisplay
     @Override
     public void showMenu(int stage)
     {
-        String key = Integer.toString(stage);
+        String key = Integer.toString(stage) + ".menu";
         if (properties.containsKey(key)) {
             String[] lista = properties.getProperty(key).split("\\|");
             if (lista.length > 0)
@@ -94,7 +94,7 @@ public class InstallerEDMDisplayImpl implements InstallerEDMDisplay
 
     public void exitTerminal()
     {
-        terminal.exitPrivateMode();
+        if (isTerminal) terminal.exitPrivateMode();
     }
 
     public void setIsTerminal(boolean isTerminal)

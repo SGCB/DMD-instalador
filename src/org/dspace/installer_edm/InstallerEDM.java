@@ -26,10 +26,8 @@ import org.dspace.servicemanager.DSpaceKernelInit;
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.Observable;
-import java.util.Observer;
 
-public class InstallerEDM extends InstallerEDMBase implements Observer
+public class InstallerEDM extends InstallerEDMBase
 {
     private static int iniStep = 0;
 
@@ -43,7 +41,6 @@ public class InstallerEDM extends InstallerEDMBase implements Observer
     private InstallerEDMAskosi installerEDMAskosi;
     private InstallerEDMCreateAuth installerEDMCreateAuth = null;
     private InstallerEDMConf installerEDMConf = null;
-    private InstallerEDMDisplay installerEDMDisplay;
 
 
     public static void main(String[] args)
@@ -130,7 +127,7 @@ public class InstallerEDM extends InstallerEDMBase implements Observer
 
     public InstallerEDM()
     {
-        installerEDMDisplay = new InstallerEDMDisplayImpl();
+        super();
         sh = new MySignalHandler();
         sh.addObserver(this);
         sh.handleSignal("INT");
@@ -140,14 +137,14 @@ public class InstallerEDM extends InstallerEDMBase implements Observer
     }
 
 
-    public InstallerEDMDisplayImpl getInstallerEDMDisplay()
-    {
-        return (InstallerEDMDisplayImpl) installerEDMDisplay;
-    }
-
     public void finishInstaller()
     {
-        getInstallerEDMDisplay().exitTerminal();
+        try {
+            ((InstallerEDMDisplayImpl) installerEDMDisplay).exitTerminal();
+        } catch (Exception e) {
+            System.out.println("");
+            e.printStackTrace();
+        }
         System.exit(0);
     }
 
@@ -157,7 +154,7 @@ public class InstallerEDM extends InstallerEDMBase implements Observer
         try {
             String[] stepsDisplay = installerEDMDisplay.getQuestion(0, "steps").split(",");
             for (String stepDisplay: stepsDisplay) {
-                stepsSet.add(Integer.getInteger(stepDisplay));
+                stepsSet.add(Integer.parseInt(stepDisplay.trim()));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -209,6 +206,7 @@ public class InstallerEDM extends InstallerEDMBase implements Observer
                 installerEDMConf.configureAll();
             }
         } else {
+            installerEDMDisplay.showTitle(0);
             while (true) {
                 installerEDMDisplay.showLn();
                 installerEDMDisplay.showMenu(0);
@@ -220,7 +218,7 @@ public class InstallerEDM extends InstallerEDMBase implements Observer
                 }
                 if ((response != null) && !response.isEmpty() && stepsSet.contains(Integer.decode(response))) {
                     response = response.trim();
-
+                    installEDM(Integer.parseInt(response));
                 }
             }
         }
@@ -235,7 +233,7 @@ public class InstallerEDM extends InstallerEDMBase implements Observer
 
     static public void setAskosiDataDir(String askosiDataDir)
     {
-        InstallerEDM.AskosiDataDir = AskosiDataDir;
+        InstallerEDM.AskosiDataDir = askosiDataDir;
     }
 
 
@@ -268,12 +266,6 @@ public class InstallerEDM extends InstallerEDMBase implements Observer
         return installerEDMConf;
     }
 
-    @Override
-    public void update(Observable o, Object arg)
-    {
-        System.out.println( "Received signal: " + arg );
-        System.exit(0);
-    }
 }
 
 

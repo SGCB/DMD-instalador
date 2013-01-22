@@ -8,9 +8,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -19,22 +17,24 @@ import java.util.Set;
  * Time: 11:30
  * To change this template use File | Settings | File Templates.
  */
-public abstract class InstallerEDMBase
+public abstract class InstallerEDMBase implements Observer
 {
     protected InstallerEDM installerEDM;
 
-    protected String DspaceDir = null;
-    protected String TomcatBase = null;
+    protected static String DspaceDir = null;
+    protected static String TomcatBase = null;
     protected boolean verbose = false;
-    protected Context context;
+    protected static Context context = null;
 
-    protected Set<Integer> stepsSet = new HashSet<Integer>();
+    protected static Set<Integer> stepsSet = new HashSet<Integer>();
+
+    protected static InstallerEDMDisplay installerEDMDisplay = null;
 
 
-    protected String myInstallerDirPath;
+    protected static String myInstallerDirPath = null;
 
-    protected InputStreamReader isr;
-    protected BufferedReader br;
+    protected static InputStreamReader isr = null;
+    protected static BufferedReader br = null;
 
     protected final String DCSCHEMA = "http://dublincore.org/documents/dcmi-terms/";
     protected MetadataSchema dcSchema;
@@ -46,8 +46,9 @@ public abstract class InstallerEDMBase
     public InstallerEDMBase()
     {
         try {
-            isr = new InputStreamReader(System.in);
-            br = new BufferedReader(isr);
+            if (installerEDMDisplay == null) installerEDMDisplay = new InstallerEDMDisplayImpl();
+            if (isr == null) isr = new InputStreamReader(System.in);
+            if (br == null) br = new BufferedReader(isr);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -55,14 +56,13 @@ public abstract class InstallerEDMBase
 
     public InstallerEDMBase(InstallerEDM installerEDM, String DspaceDir, String TomcatBase, boolean verbose)
     {
+        this();
         this.installerEDM = installerEDM;
-        this.DspaceDir = DspaceDir;
-        this.TomcatBase = TomcatBase;
+        if (this.DspaceDir == null) this.DspaceDir = DspaceDir;
+        if (this.TomcatBase == null) this.TomcatBase = TomcatBase;
         this.verbose = verbose;
         try {
-            myInstallerDirPath = new File(".").getAbsolutePath();
-            isr = new InputStreamReader(System.in);
-            br = new BufferedReader(isr);
+            if (myInstallerDirPath == null) myInstallerDirPath = new File(".").getAbsolutePath();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -72,7 +72,7 @@ public abstract class InstallerEDMBase
     public InstallerEDMBase(InstallerEDM installerEDM, Context context, String DspaceDir, String TomcatBase, boolean verbose)
     {
         this(installerEDM, DspaceDir, TomcatBase, verbose);
-        this.context = context;
+        if (this.context == null) this.context = context;
         try {
             checkDspaceDC();
             checkDspaceMetadataDC();
@@ -116,5 +116,18 @@ public abstract class InstallerEDMBase
     {
         return dcSchema;
     }
+
+    public static InstallerEDMDisplayImpl getInstallerEDMDisplay()
+    {
+        return (InstallerEDMDisplayImpl) installerEDMDisplay;
+    }
+
+    @Override
+    public void update(Observable o, Object arg)
+    {
+        System.out.println( "Received signal: " + arg );
+        System.exit(0);
+    }
+
 
 }

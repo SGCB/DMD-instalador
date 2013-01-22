@@ -105,11 +105,11 @@ if %argC% == 0 call:help_sub
     set or_=
     if "%step%" == "" set or_=true
     if %step% gtr 5 set or_=true
-    if %step% lss 1 set or_=true
+    if %step% lss 0 set or_=true
     if defined or_ (
-        set step=1
+        set step=0
         set response=
-        set /P response=Step 1,2,3,4,5: 
+        set /P response=Step 0 1,2,3,4,5: 
         if not "%response%" == "" ( 
             set /A step=!response!
         )
