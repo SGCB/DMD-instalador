@@ -19,11 +19,12 @@ import java.util.*;
  */
 public abstract class InstallerEDMBase implements Observer
 {
-    protected InstallerEDM installerEDM;
+    protected static InstallerEDM installerEDM;
 
     protected static String DspaceDir = null;
     protected static String TomcatBase = null;
-    protected boolean verbose = false;
+    protected static String AskosiDataDir;
+    protected static boolean verbose = false;
     protected static Context context = null;
 
     protected static Set<Integer> stepsSet = new HashSet<Integer>();
@@ -46,41 +47,24 @@ public abstract class InstallerEDMBase implements Observer
     public InstallerEDMBase()
     {
         try {
+            context = new Context();
             if (installerEDMDisplay == null) installerEDMDisplay = new InstallerEDMDisplayImpl();
             if (isr == null) isr = new InputStreamReader(System.in);
             if (br == null) br = new BufferedReader(isr);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public InstallerEDMBase(InstallerEDM installerEDM, String DspaceDir, String TomcatBase, boolean verbose)
-    {
-        this();
-        this.installerEDM = installerEDM;
-        if (this.DspaceDir == null) this.DspaceDir = DspaceDir;
-        if (this.TomcatBase == null) this.TomcatBase = TomcatBase;
-        this.verbose = verbose;
-        try {
             if (myInstallerDirPath == null) myInstallerDirPath = new File(".").getAbsolutePath();
+        } catch (SQLException e) {
+            installerEDMDisplay.showLn();
+            installerEDMDisplay.showQuestion(0, "step.fail");
+            e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-
-    public InstallerEDMBase(InstallerEDM installerEDM, Context context, String DspaceDir, String TomcatBase, boolean verbose)
+    public void setInstallerEDMBase(InstallerEDM installerEDM)
     {
-        this(installerEDM, DspaceDir, TomcatBase, verbose);
-        if (this.context == null) this.context = context;
-        try {
-            checkDspaceDC();
-            checkDspaceMetadataDC();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        this.installerEDM = installerEDM;
     }
-
 
     public void setDspaceDir(String DspaceDir)
     {
@@ -90,6 +74,11 @@ public abstract class InstallerEDMBase implements Observer
     public void setTomcatBase(String TomcatBase)
     {
         this.TomcatBase = TomcatBase;
+    }
+
+    public void setAskosiDataDir(String askosiDataDir)
+    {
+        this.AskosiDataDir = askosiDataDir;
     }
 
     public void setVerbose(boolean verbose)

@@ -31,8 +31,6 @@ public class InstallerEDM extends InstallerEDMBase
 {
     private static int iniStep = 0;
 
-    private static String AskosiDataDir;
-
     private static DSpaceKernelImpl kernelImpl;
 
     final private MyShutdown mySH;
@@ -128,6 +126,7 @@ public class InstallerEDM extends InstallerEDMBase
     public InstallerEDM()
     {
         super();
+        setInstallerEDMBase(this);
         sh = new MySignalHandler();
         sh.addObserver(this);
         sh.handleSignal("INT");
@@ -145,7 +144,6 @@ public class InstallerEDM extends InstallerEDMBase
             System.out.println("");
             e.printStackTrace();
         }
-        System.exit(0);
     }
 
 
@@ -160,15 +158,7 @@ public class InstallerEDM extends InstallerEDMBase
             e.printStackTrace();
             finishInstaller();
         }
-        Context context = null;
-        try {
-            context = new Context();
-        } catch (SQLException e) {
-            installerEDMDisplay.showLn();
-            installerEDMDisplay.showQuestion(0, "step.fail");
-            e.printStackTrace();
-        }
-        installerEDMAskosi = new InstallerEDMAskosi(this, DspaceDir, TomcatBase, verbose);
+        installerEDMAskosi = new InstallerEDMAskosi();
         sh.addObserver( installerEDMAskosi );
         installEDM(iniStep);
     }
@@ -191,7 +181,7 @@ public class InstallerEDM extends InstallerEDMBase
 
             if (step == 2) {
                 if (verbose) installerEDMDisplay.showTitle(2);
-                installerEDMCreateAuth = new InstallerEDMCreateAuth(this, context, DspaceDir, TomcatBase, verbose);
+                installerEDMCreateAuth = new InstallerEDMCreateAuth();
                 sh.addObserver( installerEDMCreateAuth );
                 if (installerEDMCreateAuth.createAuth()) iniStep++;
                 else {
@@ -202,7 +192,7 @@ public class InstallerEDM extends InstallerEDMBase
 
             if (step == 3) {
                 if (verbose) installerEDMDisplay.showTitle(3);
-                installerEDMConf = new  InstallerEDMConf(this, context, DspaceDir, TomcatBase, verbose);
+                installerEDMConf =new  InstallerEDMConf();
                 installerEDMConf.configureAll();
             }
         } else {
@@ -229,11 +219,6 @@ public class InstallerEDM extends InstallerEDMBase
         HelpFormatter myhelp = new HelpFormatter();
         myhelp.printHelp("InstallerEDM\n", options);
         System.exit(0);
-    }
-
-    static public void setAskosiDataDir(String askosiDataDir)
-    {
-        InstallerEDM.AskosiDataDir = askosiDataDir;
     }
 
 
@@ -282,8 +267,8 @@ class MyShutdown extends Thread
     @Override public void run()
     {
         if (installerEDM.getVerbose()) installerEDM.getInstallerEDMDisplay().showQuestion(0, "shutdown.hook");
-        installerEDM.finishInstaller();
         DSpaceKernelImpl kernelImpl = InstallerEDM.getKernelImpl();
         if (kernelImpl != null) kernelImpl.destroy();
+        installerEDM.finishInstaller();
     }
 }

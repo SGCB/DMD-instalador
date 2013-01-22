@@ -16,6 +16,10 @@ public interface InstallerEDMDisplay
 
     public String getQuestion(int stage, String code);
 
+    public String getQuestion(int stage, String code, String[] args);
+
+    public void showQuestion(int stage, String code, String[] args);
+
     public void showQuestion(int stage, String code);
 
     public void showMessage(String message);

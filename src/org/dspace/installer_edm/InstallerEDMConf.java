@@ -25,9 +25,9 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
     private Set<String> elementsNotAuthSet;
 
 
-    public InstallerEDMConf(InstallerEDM installerEDM, Context context, String DspaceDir, String TomcatBase, boolean verbose)
+    public InstallerEDMConf()
     {
-        super(installerEDM, context, DspaceDir, TomcatBase, verbose);
+        super();
         elementsNotAuthSet = new HashSet<String>();
         Collections.addAll(elementsNotAuthSet, elementsNotAuth);
     }
@@ -53,7 +53,7 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
                 File dspaceInputFormsFile = new File(dspaceInputFormsName);
                 if (dspaceInputFormsFile.exists() && dspaceInputFormsFile.canRead()) {
                     configureInputFormsDspace(dspaceInputFormsFile, new File(myInstallerDirPath + System.getProperty("file.separator") + "input-forms.xml"), authDCElements);
-                } else System.out.println("There is not exist " + dspaceInputFormsName + " or is not readable.");
+                } else installerEDMDisplay.showMessage(dspaceInputFormsName + installerEDMDisplay.getQuestion(3, "configureAll.inputform.notexist"));
             } catch (SQLException e) {
                 e.printStackTrace();
             } catch (FileNotFoundException e) {
@@ -61,17 +61,17 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        } else System.out.println("There is not exist " + dspaceDirConfName + " or is not readable, or the current directory " + dspaceDirConfNewFile.getAbsolutePath() + " is not writable.");
+        } else installerEDMDisplay.showQuestion(3, "configureAll.dspacedirconf.notexist", new String [] {dspaceDirConfName, dspaceDirConfNewFile.getAbsolutePath()});
         return false;
     }
 
 
     private void configureInputFormsDspace(File dspaceInputFormsFile, File dspaceInputFormsNewFile, ArrayList<MetadataField> authDCElements) throws IOException
     {
-        System.out.println("");
-        System.out.println("Creating new input-forms.xml in " + myInstallerDirPath + " to add the authorities.\nWhen you have checked the file, replace " + dspaceInputFormsFile.getAbsolutePath() + " with this new one.");
+        installerEDMDisplay.showLn();
+        installerEDMDisplay.showQuestion(3, "configureInputFormsDspace.inputforms.add", new String [] {myInstallerDirPath, dspaceInputFormsFile.getAbsolutePath()});
         if (dspaceInputFormsNewFile.exists()) {
-            System.out.println("There is already a file " + dspaceInputFormsNewFile.getAbsolutePath() + ". Replace it ([y]/n)?");
+            installerEDMDisplay.showMessage(dspaceInputFormsNewFile.getAbsolutePath() + installerEDMDisplay.getQuestion(3, "configureInputFormsDspace.inpuforms.file.exists"));
             String response = null;
             do {
                 response = br.readLine();
@@ -97,10 +97,10 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
 
     private void configureDspaceCfg(File dspaceDirConfFile, File dspaceDirConfNewFile, ArrayList<MetadataField> authDCElements) throws FileNotFoundException, IndexOutOfBoundsException, IOException, NullPointerException
     {
-        System.out.println("");
-        System.out.println("Creating new configuration dspace.cfg in " + myInstallerDirPath + " to add the authorities.\nWhen you have checked the file, replace " + dspaceDirConfFile.getAbsolutePath() + " with this new one.");
+        installerEDMDisplay.showLn();
+        installerEDMDisplay.showQuestion(3, "configureDspaceCfg.dspacecfg.add", new String [] {myInstallerDirPath, dspaceDirConfFile.getAbsolutePath()});
         if (dspaceDirConfNewFile.exists()) {
-            System.out.println("There is already a file " + dspaceDirConfNewFile.getAbsolutePath() + ". Replace it ([y]/n)?");
+            installerEDMDisplay.showMessage(dspaceDirConfNewFile.getAbsolutePath() + installerEDMDisplay.getQuestion(3, "configureDspaceCfg.dspacecfg.file.exists"));
             String response = null;
             do {
                 response = br.readLine();
@@ -121,14 +121,14 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
             File askosiDataDestDirFile = null;
             if (askosiDataDir != null) askosiDataDestDirFile = new File(askosiDataDir);
             if (askosiDataDestDirFile != null && askosiDataDestDirFile.exists() && askosiDataDestDirFile.canRead()) {
-                if (verbose) System.out.println("Askosi data directory: " + askosiDataDir);
+                if (verbose) installerEDMDisplay.showMessage(installerEDMDisplay.getQuestion(3, "configureDspaceCfg.askosidatadir") + askosiDataDir);
             } else {
                 askosiDataDir = null;
                 if (installerEDM.getInstallerEDMAskosi() != null && installerEDM.getInstallerEDMAskosi().getFinalAskosiDataDestDirFile() != null) {
                     askosiDataDestDirFile = installerEDM.getInstallerEDMAskosi().getFinalAskosiDataDestDirFile();
-                    if (verbose) System.out.println("Askosi data directory: " + askosiDataDestDirFile.getAbsolutePath());
+                    if (verbose) installerEDMDisplay.showMessage(installerEDMDisplay.getQuestion(3, "configureDspaceCfg.askosidatadir") + askosiDataDestDirFile.getAbsolutePath());
                 } else {
-                    System.out.println("Askosi data directory: ");
+                    installerEDMDisplay.showQuestion(3, "configureDspaceCfg.askosidatadir");
                     String response = null;
                     do {
                         response = br.readLine();
@@ -152,15 +152,15 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
                     boolean isOk = false;
                     if (authDCElementsSetWritten.containsKey(element)) {
                         if (authDCElementsSetWritten.get(element).intValue() == 3) isOk = true;
-                        else if (verbose) System.out.println("Element " + element + " is not properly configured. The correct one is going to be added. Please remove the incorrect one.");
+                        else if (verbose) installerEDMDisplay.showMessage(element + installerEDMDisplay.getQuestion(3, "configureDspaceCfg.element.incorrect"));
                     }
                     if (!isOk) {
                         if (!writeDspaceCfg(out, element)) {
-                            System.out.println("Element " + element + " failed to be added.");
-                        } else if (verbose) System.out.println("Added element " + element);
+                            installerEDMDisplay.showMessage(element + installerEDMDisplay.getQuestion(3, "configureDspaceCfg.element.add.fail"));
+                        } else if (verbose) installerEDMDisplay.showMessage(element + installerEDMDisplay.getQuestion(3, "configureDspaceCfg.element.add"));
                     }
                 }
-            } else if (verbose) System.out.println("Nothing added.");
+            } else if (verbose) installerEDMDisplay.showQuestion(3, "configureDspaceCfg.nothing.add");
         } finally {
             out.close();
         }
@@ -188,7 +188,7 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
                     Matcher matcherAskosiDir = patternAskosiDir.matcher(line);
                     if (matcherAskosiDir.find()) {
                          dataDir = (String) matcherAskosiDir.group(1);
-                        if (verbose) System.out.println("Found line: " + line + " with data dir " + dataDir);
+                        if (verbose) installerEDMDisplay.showQuestion(3, "readDspaceCfg.line.found.data", new String[] {line, dataDir});
                     }
                 }
                 if (!patternAskosiAuthPluginRead) {
@@ -196,7 +196,7 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
                     if (matcherAskosiAuthPlugin.find()) {
                         patternAskosiAuthPluginRead = true;
                         String content = (String) matcherAskosiAuthPlugin.group(1);
-                        if (verbose) System.out.println("Found line: " + line + " with content " + content);
+                        if (verbose) installerEDMDisplay.showQuestion(3, "readDspaceCfg.line.found.content", new String[] {line, content});
                         Matcher matcherAskosiAuthPluginBe = patternAskosiAuthPluginBe.matcher(content);
                         if (matcherAskosiAuthPluginBe.find()) {
                             patternAskosiAuthPluginBeRead = true;
@@ -206,7 +206,7 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
                 if (!patternAskosiAuthPluginBeRead) {
                     Matcher matcherAskosiAuthPluginBe = patternAskosiAuthPluginBe.matcher(line);
                     if (matcherAskosiAuthPluginBe.find()) {
-                        if (verbose) System.out.println("Found line: " + line);
+                        if (verbose) installerEDMDisplay.showMessage(installerEDMDisplay.getQuestion(3, "readDspaceCfg.line.found") + line);
                         patternAskosiAuthPluginBeRead = true;
                     }
                 }
@@ -215,7 +215,7 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
                 if (matcherPlugin.find()) {
                     String element = (String) matcherPlugin.group(1);
                     if (authBOHashMap.containsKey(element)) {
-                        if (verbose) System.out.println("Found line: " + line + " with element " + element);
+                        if (verbose) installerEDMDisplay.showQuestion(3, "readDspaceCfg.line.found.element", new String[] {line, element});
                         if (authDCElementsSetWritten.containsKey(element)) {
                             int valor = authDCElementsSetWritten.get(element).intValue() + 1;
                             authDCElementsSetWritten.put(element, Integer.valueOf(valor));
@@ -226,7 +226,7 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
                     if (matcherPresentation.find()) {
                         String element = (String) matcherPresentation.group(1);
                         if (authBOHashMap.containsKey(element)) {
-                            if (verbose) System.out.println("Found line: " + line + " with element " + element);
+                            if (verbose) installerEDMDisplay.showQuestion(3, "readDspaceCfg.line.found.element", new String[] {line, element});
                             if (authDCElementsSetWritten.containsKey(element)) {
                                 int valor = authDCElementsSetWritten.get(element).intValue() + 1;
                                 authDCElementsSetWritten.put(element, Integer.valueOf(valor));
@@ -237,7 +237,7 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
                         if (matcherControlled.find()) {
                             String element = (String) matcherControlled.group(1);
                             if (authBOHashMap.containsKey(element)) {
-                                if (verbose) System.out.println("Found line: " + line + " with element " + element);
+                                if (verbose) installerEDMDisplay.showQuestion(3, "readDspaceCfg.line.found.element", new String[] {line, element});
                                 if (authDCElementsSetWritten.containsKey(element)) {
                                     int valor = authDCElementsSetWritten.get(element).intValue() + 1;
                                     authDCElementsSetWritten.put(element, Integer.valueOf(valor));
@@ -273,14 +273,14 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
         language = ConfigurationManager.getProperty("default.language");
         if (language == null) language = "en";
         Collection[] listCollections = Collection.findAll(context);
-        if (verbose) System.out.println("Searching auth elements in " + listCollections.length + " collections.");
+        if (verbose) installerEDMDisplay.showQuestion(3, "checkAllSkosAuthElements.searching.elements", new String[] {String.valueOf(listCollections.length)});
         if (listCollections.length > 0) {
             for (Collection collection : listCollections) {
-                if (verbose) System.out.println("Searching auth elements in collection: " + collection.getName() + " " + collection.getHandle());
+                if (verbose) installerEDMDisplay.showMessage(installerEDMDisplay.getQuestion(3, "checkAllSkosAuthElements.searching.elements.collection") + collection.getName() + " " + collection.getHandle());
                 ItemIterator iter = collection.getAllItems();
                 while (iter.hasNext()) {
                     Item item = iter.next();
-                    if (verbose) System.out.println("Searching auth elements in item: " + item.getName() + " " + item.getHandle());
+                    if (verbose) installerEDMDisplay.showMessage(installerEDMDisplay.getQuestion(3, "checkAllSkosAuthElements.searching.elements.item") + item.getName() + " " + item.getHandle());
                     DCValue[] listDCTypeValues = item.getMetadata(dcSchema.getName(), "type", null, language);
                     if (listDCTypeValues.length > 0) {
                         for (DCValue dcTypeValue : listDCTypeValues) {
@@ -299,13 +299,13 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
     private void checkSkosAuthItem(ArrayList<MetadataField> authDCElements, Item item)
     {
         DCValue[] listDCValues = item.getMetadata(dcSchema.getName() + ".*.*");
-        if (verbose) System.out.println("Elements: " + listDCValues.length);
+        if (verbose) installerEDMDisplay.showMessage(installerEDMDisplay.getQuestion(3, "checkSkosAuthItem.elements") + listDCValues.length);
         if (listDCValues.length > 0) {
             for (DCValue dcValue : listDCValues) {
                 if (dcValue.value == null || dcValue.value.isEmpty()) continue;
                 String dcValueName = dcValue.element + ((dcValue.qualifier != null && !dcValue.qualifier.isEmpty())?"." + dcValue.qualifier:"");
                 if (!elementsNotAuthSet.contains(dcValueName) && !authBOHashMap.containsKey(dcValueName)) {
-                    if (verbose) System.out.println("Auth element: " + dcValueName);
+                    if (verbose) installerEDMDisplay.showMessage(installerEDMDisplay.getQuestion(3, "checkSkosAuthItem.element") + dcValueName);
                     MetadataField metadataField = new MetadataField(dcSchema, dcValue.element, dcValue.qualifier, null);
                     Community community = null;
                     Collection collection = null;
