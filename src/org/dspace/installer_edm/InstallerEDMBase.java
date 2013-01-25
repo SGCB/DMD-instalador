@@ -38,7 +38,7 @@ public abstract class InstallerEDMBase implements Observer
     protected static BufferedReader br = null;
 
     protected final String DCSCHEMA = "http://dublincore.org/documents/dcmi-terms/";
-    protected MetadataSchema dcSchema;
+    protected MetadataSchema dcSchema = null;
 
     protected MetadataField[] metadataFields;
 
@@ -52,6 +52,7 @@ public abstract class InstallerEDMBase implements Observer
             if (isr == null) isr = new InputStreamReader(System.in);
             if (br == null) br = new BufferedReader(isr);
             if (myInstallerDirPath == null) myInstallerDirPath = new File(".").getAbsolutePath();
+            checkDspaceDC();
         } catch (SQLException e) {
             installerEDMDisplay.showLn();
             installerEDMDisplay.showQuestion(0, "step.fail");
@@ -88,7 +89,7 @@ public abstract class InstallerEDMBase implements Observer
 
     private void checkDspaceDC() throws SQLException
     {
-        dcSchema = MetadataSchema.findByNamespace(context, DCSCHEMA);
+        if (dcSchema == null) dcSchema = MetadataSchema.findByNamespace(context, DCSCHEMA);
     }
 
     private void checkDspaceMetadataDC() throws SQLException

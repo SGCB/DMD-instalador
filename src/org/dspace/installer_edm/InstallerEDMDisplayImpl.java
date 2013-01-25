@@ -68,7 +68,8 @@ public class InstallerEDMDisplayImpl implements InstallerEDMDisplay
         if (args == null || args.length == 0) return getQuestion(stage, code);
         String text = getQuestion(stage, code);
         for (String arg : args) {
-            text.replaceFirst("#\\?#", arg);
+            arg = arg.replaceAll("\\\\[^\\\\]*",  " ");
+            text = text.replaceFirst("#\\?#", arg);
         }
         return text;
     }
@@ -86,9 +87,9 @@ public class InstallerEDMDisplayImpl implements InstallerEDMDisplay
     @Override
     public void showQuestion(int stage, String code)
     {
-        String key = Integer.toString(stage) + "." + code;
-        if (properties.containsKey(key)) {
-            if (!isTerminal) System.out.println(properties.getProperty(key));
+        String text = getQuestion(stage, code);
+        if (!text.isEmpty()) {
+            if (!isTerminal) System.out.println(text);
         }
     }
 

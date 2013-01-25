@@ -27,7 +27,7 @@ public class LoadFileMessages extends ResourceBundle
         this.fileName = fileName;
         if (Locale.getDefault() == null) Locale.setDefault(Locale.ENGLISH);
         try {
-        setParent(ResourceBundle.getBundle(fileName, Locale.getDefault(), UTF8_CONTROL));
+            setParent(ResourceBundle.getBundle(fileName, Locale.getDefault(), UTF8_CONTROL));
         } catch (java.util.MissingResourceException e) {
             setParent(ResourceBundle.getBundle(fileName, Locale.ENGLISH, UTF8_CONTROL));
         }

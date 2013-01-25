@@ -4,6 +4,21 @@ import org.dspace.content.Collection;
 import org.dspace.content.*;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
+import org.w3c.dom.*;
+import org.xml.sax.InputSource;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.*;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathFactory;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+
+import org.xml.sax.SAXException;
 
 import java.io.*;
 import java.sql.SQLException;
@@ -22,13 +37,16 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
 {
 
     private final String[] elementsNotAuth = {"identifier.uri", "date.accessioned", "date.available", "date.issued", "description.provenance", "type"};
-    private Set<String> elementsNotAuthSet;
+    private Set<String> elementsNotAuthSet = null;
 
 
     public InstallerEDMConf()
     {
         super();
-        elementsNotAuthSet = new HashSet<String>();
+        if (elementsNotAuthSet == null)
+            elementsNotAuthSet = new HashSet<String>();
+        else
+            elementsNotAuthSet.clear();
         Collections.addAll(elementsNotAuthSet, elementsNotAuth);
     }
 
@@ -53,12 +71,20 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
                 File dspaceInputFormsFile = new File(dspaceInputFormsName);
                 if (dspaceInputFormsFile.exists() && dspaceInputFormsFile.canRead()) {
                     configureInputFormsDspace(dspaceInputFormsFile, new File(myInstallerDirPath + System.getProperty("file.separator") + "input-forms.xml"), authDCElements);
-                } else installerEDMDisplay.showMessage(dspaceInputFormsName + installerEDMDisplay.getQuestion(3, "configureAll.inputform.notexist"));
+                } else installerEDMDisplay.showMessage(dspaceInputFormsName + installerEDMDisplay.getQuestion(3, "configureAll.inputforms.notexist"));
             } catch (SQLException e) {
                 e.printStackTrace();
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             } catch (IOException e) {
+                e.printStackTrace();
+            } catch (XPathExpressionException e) {
+                e.printStackTrace();
+            } catch (ParserConfigurationException e) {
+                e.printStackTrace();
+            } catch (SAXException e) {
+                e.printStackTrace();
+            } catch (TransformerException e) {
                 e.printStackTrace();
             }
         } else installerEDMDisplay.showQuestion(3, "configureAll.dspacedirconf.notexist", new String [] {dspaceDirConfName, dspaceDirConfNewFile.getAbsolutePath()});
@@ -66,12 +92,12 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
     }
 
 
-    private void configureInputFormsDspace(File dspaceInputFormsFile, File dspaceInputFormsNewFile, ArrayList<MetadataField> authDCElements) throws IOException
+    private void configureInputFormsDspace(File dspaceInputFormsFile, File dspaceInputFormsNewFile, ArrayList<MetadataField> authDCElements) throws IOException, XPathExpressionException, ParserConfigurationException, SAXException, TransformerException
     {
         installerEDMDisplay.showLn();
         installerEDMDisplay.showQuestion(3, "configureInputFormsDspace.inputforms.add", new String [] {myInstallerDirPath, dspaceInputFormsFile.getAbsolutePath()});
         if (dspaceInputFormsNewFile.exists()) {
-            installerEDMDisplay.showMessage(dspaceInputFormsNewFile.getAbsolutePath() + installerEDMDisplay.getQuestion(3, "configureInputFormsDspace.inpuforms.file.exists"));
+            installerEDMDisplay.showMessage(dspaceInputFormsNewFile.getAbsolutePath() + installerEDMDisplay.getQuestion(3, "configureInputFormsDspace.inputforms.file.exists"));
             String response = null;
             do {
                 response = br.readLine();
@@ -85,13 +111,83 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
             } while (true);
         }
         org.apache.commons.io.FileUtils.copyFile(dspaceInputFormsFile, dspaceInputFormsNewFile);
-
-        Writer out = new OutputStreamWriter(new FileOutputStream(dspaceInputFormsNewFile, true));
+        Writer out = null;
         try {
-
+            InputSource inputFormsIS = new InputSource(dspaceInputFormsNewFile.getAbsolutePath());
+            Document docInputForms = getDocumentFromInputSource(inputFormsIS);
+            boolean modify = readInputFormsDspace(docInputForms);
+            if (modify) {
+                out = new OutputStreamWriter(new FileOutputStream(dspaceInputFormsNewFile, false));
+                TransformerFactory transformerFactory = TransformerFactory.newInstance();
+                Transformer transformer = transformerFactory.newTransformer();
+                transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
+                transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+                transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+                //transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+                transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+                DocumentType doctype = docInputForms.getDoctype();
+                if (doctype != null) {
+                    if (doctype.getPublicId() != null) transformer.setOutputProperty(OutputKeys.DOCTYPE_PUBLIC, doctype.getPublicId());
+                    transformer.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, doctype.getSystemId());
+                }
+                transformer.transform(new DOMSource(docInputForms), new StreamResult(out));
+            }
         } finally {
-            out.close();
+            if (out != null) {
+                out.flush();
+                out.close();
+            }
         }
+    }
+
+
+    private boolean readInputFormsDspace(Document docInputForms) throws IndexOutOfBoundsException, IOException, NullPointerException, XPathExpressionException, ParserConfigurationException, SAXException
+    {
+        boolean modified = false;
+        String xpathFormMapTemplate = "//form-map";
+        String xpathFormMapNameTemplate = "//form-map/name-map[@collection-handle='%s']";
+        String xpathFormNameTemplate = "//form[@name='%s']";
+
+        XPath xpathFormMap = XPathFactory.newInstance().newXPath();
+        NodeList resultsFromMap = (NodeList)xpathFormMap.evaluate(xpathFormMapTemplate, docInputForms, XPathConstants.NODESET);
+        if (resultsFromMap.getLength() == 0) {
+            System.out.println("No " + xpathFormMapTemplate);
+            return false;
+        }
+        for (Map.Entry<String, InstallerEDMAuthBO> entry : authBOHashMap.entrySet()) {
+            XPath xpathFormMapName = XPathFactory.newInstance().newXPath();
+            String handle = entry.getValue().getCollection().getHandle();
+            String name = entry.getValue().getCollection().getName().toLowerCase().replaceAll(" ", "_");
+            String xpathFormMapNameExpression = String.format(xpathFormMapNameTemplate, new Object[] { handle });
+            NodeList resultsFromMapName = (NodeList)xpathFormMap.evaluate(xpathFormMapNameExpression, docInputForms, XPathConstants.NODESET);
+            if (resultsFromMapName.getLength() == 0) {
+                System.out.println("No " + xpathFormMapNameExpression);
+                Element elem = docInputForms.createElement("name-map");
+                Attr handleAttr = docInputForms.createAttribute("collection-handle");
+                handleAttr.setValue(handle);
+                elem.setAttributeNode(handleAttr);
+                Attr nameAttr = docInputForms.createAttribute("form-name");
+                nameAttr.setValue(name);
+                elem.setAttributeNode(nameAttr);
+                resultsFromMap.item(0).appendChild(elem);
+                modified = true;
+            }
+            String xpathFormNameExpression = String.format(xpathFormNameTemplate, new Object[] { name });
+            NodeList resultsFromName = (NodeList)xpathFormMap.evaluate(xpathFormNameExpression, docInputForms, XPathConstants.NODESET);
+            if (resultsFromName.getLength() == 0) {
+                System.out.println("No " + xpathFormMapNameExpression);
+            }
+        }
+        return modified;
+    }
+
+
+    private Document getDocumentFromInputSource(InputSource IS) throws ParserConfigurationException, IOException, SAXException
+    {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setNamespaceAware(true);
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        return builder.parse(IS);
     }
 
 
@@ -187,7 +283,7 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
                 if (dataDir == null) {
                     Matcher matcherAskosiDir = patternAskosiDir.matcher(line);
                     if (matcherAskosiDir.find()) {
-                         dataDir = (String) matcherAskosiDir.group(1);
+                        dataDir = (String) matcherAskosiDir.group(1);
                         if (verbose) installerEDMDisplay.showQuestion(3, "readDspaceCfg.line.found.data", new String[] {line, dataDir});
                     }
                 }
@@ -326,7 +422,7 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
     }
 
 
-        @Override
+    @Override
     public void update(Observable o, Object arg)
     {
         System.out.println( "Received signal: " + arg );
