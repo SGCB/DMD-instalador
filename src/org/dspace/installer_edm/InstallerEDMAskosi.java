@@ -443,11 +443,6 @@ public class InstallerEDMAskosi extends InstallerEDMBase
         return null;
     }
 
-
-    public File getFinalAskosiDataDestDirFile()
-    {
-        return finalAskosiDataDestDirFile;
-    }
 }
 
 

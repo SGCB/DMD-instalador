@@ -8,6 +8,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.sql.SQLException;
+import java.text.Normalizer;
+import java.text.Normalizer.Form;
 import java.util.*;
 
 /**
@@ -42,7 +44,9 @@ public abstract class InstallerEDMBase implements Observer
 
     protected MetadataField[] metadataFields;
 
-    protected HashMap<String, InstallerEDMAuthBO> authBOHashMap;
+    protected static HashMap<String, InstallerEDMAuthBO> authBOHashMap;
+
+    protected static final String[] elementsNotAuth = {"identifier.uri", "date.accessioned", "date.available", "date.issued", "description.provenance", "type"};
 
     public InstallerEDMBase()
     {
@@ -118,6 +122,12 @@ public abstract class InstallerEDMBase implements Observer
         System.out.println( "Received signal: " + arg );
         System.exit(0);
     }
+
+    public String removeAccents(String text)
+    {
+        if (text != null) text = text.replaceAll(" +", "_");
+        return text == null ? null : Normalizer.normalize(text, Form.NFD).replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+    }//removeAccents
 
 
 }

@@ -192,7 +192,7 @@ public class InstallerEDM extends InstallerEDMBase
 
             if (step == 3) {
                 if (verbose) installerEDMDisplay.showTitle(3);
-                installerEDMConf =new  InstallerEDMConf();
+                installerEDMConf = new InstallerEDMConf();
                 installerEDMConf.configureAll();
             }
         } else {
