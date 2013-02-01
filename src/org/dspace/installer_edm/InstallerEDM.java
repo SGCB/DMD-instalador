@@ -39,6 +39,7 @@ public class InstallerEDM extends InstallerEDMBase
     private InstallerEDMAskosi installerEDMAskosi;
     private InstallerEDMCreateAuth installerEDMCreateAuth = null;
     private InstallerEDMConf installerEDMConf = null;
+    private InstallerEDMConfEDMExport installerEDMConfEDMExport = null;
 
 
     public static void main(String[] args)
@@ -194,6 +195,12 @@ public class InstallerEDM extends InstallerEDMBase
                 if (verbose) installerEDMDisplay.showTitle(3);
                 installerEDMConf = new InstallerEDMConf();
                 installerEDMConf.configureAll();
+            }
+
+            if (step == 4) {
+                if (verbose) installerEDMDisplay.showTitle(4);
+                installerEDMConfEDMExport = new InstallerEDMConfEDMExport(myInstallerDirPath + System.getProperty("file.separator") + "packages" + System.getProperty("file.separator") + "EDMExport.war");
+                installerEDMConfEDMExport.configure();
             }
         } else {
             installerEDMDisplay.showTitle(0);

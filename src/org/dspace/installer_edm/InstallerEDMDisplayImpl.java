@@ -100,9 +100,16 @@ public class InstallerEDMDisplayImpl implements InstallerEDMDisplay
         if (!isTerminal) System.out.println(message);
     }
 
+    @Override
     public void showLn()
     {
         if (!isTerminal) System.out.println();
+    }
+
+    @Override
+    public void showProgress(char prog)
+    {
+        if (!isTerminal) System.out.print(prog);
     }
 
 

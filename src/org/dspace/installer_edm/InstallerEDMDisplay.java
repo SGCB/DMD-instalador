@@ -26,4 +26,6 @@ public interface InstallerEDMDisplay
 
     public void showLn();
 
+    public void showProgress(char prog);
+
 }
