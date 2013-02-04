@@ -40,6 +40,7 @@ public class InstallerEDM extends InstallerEDMBase
     private InstallerEDMCreateAuth installerEDMCreateAuth = null;
     private InstallerEDMConf installerEDMConf = null;
     private InstallerEDMConfEDMExport installerEDMConfEDMExport = null;
+    private InstallerEDMCrosswalk installerEDMCrosswalk = null;
 
 
     public static void main(String[] args)
@@ -169,7 +170,8 @@ public class InstallerEDM extends InstallerEDMBase
         File dirPackage;
         if (step > 0) {
             if (step == 1) {
-                if (verbose) installerEDMDisplay.showTitle(1);
+                installerEDMDisplay.showTitle(1);
+                installerEDMDisplay.showLn();
                 if ((dirPackage = installerEDMAskosi.checkPackages()) != null && installerEDMAskosi.installPackages(dirPackage)) {
                     installerEDMDisplay.showLn();
                     installerEDMDisplay.showQuestion(1, "ok");
@@ -181,7 +183,8 @@ public class InstallerEDM extends InstallerEDMBase
             }
 
             if (step == 2) {
-                if (verbose) installerEDMDisplay.showTitle(2);
+                installerEDMDisplay.showTitle(2);
+                installerEDMDisplay.showLn();
                 installerEDMCreateAuth = new InstallerEDMCreateAuth();
                 sh.addObserver( installerEDMCreateAuth );
                 if (installerEDMCreateAuth.createAuth()) iniStep++;
@@ -192,15 +195,24 @@ public class InstallerEDM extends InstallerEDMBase
             }
 
             if (step == 3) {
-                if (verbose) installerEDMDisplay.showTitle(3);
+                installerEDMDisplay.showTitle(3);
+                installerEDMDisplay.showLn();
                 installerEDMConf = new InstallerEDMConf();
                 installerEDMConf.configureAll();
             }
 
             if (step == 4) {
-                if (verbose) installerEDMDisplay.showTitle(4);
-                installerEDMConfEDMExport = new InstallerEDMConfEDMExport(myInstallerDirPath + System.getProperty("file.separator") + "packages" + System.getProperty("file.separator") + "EDMExport.war");
+                installerEDMDisplay.showTitle(4);
+                installerEDMDisplay.showLn();
+                installerEDMConfEDMExport = new InstallerEDMConfEDMExport(myInstallerDirPath + fileSeparator + "packages" + System.getProperty("file.separator") + "EDMExport.war");
                 installerEDMConfEDMExport.configure();
+            }
+
+            if (step == 5) {
+                installerEDMDisplay.showTitle(5);
+                installerEDMDisplay.showLn();
+                installerEDMCrosswalk = new InstallerEDMCrosswalk(myInstallerDirPath + fileSeparator + "packages" + System.getProperty("file.separator") + "EDMCrosswalk.java");
+                installerEDMCrosswalk.configure();
             }
         } else {
             installerEDMDisplay.showTitle(0);

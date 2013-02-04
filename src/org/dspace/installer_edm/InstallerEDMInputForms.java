@@ -264,7 +264,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
                         element = createElementVocabulary(entry.getValue(), vocabulary);
                         formNamePageElement.appendChild(element);
                     } else {
-                        updateElementvocabulary(entry, form, element, vocabulary);
+                        updateElementVocabulary(entry, form, element, vocabulary);
                     }
 
                 }
@@ -273,7 +273,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
     }
 
 
-    private void updateElementvocabulary(Map.Entry<String, InstallerEDMAuthBO> entry, String form, Element field, String vocabulary) throws IOException
+    private void updateElementVocabulary(Map.Entry<String, InstallerEDMAuthBO> entry, String form, Element field, String vocabulary) throws IOException
     {
         NodeList vocabularyList = field.getElementsByTagName("vocabulary");
         if (vocabularyList.getLength() == 0) {

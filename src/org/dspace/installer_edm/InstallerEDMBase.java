@@ -7,9 +7,13 @@ import org.dspace.core.Context;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.text.Normalizer;
 import java.text.Normalizer.Form;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -35,6 +39,8 @@ public abstract class InstallerEDMBase implements Observer
 
 
     protected static String myInstallerDirPath = null;
+    protected static String myInstallerWorkDirPath = null;
+    protected static String fileSeparator = System.getProperty("file.separator");
 
     protected static InputStreamReader isr = null;
     protected static BufferedReader br = null;
@@ -56,6 +62,9 @@ public abstract class InstallerEDMBase implements Observer
             if (isr == null) isr = new InputStreamReader(System.in);
             if (br == null) br = new BufferedReader(isr);
             if (myInstallerDirPath == null) myInstallerDirPath = new File(".").getAbsolutePath();
+            if (myInstallerWorkDirPath == null) myInstallerWorkDirPath = myInstallerDirPath + fileSeparator + "work";
+            File myInstallerWorkDirFile = new File(myInstallerWorkDirPath);
+            if (!myInstallerWorkDirFile.exists()) myInstallerWorkDirFile.mkdir();
             checkDspaceDC();
         } catch (SQLException e) {
             installerEDMDisplay.showLn();
@@ -128,6 +137,29 @@ public abstract class InstallerEDMBase implements Observer
         if (text != null) text = text.replaceAll(" +", "_");
         return text == null ? null : Normalizer.normalize(text, Form.NFD).replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
     }//removeAccents
+
+    protected boolean isValidURI(String uriStr)
+    {
+        try {
+            URI uri = new URI(uriStr);
+            uri.toURL();
+            return true;
+        } catch (URISyntaxException e) {
+            return false;
+        } catch (MalformedURLException e) {
+            return false;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    protected String getTime()
+    {
+        Calendar cal = Calendar.getInstance();
+        cal.getTime();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        return sdf.format(cal.getTime());
+    }
 
 
 }
