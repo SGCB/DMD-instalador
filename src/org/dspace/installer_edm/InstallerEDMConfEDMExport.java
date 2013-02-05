@@ -32,6 +32,7 @@ public class InstallerEDMConfEDMExport extends InstallerEDMBase
 
     private String eDMExportWar;
     private File eDMExportWarFile;
+    private File eDMExportWarWorkFile;
     private JarFile eDMExportWarJarFile;
     private Document eDMExportDocument;
 
@@ -68,7 +69,10 @@ public class InstallerEDMConfEDMExport extends InstallerEDMBase
     {
         try {
             if (checkEDMExporWar()) {
-                eDMExportWarJarFile = new JarFile(eDMExportWarFile);
+                eDMExportWarWorkFile = new File(myInstallerWorkDirPath + fileSeparator + eDMExportWarFile.getName());
+                org.apache.commons.io.FileUtils.copyFile(eDMExportWarFile, eDMExportWarWorkFile);
+
+                eDMExportWarJarFile = new JarFile(eDMExportWarWorkFile);
                 ZipEntry edmExportWebZipentry = eDMExportWarJarFile.getEntry("WEB-INF/web.xml");
                 if (edmExportWebZipentry == null) installerEDMDisplay.showQuestion(4, "configure.notwebxml");
                 else {
@@ -105,7 +109,9 @@ public class InstallerEDMConfEDMExport extends InstallerEDMBase
                                 Text text = eDMExportDocument.createTextNode(dspaceCfgFile.getAbsolutePath());
                                 valueParam.replaceChild(text, valueParam.getFirstChild());
                                 writeNewJar();
-                                eDMExportWarJarFile = new JarFile(eDMExportWarFile);
+                                eDMExportWarJarFile = new JarFile(eDMExportWarWorkFile);
+                                installerEDMDisplay.showLn();
+                                installerEDMDisplay.showQuestion(4, "configure.dspacecfg.ok", new String[] {eDMExportWarWorkFile.getAbsolutePath()});
                             }
                         }
                     }
@@ -113,14 +119,19 @@ public class InstallerEDMConfEDMExport extends InstallerEDMBase
             }
         } catch (IOException e) {
             e.printStackTrace();
+            installerEDMDisplay.showQuestion(4, "configure.dspacecfg.nok");
         } catch (ParserConfigurationException e) {
             e.printStackTrace();
+            installerEDMDisplay.showQuestion(4, "configure.dspacecfg.nok");
         } catch (SAXException e) {
             e.printStackTrace();
+            installerEDMDisplay.showQuestion(4, "configure.dspacecfg.nok");
         } catch (XPathExpressionException e) {
             e.printStackTrace();
+            installerEDMDisplay.showQuestion(4, "configure.dspacecfg.nok");
         } catch (TransformerException e) {
             e.printStackTrace();
+            installerEDMDisplay.showQuestion(4, "configure.dspacecfg.nok");
         }
     }
 
@@ -154,9 +165,9 @@ public class InstallerEDMConfEDMExport extends InstallerEDMBase
             installerEDMDisplay.showLn();
             addNewWebXml(jarOutputStream);
             eDMExportWarJarFile.close();
-            eDMExportWarFile.delete();
-            if (newJarFile.renameTo(eDMExportWarFile) && eDMExportWarFile.setExecutable(true, true)) {
-                eDMExportWarFile = new File(eDMExportWar);
+            eDMExportWarWorkFile.delete();
+            if (newJarFile.renameTo(eDMExportWarWorkFile) && eDMExportWarWorkFile.setExecutable(true, true)) {
+                eDMExportWarWorkFile = new File(myInstallerWorkDirPath + fileSeparator + eDMExportWarFile.getName());
             } else {
                 throw new IOException();
             }
