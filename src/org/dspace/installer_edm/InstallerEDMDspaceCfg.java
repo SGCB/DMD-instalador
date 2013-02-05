@@ -38,13 +38,15 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
             if (askosiDataDir != null) askosiDataDestDirFile = new File(askosiDataDir);
             if (askosiDataDestDirFile != null && askosiDataDestDirFile.exists() && askosiDataDestDirFile.canRead()) {
                 AskosiDataDir = askosiDataDestDirFile.getAbsolutePath();
-                if (verbose) installerEDMDisplay.showMessage(installerEDMDisplay.getQuestion(3, "configureDspaceCfg.askosidatadir") + AskosiDataDir);
+                if (verbose) installerEDMDisplay.showQuestion(3, "configureDspaceCfg.askosidatadir",
+                        new String[]{AskosiDataDir});
             } else {
                 if (AskosiDataDir != null) {
                     askosiDataDestDirFile = new File(AskosiDataDir);
-                    if (verbose) installerEDMDisplay.showMessage(installerEDMDisplay.getQuestion(3, "configureDspaceCfg.askosidatadir") + askosiDataDestDirFile.getAbsolutePath());
+                    if (verbose) installerEDMDisplay.showQuestion(3, "configureDspaceCfg.askosidatadir", new String[]{
+                            askosiDataDestDirFile.getAbsolutePath()});
                 } else {
-                    installerEDMDisplay.showQuestion(3, "configureDspaceCfg.askosidatadir");
+                    installerEDMDisplay.showQuestion(3, "configureDspaceCfg.askosidatadir", new String[]{""});
                     String response = null;
                     do {
                         response = br.readLine();
@@ -59,24 +61,29 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
                 }
             }
 
+            out = new OutputStreamWriter(new FileOutputStream(dspaceDirConfNewFile, true));
+            if (AskosiDataDir != null) {
+                String plugin = new StringBuilder().append("\nASKOSI.directory = ").append(askosiDataDestDirFile.getAbsolutePath()).append("\nplugin.named.org.dspace.content.authority.ChoiceAuthority = \\\n").append("be.destin.dspace.AskosiPlugin = ASKOSI\n").toString();
+                out.write("\n# " + getTime() + " Appended by installerEDM to add the ASKOSI plugin\n");
+                out.write(plugin);
+            }
+
             if (authDCElements.size() > 0) {
-                out = new OutputStreamWriter(new FileOutputStream(dspaceDirConfNewFile, true));
-                if (AskosiDataDir == null) {
-                    String plugin = new StringBuilder().append("\nASKOSI.directory = ").append(askosiDataDestDirFile.getAbsolutePath()).append("\nplugin.named.org.dspace.content.authority.ChoiceAuthority = \\\n").append("be.destin.dspace.AskosiPlugin = ASKOSI\n").toString();
-                    out.write("\n# " + getTime() + " Appended by installerEDM to add the ASKOSI plugin\n");
-                    out.write(plugin);
-                }
+
                 for (MetadataField metadataField : authDCElements) {
                     String element = metadataField.getElement() + ((metadataField.getQualifier() != null)?"." + metadataField.getQualifier():"");
                     boolean isOk = false;
                     if (authDCElementsSetWritten.containsKey(element)) {
                         if (authDCElementsSetWritten.get(element).intValue() == 3) isOk = true;
-                        else if (verbose) installerEDMDisplay.showMessage(element + installerEDMDisplay.getQuestion(3, "configureDspaceCfg.element.incorrect"));
+                        else if (verbose) installerEDMDisplay.showQuestion(3, "configureDspaceCfg.element.incorrect",
+                         new String[]{element});
                     }
                     if (!isOk) {
                         if (!writeDspaceCfg(out, element)) {
-                            installerEDMDisplay.showMessage(element + installerEDMDisplay.getQuestion(3, "configureDspaceCfg.element.add.fail"));
-                        } else if (verbose) installerEDMDisplay.showMessage(element + installerEDMDisplay.getQuestion(3, "configureDspaceCfg.element.add"));
+                            installerEDMDisplay.showQuestion(3, "configureDspaceCfg.element.add.fail",
+                                    new String[]{element});
+                        } else if (verbose) installerEDMDisplay.showQuestion(3, "configureDspaceCfg.element.add",
+                                new String[]{element});
                     }
                 }
             } else if (verbose) installerEDMDisplay.showQuestion(3, "configureDspaceCfg.nothing.add");
@@ -129,7 +136,8 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
                 if (!patternAskosiAuthPluginBeRead) {
                     Matcher matcherAskosiAuthPluginBe = patternAskosiAuthPluginBe.matcher(line);
                     if (matcherAskosiAuthPluginBe.find()) {
-                        if (verbose) installerEDMDisplay.showMessage(installerEDMDisplay.getQuestion(3, "readDspaceCfg.line.found") + line);
+                        if (verbose) installerEDMDisplay.showQuestion(3, "readDspaceCfg.line.found",
+                                new String[]{line});
                         patternAskosiAuthPluginBeRead = true;
                     }
                 }

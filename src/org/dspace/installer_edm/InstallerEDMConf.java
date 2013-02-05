@@ -57,23 +57,29 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
                 checkAllSkosAuthElements(authDCElements);
                 configureDspaceCfg(dspaceDirConfFile, new File(dspaceDirConfNewFile.getAbsolutePath() + fileSeparator + "dspace.cfg"), authDCElements);
 
-                String dspaceInputFormsName = DspaceDir + "config" + fileSeparator + "input-forms.xml";
-                File dspaceInputFormsFile = new File(dspaceInputFormsName);
+                if (authDCElements.size() > 0) {
+                    String dspaceInputFormsName = DspaceDir + "config" + fileSeparator + "input-forms.xml";
+                    File dspaceInputFormsFile = new File(dspaceInputFormsName);
 
-                if (dspaceInputFormsFile.exists() && dspaceInputFormsFile.canRead()) {
-                    configureInputFormsDspace(dspaceInputFormsFile, new File(dspaceDirConfNewFile.getAbsolutePath() + fileSeparator + "input-forms.xml"), authDCElements);
+                    if (dspaceInputFormsFile.exists() && dspaceInputFormsFile.canRead()) {
+                        configureInputFormsDspace(dspaceInputFormsFile, new File(dspaceDirConfNewFile.getAbsolutePath() + fileSeparator + "input-forms.xml"), authDCElements);
 
-                    if (AskosiDataDir != null) {
-                        File askosiDataDirFile = new File(AskosiDataDir);
-                        if (askosiDataDirFile.exists() && askosiDataDirFile.isDirectory() && askosiDataDirFile.canWrite()) {
-                            configureAskosiVocabularies(askosiDataDirFile);
-                            installerEDMDisplay.showLn();
-                            installerEDMDisplay.showQuestion(3, "configureAll.ok");
-                        } else {
-                            installerEDMDisplay.showMessage(installerEDMDisplay.getQuestion(3, "configureAll.AskosiDataDir.notexist") + AskosiDataDir);
-                        }
-                    } else installerEDMDisplay.showQuestion(3, "configureAll.AskosiDataDir.notexist");
-                } else installerEDMDisplay.showMessage(dspaceInputFormsName + installerEDMDisplay.getQuestion(3, "configureAll.inputforms.notexist"));
+                        if (AskosiDataDir != null) {
+                            File askosiDataDirFile = new File(AskosiDataDir);
+                            if (askosiDataDirFile.exists() && askosiDataDirFile.isDirectory() && askosiDataDirFile.canWrite()) {
+                                configureAskosiVocabularies(askosiDataDirFile);
+                                installerEDMDisplay.showLn();
+                                installerEDMDisplay.showQuestion(3, "configureAll.ok");
+                                return true;
+                            } else {
+                                installerEDMDisplay.showQuestion(3, "configureAll.AskosiDataDir.notexist", new String[]{AskosiDataDir});
+                            }
+                        } else installerEDMDisplay.showQuestion(3, "configureAll.AskosiDataDir.notexist");
+                    } else installerEDMDisplay.showQuestion(3, "configureAll.inputforms.notexist", new String[]{dspaceInputFormsName});
+                } else {
+                    installerEDMDisplay.showLn();
+                    installerEDMDisplay.showQuestion(3, "configureAll.notauthdcelements");
+                }
             } catch (SQLException e) {
                 e.printStackTrace();
             } catch (FileNotFoundException e) {
@@ -105,7 +111,7 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
         installerEDMDisplay.showLn();
         installerEDMDisplay.showQuestion(3, "configureInputFormsDspace.inputforms.add", new String [] {myInstallerWorkDirPath, dspaceInputFormsFile.getAbsolutePath()});
         if (dspaceInputFormsNewFile.exists()) {
-            installerEDMDisplay.showMessage(dspaceInputFormsNewFile.getAbsolutePath() + installerEDMDisplay.getQuestion(3, "configureInputFormsDspace.inputforms.file.exists"));
+            installerEDMDisplay.showQuestion(3, "configureInputFormsDspace.inputforms.file.exists", new String[]{dspaceInputFormsNewFile.getAbsolutePath()});
             String response = null;
             do {
                 response = br.readLine();
@@ -132,7 +138,7 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
         installerEDMDisplay.showLn();
         installerEDMDisplay.showQuestion(3, "configureDspaceCfg.dspacecfg.add", new String [] {myInstallerWorkDirPath, dspaceDirConfFile.getAbsolutePath()});
         if (dspaceDirConfNewFile.exists()) {
-            installerEDMDisplay.showMessage(dspaceDirConfNewFile.getAbsolutePath() + installerEDMDisplay.getQuestion(3, "configureDspaceCfg.dspacecfg.file.exists"));
+            installerEDMDisplay.showQuestion(3, "configureDspaceCfg.dspacecfg.file.exists", new String[]{dspaceDirConfNewFile.getAbsolutePath()});
             String response = null;
             do {
                 response = br.readLine();
@@ -160,11 +166,11 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
         if (verbose) installerEDMDisplay.showQuestion(3, "checkAllSkosAuthElements.searching.elements", new String[] {String.valueOf(listCollections.length)});
         if (listCollections.length > 0) {
             for (Collection collection : listCollections) {
-                if (verbose) installerEDMDisplay.showMessage(installerEDMDisplay.getQuestion(3, "checkAllSkosAuthElements.searching.elements.collection") + collection.getName() + " " + collection.getHandle());
+                if (verbose) installerEDMDisplay.showQuestion(3, "checkAllSkosAuthElements.searching.elements.collection", new String[] {collection.getName(), collection.getHandle()});
                 ItemIterator iter = collection.getAllItems();
                 while (iter.hasNext()) {
                     Item item = iter.next();
-                    if (verbose) installerEDMDisplay.showMessage(installerEDMDisplay.getQuestion(3, "checkAllSkosAuthElements.searching.elements.item") + item.getName() + " " + item.getHandle());
+                    if (verbose) installerEDMDisplay.showQuestion(3, "checkAllSkosAuthElements.searching.elements.item", new String[] { item.getName(), item.getHandle()});
                     DCValue[] listDCTypeValues = item.getMetadata(dcSchema.getName(), "type", null, language);
                     if (listDCTypeValues.length > 0) {
                         for (DCValue dcTypeValue : listDCTypeValues) {
@@ -183,13 +189,13 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
     private void checkSkosAuthItem(ArrayList<MetadataField> authDCElements, Item item)
     {
         DCValue[] listDCValues = item.getMetadata(dcSchema.getName() + ".*.*");
-        if (verbose) installerEDMDisplay.showMessage(installerEDMDisplay.getQuestion(3, "checkSkosAuthItem.elements") + listDCValues.length);
+        if (verbose) installerEDMDisplay.showQuestion(3, "checkSkosAuthItem.elements", new String[]{Integer.toString(listDCValues.length)});
         if (listDCValues.length > 0) {
             for (DCValue dcValue : listDCValues) {
                 if (dcValue.value == null || dcValue.value.isEmpty()) continue;
                 String dcValueName = dcValue.element + ((dcValue.qualifier != null && !dcValue.qualifier.isEmpty())?"." + dcValue.qualifier:"");
                 if (!elementsNotAuthSet.contains(dcValueName) && !authBOHashMap.containsKey(dcValueName)) {
-                    if (verbose) installerEDMDisplay.showMessage(installerEDMDisplay.getQuestion(3, "checkSkosAuthItem.element") + dcValueName);
+                    if (verbose) installerEDMDisplay.showQuestion(3, "checkSkosAuthItem.element", new String[]{dcValueName});
                     MetadataField metadataField = new MetadataField(dcSchema, dcValue.element, dcValue.qualifier, null);
                     Community community = null;
                     Collection collection = null;

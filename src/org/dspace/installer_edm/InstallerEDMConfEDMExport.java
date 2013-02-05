@@ -47,7 +47,7 @@ public class InstallerEDMConfEDMExport extends InstallerEDMBase
     private boolean checkEDMExporWar() throws IOException
     {
         if (!eDMExportWarFile.exists() || !eDMExportWarFile.isFile() || !eDMExportWarFile.canWrite()) {
-            installerEDMDisplay.showMessage(eDMExportWar + installerEDMDisplay.getQuestion(4, "checkEDMExporWar.notexists"));
+            installerEDMDisplay.showQuestion(4, "checkEDMExporWar.notexists", new String[]{eDMExportWar});
             installerEDMDisplay.showQuestion(4, "checkEDMExporWar.newwar");
             String response = null;
             do {

@@ -47,7 +47,7 @@ public class InstallerEDMCrosswalk extends InstallerEDMBase
     private boolean checkEdmCrowssWalk() throws IOException
     {
         if (!edmCrossWalkFile.exists() || !edmCrossWalkFile.isFile() || !edmCrossWalkFile.canWrite()) {
-            installerEDMDisplay.showMessage(edmCrossWalk + installerEDMDisplay.getQuestion(5, "checkEdmCrowssWalk.notexists"));
+            installerEDMDisplay.showQuestion(5, "checkEdmCrowssWalk.notexists", new String[]{edmCrossWalk});
             installerEDMDisplay.showQuestion(5, "checkEdmCrowssWalk.newclass");
             String response = null;
             do {
@@ -67,7 +67,7 @@ public class InstallerEDMCrosswalk extends InstallerEDMBase
     private boolean checkOaiApiJar() throws IOException
     {
         if (oaiApiJarFile == null || !oaiApiJarFile.exists() || !oaiApiJarFile.isFile() || !oaiApiJarFile.canWrite()) {
-            installerEDMDisplay.showMessage(((oaiApiJarName == null)?"dspace-oai-api":oaiApiJarName) + installerEDMDisplay.getQuestion(5, "checkOaiApiJar.notexists"));
+            installerEDMDisplay.showQuestion(5, "checkOaiApiJar.notexists", new String[]{((oaiApiJarName == null)?"dspace-oai-api":oaiApiJarName)});
             installerEDMDisplay.showQuestion(5, "checkOaiApiJar.newjar");
             String response = null;
             do {

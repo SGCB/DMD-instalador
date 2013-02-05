@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 my_dir=$(dirname $0)
 my_name=$(basename $0)

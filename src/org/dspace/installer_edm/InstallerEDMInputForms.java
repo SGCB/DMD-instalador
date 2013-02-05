@@ -452,7 +452,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
         Element elemRequired = docInputForms.createElement("required");
         elem.appendChild(elemRequired);
 
-        installerEDMDisplay.showMessage(installerEDMDisplay.getQuestion(3, "addFieldForm.label") + value.getMetadataField().getElement() + "." + value.getMetadataField().getQualifier());
+        installerEDMDisplay.showQuestion(3, "addFieldForm.label", new String[]{value.getMetadataField().getElement() + "." + value.getMetadataField().getQualifier()});
         String label = null;
         do {
             label = br.readLine();
@@ -467,7 +467,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
         elemLabel.appendChild(text);
         elem.appendChild(elemLabel);
 
-        installerEDMDisplay.showMessage(installerEDMDisplay.getQuestion(3, "addFieldForm.hint") + value.getMetadataField().getElement() + "." + value.getMetadataField().getQualifier());
+        installerEDMDisplay.showQuestion(3, "addFieldForm.hint", new String[]{value.getMetadataField().getElement() + "." + value.getMetadataField().getQualifier()});
         String hint = null;
         do {
             hint = br.readLine();
