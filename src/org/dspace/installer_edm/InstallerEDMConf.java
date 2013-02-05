@@ -40,9 +40,10 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
 
     public boolean configureAll()
     {
-        String dspaceDirConfName = DspaceDir + "config" + System.getProperty("file.separator") + "dspace.cfg";
+        String dspaceDirConfName = DspaceDir + "config" + fileSeparator + "dspace.cfg";
         File dspaceDirConfFile = new File(dspaceDirConfName);
-        File dspaceDirConfNewFile = new File(".");
+        File dspaceDirConfNewFile = new File(myInstallerWorkDirPath);
+
         if (dspaceDirConfFile.exists() && dspaceDirConfFile.canRead() && dspaceDirConfNewFile.canWrite()) {
             ArrayList<MetadataField> authDCElements;
             if (installerEDM.getInstallerEDMCreateAuth() != null) {
@@ -54,15 +55,20 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
             }
             try {
                 checkAllSkosAuthElements(authDCElements);
-                configureDspaceCfg(dspaceDirConfFile, new File(myInstallerDirPath + System.getProperty("file.separator") + "dspace.cfg"), authDCElements);
-                String dspaceInputFormsName = DspaceDir + "config" + System.getProperty("file.separator") + "input-forms.xml";
+                configureDspaceCfg(dspaceDirConfFile, new File(dspaceDirConfNewFile.getAbsolutePath() + fileSeparator + "dspace.cfg"), authDCElements);
+
+                String dspaceInputFormsName = DspaceDir + "config" + fileSeparator + "input-forms.xml";
                 File dspaceInputFormsFile = new File(dspaceInputFormsName);
+
                 if (dspaceInputFormsFile.exists() && dspaceInputFormsFile.canRead()) {
-                    configureInputFormsDspace(dspaceInputFormsFile, new File(myInstallerDirPath + System.getProperty("file.separator") + "input-forms.xml"), authDCElements);
+                    configureInputFormsDspace(dspaceInputFormsFile, new File(dspaceDirConfNewFile.getAbsolutePath() + fileSeparator + "input-forms.xml"), authDCElements);
+
                     if (AskosiDataDir != null) {
                         File askosiDataDirFile = new File(AskosiDataDir);
                         if (askosiDataDirFile.exists() && askosiDataDirFile.isDirectory() && askosiDataDirFile.canWrite()) {
                             configureAskosiVocabularies(askosiDataDirFile);
+                            installerEDMDisplay.showLn();
+                            installerEDMDisplay.showQuestion(3, "configureAll.ok");
                         } else {
                             installerEDMDisplay.showMessage(installerEDMDisplay.getQuestion(3, "configureAll.AskosiDataDir.notexist") + AskosiDataDir);
                         }
@@ -97,7 +103,7 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
     private void configureInputFormsDspace(File dspaceInputFormsFile, File dspaceInputFormsNewFile, ArrayList<MetadataField> authDCElements) throws IOException, XPathExpressionException, ParserConfigurationException, SAXException, TransformerException, SQLException
     {
         installerEDMDisplay.showLn();
-        installerEDMDisplay.showQuestion(3, "configureInputFormsDspace.inputforms.add", new String [] {myInstallerDirPath, dspaceInputFormsFile.getAbsolutePath()});
+        installerEDMDisplay.showQuestion(3, "configureInputFormsDspace.inputforms.add", new String [] {myInstallerWorkDirPath, dspaceInputFormsFile.getAbsolutePath()});
         if (dspaceInputFormsNewFile.exists()) {
             installerEDMDisplay.showMessage(dspaceInputFormsNewFile.getAbsolutePath() + installerEDMDisplay.getQuestion(3, "configureInputFormsDspace.inputforms.file.exists"));
             String response = null;
@@ -113,8 +119,8 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
             } while (true);
         }
         org.apache.commons.io.FileUtils.copyFile(dspaceInputFormsFile, dspaceInputFormsNewFile);
-        File dspaceInputFormsFileDtd = new File(DspaceDir + "config" + System.getProperty("file.separator") + "input-forms.dtd");
-        File dspaceInputFormsFileDtdNew = new File(myInstallerDirPath + System.getProperty("file.separator") + "input-forms.dtd");
+        File dspaceInputFormsFileDtd = new File(DspaceDir + "config" + fileSeparator + "input-forms.dtd");
+        File dspaceInputFormsFileDtdNew = new File(myInstallerWorkDirPath + fileSeparator + "input-forms.dtd");
         org.apache.commons.io.FileUtils.copyFile(dspaceInputFormsFileDtd, dspaceInputFormsFileDtdNew);
         InstallerEDMInputForms installerEDMInputForms = new InstallerEDMInputForms(dspaceInputFormsNewFile.getAbsolutePath());
         installerEDMInputForms.processInputForms();
@@ -124,7 +130,7 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
     private void configureDspaceCfg(File dspaceDirConfFile, File dspaceDirConfNewFile, ArrayList<MetadataField> authDCElements) throws FileNotFoundException, IndexOutOfBoundsException, IOException, NullPointerException
     {
         installerEDMDisplay.showLn();
-        installerEDMDisplay.showQuestion(3, "configureDspaceCfg.dspacecfg.add", new String [] {myInstallerDirPath, dspaceDirConfFile.getAbsolutePath()});
+        installerEDMDisplay.showQuestion(3, "configureDspaceCfg.dspacecfg.add", new String [] {myInstallerWorkDirPath, dspaceDirConfFile.getAbsolutePath()});
         if (dspaceDirConfNewFile.exists()) {
             installerEDMDisplay.showMessage(dspaceDirConfNewFile.getAbsolutePath() + installerEDMDisplay.getQuestion(3, "configureDspaceCfg.dspacecfg.file.exists"));
             String response = null;

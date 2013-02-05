@@ -1,6 +1,6 @@
 package org.dspace.installer_edm;
 
-import org.dspace.content.Collection;
+
 import org.dspace.handle.HandleManager;
 import org.w3c.dom.*;
 import org.xml.sax.InputSource;
@@ -147,7 +147,9 @@ public class InstallerEDMInputForms extends InstallerEDMBase
         NodeList resultsFormDefinitions = (NodeList)xpathFormDefinitions.evaluate(xpathFormDefinitionsTemplate, docInputForms, XPathConstants.NODESET);
         if (resultsFormDefinitions.getLength() == 0) {
             System.out.println("No " + xpathFormDefinitionsTemplate);
+            Comment simpleComment = docInputForms.createComment(getTime() + " Appended by installerEDM to add the form definitions");
             formDefinitionsElement = docInputForms.createElement("form-definitions");
+            inputFormsElement.appendChild(simpleComment);
             inputFormsElement.appendChild(formDefinitionsElement);
             modified = true;
         } else formDefinitionsElement = (Element) resultsFormDefinitions.item(0);
@@ -161,7 +163,9 @@ public class InstallerEDMInputForms extends InstallerEDMBase
             NodeList resultsFormMapName = (NodeList)xpathFormMap.evaluate(xpathFormMapNameExpression, docInputForms, XPathConstants.NODESET);
             if (resultsFormMapName.getLength() == 0) {
                 System.out.println("No " + xpathFormMapNameExpression);
+                Comment simpleComment = docInputForms.createComment(getTime() + " Appended by installerEDM to add the form map " + handle + ":" + name);
                 Element elem = addFormMap(handle, name);
+                formMapElement.appendChild(simpleComment);
                 formMapElement.appendChild(elem);
                 modified = true;
             }
@@ -182,7 +186,9 @@ public class InstallerEDMInputForms extends InstallerEDMBase
             NodeList resultsFormName = (NodeList)xpathFormMap.evaluate(xpathFormNameExpression, docInputForms, XPathConstants.NODESET);
             if (resultsFormName.getLength() == 0) {
                 System.out.println("No " + xpathFormNameExpression);
+                Comment simpleComment = docInputForms.createComment(getTime() + " Appended by installerEDM to add the form " + name);
                 formNameElement = addFormName(name);
+                formDefinitionsElement.appendChild(simpleComment);
                 formDefinitionsElement.appendChild(formNameElement);
 
                 formNamePageElement = addFormNamePage(pageResp);

@@ -63,6 +63,7 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
                 out = new OutputStreamWriter(new FileOutputStream(dspaceDirConfNewFile, true));
                 if (AskosiDataDir == null) {
                     String plugin = new StringBuilder().append("\nASKOSI.directory = ").append(askosiDataDestDirFile.getAbsolutePath()).append("\nplugin.named.org.dspace.content.authority.ChoiceAuthority = \\\n").append("be.destin.dspace.AskosiPlugin = ASKOSI\n").toString();
+                    out.write("\n# " + getTime() + " Appended by installerEDM to add the ASKOSI plugin\n");
                     out.write(plugin);
                 }
                 for (MetadataField metadataField : authDCElements) {
