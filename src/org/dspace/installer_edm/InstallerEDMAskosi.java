@@ -72,7 +72,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
     {
         File TomcatBaseFile = new File(TomcatBase);
         if (!TomcatBaseFile.exists() || !TomcatBaseFile.canRead()) {
-            installerEDMDisplay.showMessage(TomcatBase + installerEDMDisplay.getQuestion(1, "copyJarsShared.tomcatbasedir.notexist"));
+            installerEDMDisplay.showQuestion(1, "copyJarsShared.tomcatbasedir.notexist", new String[]{TomcatBase});
             return false;
         }
         String TomcatBaseShared = new StringBuilder().append(TomcatBase).append("shared").append(System.getProperty("file.separator")).append("lib").append(System.getProperty("file.separator")).toString();
@@ -82,12 +82,12 @@ public class InstallerEDMAskosi extends InstallerEDMBase
             dirInstallJar = new File(TomcatBaseShared);
         }
         if (!dirInstallJar.canWrite()) {
-            if (verbose) installerEDMDisplay.showMessage(TomcatBaseShared + installerEDMDisplay.getQuestion(1, "copyJarsShared.tomcatbaseshareddir.notwritable"));
+            if (verbose) installerEDMDisplay.showQuestion(1, "copyJarsShared.tomcatbaseshareddir.notwritable", new String[]{TomcatBaseShared});
             TomcatBaseShared = null;
         }
         dirInstallJar = null;
         while (true) {
-            if (TomcatBaseShared != null) installerEDMDisplay.showMessage(installerEDMDisplay.getQuestion(1, "copyJarsShared.dir.copyjars") + TomcatBaseShared);
+            if (TomcatBaseShared != null) installerEDMDisplay.showQuestion(1, "copyJarsShared.dir.copyjars", new String[]{TomcatBaseShared});
             else installerEDMDisplay.getQuestion(1, "copyJarsShared.dirnew.copyjars");
             String response = null;
             try {
@@ -109,7 +109,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
                 if (!response.equals(TomcatBaseShared)) TomcatBaseShared = response;
                 break;
             } else {
-                installerEDMDisplay.showMessage(response + installerEDMDisplay.getQuestion(1, "copyJarsShared.dir.notwritable"));
+                installerEDMDisplay.showQuestion(1, "copyJarsShared.dir.notwritable", new String[]{response});
             }
         }
         Iterator<File> fileIterPack = org.apache.commons.io.FileUtils.iterateFiles(dirPackages, new String[] {"jar"}, false);
@@ -132,12 +132,12 @@ public class InstallerEDMAskosi extends InstallerEDMBase
                     dirInstallJar = new File(TomcatBaseCommon);
                 }
                 if (!dirInstallJar.canWrite()) {
-                    if (verbose) installerEDMDisplay.showMessage(TomcatBaseCommon + installerEDMDisplay.getQuestion(1, "copyJarsShared.tomcatbaseshareddir.notwritable"));
+                    if (verbose) installerEDMDisplay.showQuestion(1, "copyJarsShared.tomcatbaseshareddir.notwritable", new String[]{TomcatBaseCommon});
                     TomcatBaseCommon = null;
                 }
                 dirInstallJar = null;
                 while (true) {
-                    if (TomcatBaseCommon != null) installerEDMDisplay.showMessage(installerEDMDisplay.getQuestion(1, "copyDatabaseDrivers.dir.copyjars") + TomcatBaseCommon);
+                    if (TomcatBaseCommon != null) installerEDMDisplay.showQuestion(1, "copyDatabaseDrivers.dir.copyjars", new String[]{TomcatBaseCommon});
                     else installerEDMDisplay.getQuestion(1, "copyDatabaseDrivers.dirnew.copyjars");
                     String response = null;
                     try {
@@ -157,12 +157,12 @@ public class InstallerEDMAskosi extends InstallerEDMBase
                         if (!response.equals(TomcatBaseCommon)) TomcatBaseCommon = response;
                         break;
                     } else {
-                        installerEDMDisplay.showMessage(response + installerEDMDisplay.getQuestion(1, "copyJarsShared.dir.notwritable"));
+                        installerEDMDisplay.showQuestion(1, "copyJarsShared.dir.notwritable", new String[]{response});
                     }
                 }
                 for (File fileJdbc : filesJdbc) {
                     if (!copyPackageFile(fileJdbc, TomcatBaseCommon)) {
-                        installerEDMDisplay.showMessage(installerEDMDisplay.getQuestion(1, "copyDatabaseDrivers.copy.fail") + fileJdbc.getAbsolutePath());
+                        installerEDMDisplay.showQuestion(1, "copyDatabaseDrivers.copy.fail", new String[]{fileJdbc.getAbsolutePath()});
                         return false;
                     }
                 }
@@ -170,10 +170,10 @@ public class InstallerEDMAskosi extends InstallerEDMBase
                 installerEDMDisplay.getQuestion(1, "copyDatabaseDrivers.copy.ok");
                 return true;
             } else {
-                installerEDMDisplay.showMessage(databaseDriverSourceDir + installerEDMDisplay.getQuestion(1, "copyDatabaseDrivers.dir.nojar"));
+                installerEDMDisplay.showQuestion(1, "copyDatabaseDrivers.dir.nojar", new String[]{databaseDriverSourceDir});
             }
         } else {
-            installerEDMDisplay.showMessage(databaseDriverSourceDir + installerEDMDisplay.getQuestion(1, "copyDatabaseDrivers.dir.noread"));
+            installerEDMDisplay.showQuestion(1, "copyDatabaseDrivers.dir.noread", new String[]{databaseDriverSourceDir});
         }
         return false;
     }
@@ -185,7 +185,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
         File askosiWebAppDestDirFile = new File(askosiWebAppDestDir);
         String message;
         if (!askosiWebAppDestDirFile.exists() || !askosiWebAppDestDirFile.canWrite()) {
-            if (verbose) installerEDMDisplay.showMessage(askosiWebAppDestDir + installerEDMDisplay.getQuestion(1, "copyAskosiWebApp.askosiwebappdestdir.notexist"));
+            if (verbose) installerEDMDisplay.showQuestion(1, "copyAskosiWebApp.askosiwebappdestdir.notexist", new String[]{askosiWebAppDestDir});
             message = installerEDMDisplay.getQuestion(1, "copyAskosiWebApp.askosiwebappdestdir");
         } else {
             message = installerEDMDisplay.getQuestion(1, "copyAskosiWebApp.askosiwebappdestdir.new") + askosiWebAppDestDir;
@@ -210,7 +210,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
             if (finalAskosiWebAppDestDirFile != null && finalAskosiWebAppDestDirFile.exists() && finalAskosiWebAppDestDirFile.canWrite()) {
                 break;
             } else {
-                installerEDMDisplay.showMessage(response + installerEDMDisplay.getQuestion(1, "copyJarsShared.dir.notwritable"));
+                installerEDMDisplay.showQuestion(1, "copyJarsShared.dir.notwritable", new String[]{response});
             }
         }
         if (copyPackageZipFile(sourcePackageFile, finalAskosiWebAppDestDirFile.getAbsolutePath() + System.getProperty("file.separator"))) {
@@ -229,7 +229,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
     {
         File finalAskosiPlugJspDestDirFile = null;
         while (true) {
-            installerEDMDisplay.showMessage(installerEDMDisplay.getQuestion(1, "copyAskosiPlugJspui.dir") + TomcatBase + "/webapps/jspui): ");
+            installerEDMDisplay.showQuestion(1, "copyAskosiPlugJspui.dir", new String[]{TomcatBase});
             String response = null;
             try {
                 response = br.readLine();
@@ -244,7 +244,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
             if (finalAskosiPlugJspDestDirFile != null && finalAskosiPlugJspDestDirFile.exists() && finalAskosiPlugJspDestDirFile.canWrite()) {
                 break;
             } else {
-                installerEDMDisplay.showMessage(response + installerEDMDisplay.getQuestion(1, "copyJarsShared.dir.notwritable"));
+                installerEDMDisplay.showQuestion(1, "copyJarsShared.dir.notwritable", new String[]{response});
             }
         }
         if (copyPackageZipFile(sourcePackageFile, finalAskosiPlugJspDestDirFile.getAbsolutePath() + System.getProperty("file.separator"))) {
@@ -280,9 +280,9 @@ public class InstallerEDMAskosi extends InstallerEDMBase
                     if (finalAskosiDataDestDirFile.canWrite())
                         break;
                     else
-                        installerEDMDisplay.showMessage(response + installerEDMDisplay.getQuestion(1, "copyJarsShared.dir.notwritable"));
+                        installerEDMDisplay.showQuestion(1, "copyJarsShared.dir.notwritable", new String[]{response});
                 } else {
-                    installerEDMDisplay.showMessage(response + installerEDMDisplay.getQuestion(1, "copyAskosiDataDir.notexist"));
+                    installerEDMDisplay.showQuestion(1, "copyAskosiDataDir.notexist", new String[]{response});
                     try {
                         response = br.readLine();
                     } catch (IOException e) {
@@ -291,7 +291,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
                     }
                     if ((response != null) && (response.length() > 0) && response.trim().equals("y")) {
                         if (!finalAskosiDataDestDirFile.mkdir()) {
-                            installerEDMDisplay.showMessage(installerEDMDisplay.getQuestion(1, "copyAskosiDataDir.failcreate") + finalAskosiDataDestDirFile.getAbsolutePath());
+                            installerEDMDisplay.showQuestion(1, "copyAskosiDataDir.failcreate", new String[]{finalAskosiDataDestDirFile.getAbsolutePath()});
                         } else break;
                     }
                 }
@@ -317,10 +317,10 @@ public class InstallerEDMAskosi extends InstallerEDMBase
                 if (entry.isDirectory()) {
                     File dirAux = new File(destDir + entry.getName());
                     if (!dirAux.exists() && !dirAux.mkdir()) {
-                        installerEDMDisplay.showMessage(installerEDMDisplay.getQuestion(1, "copyPackageZipFile.failcreate") + dirAux.getAbsolutePath());
+                        installerEDMDisplay.showQuestion(1, "copyPackageZipFile.failcreate", new String[]{dirAux.getAbsolutePath()});
                     }
                 } else {
-                    if (verbose) installerEDMDisplay.showMessage(installerEDMDisplay.getQuestion(1, "copyPackageZipFile.extract") + entry.getName());
+                    if (verbose) installerEDMDisplay.showQuestion(1, "copyPackageZipFile.extract", new String[]{entry.getName()});
                     int index = entry.getName().lastIndexOf(47);
                     if (index == -1) {
                         index = entry.getName().lastIndexOf(92);
@@ -328,7 +328,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
                     if (index > 0) {
                         File dir = new File(destDir + entry.getName().substring(0, index));
                         if (!dir.exists() && !dir.mkdirs()) {
-                            installerEDMDisplay.showMessage(installerEDMDisplay.getQuestion(1, "copyPackageZipFile.failcreate.dir") + dir.getAbsolutePath());
+                            installerEDMDisplay.showQuestion(1, "copyPackageZipFile.failcreate.dir", new String[]{dir.getAbsolutePath()});
                         }
                     }
                     byte[] buffer = new byte[1024];
@@ -366,9 +366,9 @@ public class InstallerEDMAskosi extends InstallerEDMBase
         String nameSourcePackage = sourcePackageFile.getName();
         String nameDestPackage = TomcatBaseShared + System.getProperty("file.separator") + nameSourcePackage;
         File desPackageFile = new File(nameDestPackage);
-        if (verbose) installerEDMDisplay.showMessage(sourcePackageFile.getAbsolutePath() + installerEDMDisplay.getQuestion(1, "copyPackageFile.copyfile") + TomcatBaseShared);
+        if (verbose) installerEDMDisplay.showQuestion(1, "copyPackageFile.copyfile", new String[]{sourcePackageFile.getAbsolutePath(), TomcatBaseShared});
         if (desPackageFile.exists()) {
-            installerEDMDisplay.showMessage(nameDestPackage + installerEDMDisplay.getQuestion(1, "copyPackageFile.fileexists"));
+            installerEDMDisplay.showQuestion(1, "copyPackageFile.fileexists", new String[]{nameDestPackage});
             String response = null;
             try {
                 response = br.readLine();
@@ -405,9 +405,9 @@ public class InstallerEDMAskosi extends InstallerEDMBase
             Iterator<File> fileIter = org.apache.commons.io.FileUtils.iterateFiles(dirPackages, null, false);
             while (fileIter.hasNext()) {
                 File packageFile = fileIter.next();
-                if (verbose) installerEDMDisplay.showMessage(installerEDMDisplay.getQuestion(1, "checkPackages.file") + packageFile);
+                if (verbose) installerEDMDisplay.showQuestion(1, "checkPackages.file", new String[]{packageFile.getAbsolutePath()});
                 if (!packageFile.canRead()) {
-                    installerEDMDisplay.showMessage(packageFile + installerEDMDisplay.getQuestion(1, "checkPackages.file.notreadable"));
+                    installerEDMDisplay.showQuestion(1, "checkPackages.file.notreadable", new String[]{packageFile.getAbsolutePath()});
                     return null;
                 }
                 FileInputStream fis = null;
@@ -415,12 +415,12 @@ public class InstallerEDMAskosi extends InstallerEDMBase
                     fis = new FileInputStream(packageFile);
                     String md5 = org.apache.commons.codec.digest.DigestUtils.md5Hex(fis);
                     if (verbose) {
-                        installerEDMDisplay.showMessage(installerEDMDisplay.getQuestion(1, "checkPackages.file.md5") + md5);
+                        installerEDMDisplay.showQuestion(1, "checkPackages.file.md5", new String[]{md5});
                     }
                     for (int i=0; i < packages.length; i++) {
                         if (packages[i].equals(packageFile.getName())) {
                             if (!md5.equals(packagesMD5[i])) {
-                                installerEDMDisplay.showMessage(installerEDMDisplay.getQuestion(1, "checkPackages.file.md5.nok") + packageFile);
+                                installerEDMDisplay.showQuestion(1, "checkPackages.file.md5.nok", new String[]{packageFile.getAbsolutePath()});
                                 return null;
                             } else if (verbose) {
                                 installerEDMDisplay.showQuestion(1, "checkPackages.file.ok");
@@ -438,7 +438,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
             }
             return dirPackages;
         } else {
-            installerEDMDisplay.showMessage(myDirPackages + installerEDMDisplay.getQuestion(1, "checkPackages.directory.notaccessible"));
+            installerEDMDisplay.showQuestion(1, "checkPackages.directory.notaccessible", new String[]{myDirPackages});
         }
         return null;
     }
