@@ -27,7 +27,7 @@ if %argC% == 0 call:help_sub
             set dir_space_runtime=%2%
         )
     ) else (
-        if /I "%1" == "-b" (
+        if /I "%1" == "-t" (
             if not "%2" == "" (
                 set tomcat_base=%2%
             )

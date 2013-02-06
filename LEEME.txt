@@ -1,0 +1,157 @@
+INSTALADOR DE ASKOSI, DE EDMEXPORT Y DE EDMCROSSWALK PARA DSPACE
+----------------------------------------------------------------
+
+Este instalador está programado en Java y por lo tanto necesita de
+una máquina virtual Java para ser lanzado. Está pensado para las versiones
+1.6 de Oracle o de OpenJdk, en versiones inferiores o superiores no está probado.
+
+No tiene componente gui porque está pensado para lanzarse desde consola o terminal,
+ya que muchos servidores no tienen instalado servidor gráfico (Linux/Unix) para ahorrar
+recursos necesarios para lo importante. Sólo poseen acceso remoto por ssh u otro método.
+Así que no espere un entorno bonito, sólo operativo.
+
+El instalador se ha probado con el servidor de aplicaciones Tomcat 5.5 y Tomcat 6.
+
+Como el instalador instala librerías jar en el directorio de librerías del servlet,
+se ha de lanzar con un usuario que tenga permisos de escritura.
+
+El instalador necesita que esté instalado dspace con los siguientes módulos: jspui y oai.
+Se ha probado con dspace 1.7 y 1.8.
+
+
+El instalador viene con dos directorios:
+
+packages: están los archivos que usará el instalador para descomprimir, copiar y/o
+    modificar. La lista es la siguiente:
+
+    ASKOSI.jar ............................... Librería de Askosi necesaria.
+    askosiWebapp.zip ......................... Comprimido con las clases de la aplicación web de Askosi a desplegar
+                                               en el directorio webapps del servlet o uno a configurar.
+    classes.zip .............................. Comprimido con las clases a copiar en el directorio de clases donde
+                                               esté deplegado el módulo de jspui.
+    commons-dbcp.jar ......................... Librería necesaria para Askosi.
+    commons-pool.jar ......................... Librería necesaria para Askosi.
+    dspace-api-1.7.2.jar ..................... Librería de dspace necesaria para el instalador. Se ha elegido la
+                                               versión 1.7.2 por ser una intermedia, ni muy nueva ni obsoleta.
+    EDMCrosswalk.java ........................ Archivo fuente java para ser compilado por el instalador y añadirlo
+                                               a la librería jar del api de oai de dspace.
+    EDMExport.war ............................ Archivo war para modificarse por el instalador y desplegarse manualmente
+                                               en el directorio webapps del servlet o donde se quiera.
+    exampleAskosiData.zip .................... Archivo comprimido necesario para Askosi que procesará el instalador
+                                               para crear el directorio de datos de Askosi.
+    jaxb-xalan-1.5.jar ....................... Librería necesaria para Askosi.
+    jdom-1.0.jar ............................. Librería necesaria para Askosi y el instalador.
+    jsr311-api-1.1.1.jar ..................... Librería necesaria para Askosi.
+    jstl-1.2.jar ............................. Librería necesaria para Askosi.
+    log4j.jar ................................ Librería necesaria para Askosi.
+    oaicat-1.5.48.jar ........................ Librería necesaria para Askosi y el instalador.
+    openrdf-alibaba-2.0-beta6.jar ............ Librería necesaria para Askosi.
+    openrdf-sesame-2.3.2-onejar.jar .......... Librería necesaria para Askosi.
+
+
+lib: están archivos de librerías necesarios para el instalador. La lista es la siguiente:
+
+    commons-cli-1.2.jar ...................... Librería necesaria para el instalador.
+    commons-codec-1.7.jar .................... Librería necesaria para el instalador.
+    commons-io-2.4.jar ....................... Librería necesaria para el instalador.
+    lanterna-2.1.1.jar ....................... Librería necesaria para el instalador.
+    normalizer.jar ........................... Librería necesaria para el instalador.
+    postgresql-8.1-408.jdbc3.jar ............. Librería necesaria para el instalador.
+
+
+Hay dos scripts que permiten lanzar el instalador con las rutas a las librerías necesarias bien configuradas además
+de realizar comprobaciones pertinentes. Se ha intentado que los scripts realicen lo mismo.
+
+Para Linux/Unix: install.sh
+Para Windows: install.bat
+
+La forma de lanzar el instalador es la siguiente:
+
+Linux/Unix:
+
+$ ./install.sh -d directorio_dspace_desplegado -t directorio_fisico_base_tomcat_u_otro_servlet -v -s 0 -l es_ES
+
+Para ver la ayuda:
+$ ./install.sh -h
+
+
+Windows:
+
+unidad:\ruta_al_instalador\install.bat -d directorio_dspace_desplegado -t directorio_fisico_base_tomcat_u_otro_servlet -v -s 0 -l es_ES
+
+Para ver la ayuda:
+$ ./install.bat -h
+
+Saldría: Use: install.sh: [-d dir_space_runtime] [-h] [-l language] [-s step] [-t dir_tomcat_base] [-v]
+
+
+Las opciones son las siguientes:
+
+-d: ruta del directorio raíz donde está desplegado dspace.
+-t: ruta del directorio raíz de Tomcat.
+-s: paso al que queremos ir. Mejor poner 0 para que nos salga el menú principal.
+-v: que sea verboso y nos diga más cosas.
+-l: idioma de los mensajes. Si se deja en blanco se coge el que tenga el sistema.
+    Actualmente seporta inglés y español. Para español explícitamente poner: es_ES.
+    Para inglés: en.
+
+
+Por último está el archivo jar del instalador InstallerEDM.jar, que ha de poseer permisos de ejecución. Se podría lanzar
+manualmente, pero sería algo como (los directorios son ficticios):
+
+$ java -cp ./lib/commons-cli-1.2.jar:./lib/commons-codec-1.7.jar:./lib/commons-io-2.4.jar:./lib/lanterna-2.1.1.jar:./lib/normalizer.jar:./lib/postgresql-8.1-408.jdbc3.jar:/home/europeana/runtime//lib/activation-1.1.jar:/home/europeana/runtime//lib/ant-1.7.0.jar:/home/europeana/runtime//lib/ant-launcher-1.7.0.jar:.. muchas más librerías ..:InstallerEDM.jar:.:/home/europeana/runtime/config org.dspace.installer_edm.InstallerEDM -t /usr/share/tomcat5.5 -s 0  -v -l es_ES
+
+lo que evidentemente es impráctico, por eso mejor lanzarlo con los scripts.
+Las opciones del jar son las mismas que la de los scripts.
+
+
+Como el instalador modifica la base de datos relacional de Dspace para crear comunidades, colecciones e ítems,
+sería conveniente realizar una copia de ella para tener la seguridad de poderrealizar una regresión correcta.
+Es necesario poseer un usuario en Dspace con permisos de creación de los comunidades, colecciones e ítems para
+poder crear los ítems de las autoridades.
+Cuando se termine, si se quiere que las comunidades, colecciones e ítems de las autoridades aparezcan en el
+buscador de Dspace, se tendrá que reindexar Solr.
+
+El instalador consta de los siguientes pasos:
+
+1: Instalar Askosi
+2: Crear Items de Autoridad
+3: Configurar Dspace y Askosi
+4: Configurar EDMExport
+5: Configurar EDMCrosswalk
+6: Salir
+
+El primer paso instala la aplicación Askosi en el servidor. Todos los archivos necesarios los coge del directorio
+packages del instalador.
+Sería necesario reiniciar el Tomcat o Dspace al realizar este paso.
+
+El segundo crea las comunidades, colecciones e ítems de las autoridades y las llena de valores buscando en las
+colecciones de ítems que no son de autoridades. Hay que validarse con un usuario de Dspace com permisos.
+Para cada elemento DC que se quiere que sea una autoridad se crea o asocia a una comunidad y colección de autoridades.
+Esos elementos se buscan en el resto de colecciones de no autoridades para identificar valores únicos.
+No sería necesario reiniciar el Tomcat o Dspace.
+
+El tercer paso copia el fichero de configuración de Dspace "dspace.cfg" y el de catalogación "input-forms.xml"
+a un directorio llamado work en el directorio donde está el instalador. Los modifica con las directivas o propiedades
+nuevas y los deja ahí para revisión del administrador. Éste es el que manualmente (como medida de seguridad) tendrá
+que llevarlos a Dspace.
+Sería necesario reiniciar el Tomcat o Dspace al realizar este paso.
+
+El cuarto paso copia el archivo EDMExport.war de packages a work y lo modifica para configurarlo con la ruta al archivo
+"dspace.cfg" del dspace desplegado. Este war se tendría que copiar manualmente luego al directorio webapps de nuestro
+Tomcat o a otro sitio que queramos para desplegarlo.
+Sería necesario reiniciar el Tomcat si está configurado para desplegar de forma automática.
+
+El quinto paso copia el archivo EDMCrosswalk.java de packages a work y el jar de la api de oai de dspace a work.
+Se piden datos para parámetros exclusivos de EDM y se modifica el java. Se compila y se agrega al archivo jar. Éste
+se ha de copiar manualmente al directorio de librerías donde está desplegado el módulo de oai de dspace.
+También se copia el archivo oaicat.properties de dspace a work para añadirle el nuevo crosswalk. Se tendría que copiar
+manualmente luego a dspace.
+Sería necesario reiniciar el Tomcat o Dspace al realizar este paso.
+
+
+A medida que se vayan descubriendo errores o se tenga que adaptar a nuevas versiones de Dspace se irán sacando
+parches o nuevas versiones.
+
+
+
