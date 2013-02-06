@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# ./install.sh -v -d /home/salzaru/Download/dspace/ -s 1 -t /usr/local/apache-tomcat-6.0/
+# ./install.sh -v -d /home/usuario/dspace/ -s 1 -t /usr/local/apache-tomcat-6.0/ -l es_ES
 
 os=$(uname)
 
@@ -223,7 +223,7 @@ test $verbose -eq 1 && arg_str="$arg_str -v"
 JARS=$(echo $my_dir/lib/*.jar | sed 's/ /\:/g')
 JARS2=$(echo $dir_space_runtime/lib/*.jar | sed 's/ /\:/g')
 
-java -cp $JARS:$JARS2:out/production/instalador_edm/InstallerEDM.jar:out/production/instalador_edm:$dir_space_runtime/config org.dspace.installer_edm.InstallerEDM -d $dir_space_runtime -t $tomcat_base -s $step $arg_str
+java -cp $JARS:$JARS2:InstallerEDM.jar:.:$dir_space_runtime/config org.dspace.installer_edm.InstallerEDM -d $dir_space_runtime -t $tomcat_base -s $step $arg_str
 
 clean_up
 exit 0

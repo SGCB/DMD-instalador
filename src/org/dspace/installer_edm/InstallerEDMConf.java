@@ -130,6 +130,7 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
         org.apache.commons.io.FileUtils.copyFile(dspaceInputFormsFileDtd, dspaceInputFormsFileDtdNew);
         InstallerEDMInputForms installerEDMInputForms = new InstallerEDMInputForms(dspaceInputFormsNewFile.getAbsolutePath());
         installerEDMInputForms.processInputForms();
+        org.apache.commons.io.FileUtils.deleteQuietly(dspaceInputFormsFileDtdNew);
     }
 
 

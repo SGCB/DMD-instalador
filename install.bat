@@ -1,6 +1,6 @@
 @echo off
 
-:: d:\salva\programacion\batch\edm\install.bat -d d:\salva\programacion\batch\edm -b d:\salva\programacion\batch\edm -s 2 -v
+:: d:\usuario\programacion\batch\edm\install.bat -d d:\usuario\programacion\batch\edm -b d:\usuario\programacion\batch\edm -s 2 -v
 
 setlocal EnableDelayedExpansion
 
@@ -133,7 +133,7 @@ for %%f in (%my_dir%\lib\*.jar) do set "JARS=!JARS!%%f;"
 set "JARS2="
 for %%f in (%dir_space_runtime%\lib\*.jar) do set "JARS2=!JARS2!%%f;"
 
-java -cp %JARS%%JARS2%out\production\instalador_edm\InstallerEDM.jar;out\production\instalador_edm;%dir_space_runtime%\config org.dspace.installer_edm.InstallerEDM %*
+java -cp %JARS%%JARS2%InstallerEDM.jar;.;%dir_space_runtime%\config org.dspace.installer_edm.InstallerEDM %*
 
 
 goto END
