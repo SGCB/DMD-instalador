@@ -63,7 +63,7 @@ public class InstallerEDM extends InstallerEDMBase
             } catch (Exception e1) {
             }
 
-            String message = installerEDM.getInstallerEDMDisplay().getQuestion(0, "error.fail.init") + e.getMessage();
+            String message = installerEDM.getInstallerEDMDisplay().getQuestion(0, "error.fail.init", new String[]{e.getMessage()});
             installerEDM.getInstallerEDMDisplay().showMessage(message + ":" + e);
             throw new IllegalStateException(message, e);
         }
@@ -76,6 +76,7 @@ public class InstallerEDM extends InstallerEDMBase
             Options options = new Options();
             options.addOption("d", "dspace_dir", true, installerEDM.getInstallerEDMDisplay().getQuestion(0, "dspace_dir.option"));
             options.addOption("h", "help", false, installerEDM.getInstallerEDMDisplay().getQuestion(0, "help.option"));
+            options.addOption("l", "language", true, installerEDM.getInstallerEDMDisplay().getQuestion(0, "language.option"));
             options.addOption("m", "terminal", false, installerEDM.getInstallerEDMDisplay().getQuestion(0, "terminal.option"));
             options.addOption("s", "step", true, installerEDM.getInstallerEDMDisplay().getQuestion(0, "step.option"));
             options.addOption("t", "tomcat_base", true, installerEDM.getInstallerEDMDisplay().getQuestion(0, "tomcat_base.option"));
@@ -95,6 +96,11 @@ public class InstallerEDM extends InstallerEDMBase
             }
             if (line.hasOption('s')) {
                 iniStep = Integer.parseInt(line.getOptionValue('s').trim());
+            }
+
+            if (line.hasOption('l')) {
+                installerEDM.setLanguage(line.getOptionValue('l').trim());
+                installerEDMDisplay.reloadFileDisplayMessages(language);
             }
 
             if (line.hasOption('m')) {
@@ -170,8 +176,15 @@ public class InstallerEDM extends InstallerEDMBase
         File dirPackage;
         if (step > 0) {
             if (step == 1) {
+                installerEDMDisplay.showLn();
                 installerEDMDisplay.showTitle(1);
                 installerEDMDisplay.showLn();
+                installerEDMDisplay.showQuestion(1, "summary");
+                installerEDMDisplay.showLn();
+                if (!proceed()) {
+                    installEDM(0);
+                    return;
+                }
                 if ((dirPackage = installerEDMAskosi.checkPackages()) != null && installerEDMAskosi.installPackages(dirPackage)) {
                     installerEDMDisplay.showLn();
                     installerEDMDisplay.showQuestion(1, "ok");
@@ -183,8 +196,15 @@ public class InstallerEDM extends InstallerEDMBase
             }
 
             if (step == 2) {
+                installerEDMDisplay.showLn();
                 installerEDMDisplay.showTitle(2);
                 installerEDMDisplay.showLn();
+                installerEDMDisplay.showQuestion(2, "summary");
+                installerEDMDisplay.showLn();
+                if (!proceed()) {
+                    installEDM(0);
+                    return;
+                }
                 installerEDMCreateAuth = new InstallerEDMCreateAuth();
                 sh.addObserver( installerEDMCreateAuth );
                 if (installerEDMCreateAuth.createAuth()) iniStep++;
@@ -195,30 +215,57 @@ public class InstallerEDM extends InstallerEDMBase
             }
 
             if (step == 3) {
+                installerEDMDisplay.showLn();
                 installerEDMDisplay.showTitle(3);
                 installerEDMDisplay.showLn();
+                installerEDMDisplay.showQuestion(3, "summary");
+                installerEDMDisplay.showLn();
+                if (!proceed()) {
+                    installEDM(0);
+                    return;
+                }
                 installerEDMConf = new InstallerEDMConf();
                 installerEDMConf.configureAll();
             }
 
             if (step == 4) {
+                installerEDMDisplay.showLn();
                 installerEDMDisplay.showTitle(4);
                 installerEDMDisplay.showLn();
-                installerEDMConfEDMExport = new InstallerEDMConfEDMExport(myInstallerDirPath + fileSeparator + "packages" + System.getProperty("file.separator") + "EDMExport.war");
+                installerEDMDisplay.showQuestion(4, "summary");
+                installerEDMDisplay.showLn();
+                if (!proceed()) {
+                    installEDM(0);
+                    return;
+                }
+                installerEDMConfEDMExport = new InstallerEDMConfEDMExport(myInstallerDirPath + fileSeparator + "packages" + fileSeparator + "EDMExport.war");
                 installerEDMConfEDMExport.configure();
             }
 
             if (step == 5) {
+                installerEDMDisplay.showLn();
                 installerEDMDisplay.showTitle(5);
                 installerEDMDisplay.showLn();
-                installerEDMCrosswalk = new InstallerEDMCrosswalk(myInstallerDirPath + fileSeparator + "packages" + System.getProperty("file.separator") + "EDMCrosswalk.java");
+                installerEDMDisplay.showQuestion(5, "summary");
+                installerEDMDisplay.showLn();
+                if (!proceed()) {
+                    installEDM(0);
+                    return;
+                }
+                installerEDMCrosswalk = new InstallerEDMCrosswalk(myInstallerDirPath + fileSeparator + "packages" + fileSeparator + "EDMCrosswalk.java");
                 installerEDMCrosswalk.configure();
+            }
+
+            if (step == 6) {
+                System.exit(0);
             }
         } else {
             installerEDMDisplay.showTitle(0);
             while (true) {
                 installerEDMDisplay.showLn();
                 installerEDMDisplay.showMenu(0);
+                installerEDMDisplay.showLn();
+                installerEDMDisplay.showQuestion(0, "option.step");
                 String response = null;
                 try {
                     response = br.readLine();
@@ -231,6 +278,27 @@ public class InstallerEDM extends InstallerEDMBase
                 }
             }
         }
+    }
+
+    private boolean proceed()
+    {
+        String response = null;
+        while (true) {
+            installerEDMDisplay.showQuestion(0, "proceed");
+            try {
+                response = br.readLine();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            if (response == null) continue;
+            response = response.trim();
+            if (!response.isEmpty()) {
+                if (response.equalsIgnoreCase("n")) {
+                    return false;
+                } else if (response.equalsIgnoreCase("y")) break;
+            } else break;
+        }
+        return true;
     }
 
     private void HelpInstallerEDM(Options options)

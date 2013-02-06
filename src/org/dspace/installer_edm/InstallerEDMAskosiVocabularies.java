@@ -44,8 +44,8 @@ public class InstallerEDMAskosiVocabularies extends InstallerEDMBase
             String handle = entry.getValue().getCollection().getHandle();
             String name = removeAccents(entry.getValue().getCollection().getName().toLowerCase());
             String vocabulary = name + "." + entry.getKey();
-            String vocabularyCfg = askosiDataDirFile.getAbsolutePath() + System.getProperty("file.separator") + vocabulary + ".cfg";
-            String vocabularyPoolCfg = askosiDataDirFile.getAbsolutePath() + System.getProperty("file.separator") + vocabulary + "-pool.cfg";
+            String vocabularyCfg = askosiDataDirFile.getAbsolutePath() + fileSeparator + vocabulary + ".cfg";
+            String vocabularyPoolCfg = askosiDataDirFile.getAbsolutePath() + fileSeparator + vocabulary + "-pool.cfg";
             installerEDMDisplay.showQuestion(3, "processAskosiVocabularies.create", new String[] {vocabularyPoolCfg, vocabulary});
             processVocabularyPoolCfg(vocabularyPoolCfg);
             installerEDMDisplay.showQuestion(3, "processAskosiVocabularies.create", new String[] {vocabularyCfg, vocabulary});

@@ -75,10 +75,10 @@ public class InstallerEDMAskosi extends InstallerEDMBase
             installerEDMDisplay.showQuestion(1, "copyJarsShared.tomcatbasedir.notexist", new String[]{TomcatBase});
             return false;
         }
-        String TomcatBaseShared = new StringBuilder().append(TomcatBase).append("shared").append(System.getProperty("file.separator")).append("lib").append(System.getProperty("file.separator")).toString();
+        String TomcatBaseShared = new StringBuilder().append(TomcatBase).append("shared").append(fileSeparator).append("lib").append(fileSeparator).toString();
         File dirInstallJar = new File(TomcatBaseShared);
         if (!dirInstallJar.exists()) {
-            TomcatBaseShared = new StringBuilder().append(TomcatBase).append("lib").append(System.getProperty("file.separator")).toString();
+            TomcatBaseShared = new StringBuilder().append(TomcatBase).append("lib").append(fileSeparator).toString();
             dirInstallJar = new File(TomcatBaseShared);
         }
         if (!dirInstallJar.canWrite()) {
@@ -119,16 +119,16 @@ public class InstallerEDMAskosi extends InstallerEDMBase
 
     private boolean copyDatabaseDrivers()
     {
-        String databaseDriverSourceDir = myInstallerDirPath + System.getProperty("file.separator") + "lib" + System.getProperty("file.separator");
+        String databaseDriverSourceDir = myInstallerDirPath + fileSeparator + "lib" + fileSeparator;
         File databaseDriverSourceDirFile = new File(databaseDriverSourceDir);
         if (databaseDriverSourceDirFile.exists() && databaseDriverSourceDirFile.canRead()) {
             FilenameFilter selectJdbc = new FileListFilter("jdbc", "jar");
             File[] filesJdbc = databaseDriverSourceDirFile.listFiles(selectJdbc);
             if (filesJdbc.length > 0) {
-                String TomcatBaseCommon = new StringBuilder().append(TomcatBase).append("common").append(System.getProperty("file.separator")).append("lib").append(System.getProperty("file.separator")).toString();
+                String TomcatBaseCommon = new StringBuilder().append(TomcatBase).append("common").append(fileSeparator).append("lib").append(fileSeparator).toString();
                 File dirInstallJar = new File(TomcatBaseCommon);
                 if (!dirInstallJar.exists()) {
-                    TomcatBaseCommon = new StringBuilder().append(TomcatBase).append("lib").append(System.getProperty("file.separator")).toString();
+                    TomcatBaseCommon = new StringBuilder().append(TomcatBase).append("lib").append(fileSeparator).toString();
                     dirInstallJar = new File(TomcatBaseCommon);
                 }
                 if (!dirInstallJar.canWrite()) {
@@ -181,7 +181,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
 
     private boolean copyAskosiWebApp(File sourcePackageFile)
     {
-        String askosiWebAppDestDir = TomcatBase + System.getProperty("file.separator") + "webapps" + System.getProperty("file.separator");
+        String askosiWebAppDestDir = TomcatBase + fileSeparator + "webapps" + fileSeparator;
         File askosiWebAppDestDirFile = new File(askosiWebAppDestDir);
         String message;
         if (!askosiWebAppDestDirFile.exists() || !askosiWebAppDestDirFile.canWrite()) {
@@ -213,7 +213,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
                 installerEDMDisplay.showQuestion(1, "copyJarsShared.dir.notwritable", new String[]{response});
             }
         }
-        if (copyPackageZipFile(sourcePackageFile, finalAskosiWebAppDestDirFile.getAbsolutePath() + System.getProperty("file.separator"))) {
+        if (copyPackageZipFile(sourcePackageFile, finalAskosiWebAppDestDirFile.getAbsolutePath() + fileSeparator)) {
             installerEDMDisplay.showLn();
             installerEDMDisplay.getQuestion(1, "copyAskosiWebApp.ok");
             return true;
@@ -238,7 +238,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
                 return false;
             }
             if ((response != null) && (response.length() > 0)) {
-                response = new StringBuilder().append(response.trim()).append(System.getProperty("file.separator")).append("WEB-INF").append(System.getProperty("file.separator")).append("classes").append(System.getProperty("file.separator")).toString();
+                response = new StringBuilder().append(response.trim()).append(fileSeparator).append("WEB-INF").append(fileSeparator).append("classes").append(fileSeparator).toString();
                 finalAskosiPlugJspDestDirFile = new File(response);
             }
             if (finalAskosiPlugJspDestDirFile != null && finalAskosiPlugJspDestDirFile.exists() && finalAskosiPlugJspDestDirFile.canWrite()) {
@@ -247,7 +247,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
                 installerEDMDisplay.showQuestion(1, "copyJarsShared.dir.notwritable", new String[]{response});
             }
         }
-        if (copyPackageZipFile(sourcePackageFile, finalAskosiPlugJspDestDirFile.getAbsolutePath() + System.getProperty("file.separator"))) {
+        if (copyPackageZipFile(sourcePackageFile, finalAskosiPlugJspDestDirFile.getAbsolutePath() + fileSeparator)) {
             installerEDMDisplay.showLn();
             installerEDMDisplay.getQuestion(1, "copyAskosiPlugJspui.ok");
             return true;
@@ -272,7 +272,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
                 return false;
             }
             if ((response != null) && (response.length() > 0)) {
-                response = new StringBuilder().append(response.trim()).append(System.getProperty("file.separator")).toString();
+                response = new StringBuilder().append(response.trim()).append(fileSeparator).toString();
                 finalAskosiDataDestDirFile = new File(response);
             }
             if (finalAskosiDataDestDirFile != null) {
@@ -298,7 +298,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
             }
         }
         installerEDMDisplay.showLn();
-        if (copyPackageZipFile(sourcePackageFile, finalAskosiDataDestDirFile.getAbsolutePath() + System.getProperty("file.separator"))) {
+        if (copyPackageZipFile(sourcePackageFile, finalAskosiDataDestDirFile.getAbsolutePath() + fileSeparator)) {
             setAskosiDataDir(finalAskosiDataDestDirFile.getAbsolutePath());
             installerEDMDisplay.getQuestion(1, "copyAskosiDataDir.ok");
             return true;
@@ -364,7 +364,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
     private boolean copyPackageFile (File sourcePackageFile, String TomcatBaseShared)
     {
         String nameSourcePackage = sourcePackageFile.getName();
-        String nameDestPackage = TomcatBaseShared + System.getProperty("file.separator") + nameSourcePackage;
+        String nameDestPackage = TomcatBaseShared + fileSeparator + nameSourcePackage;
         File desPackageFile = new File(nameDestPackage);
         if (verbose) installerEDMDisplay.showQuestion(1, "copyPackageFile.copyfile", new String[]{sourcePackageFile.getAbsolutePath(), TomcatBaseShared});
         if (desPackageFile.exists()) {
@@ -399,7 +399,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
 
     public File checkPackages()
     {
-        String myDirPackages = myInstallerDirPath + System.getProperty("file.separator") + "packages";
+        String myDirPackages = myInstallerDirPath + fileSeparator + "packages";
         File dirPackages = new File(myDirPackages);
         if (dirPackages.exists() && dirPackages.isDirectory() && dirPackages.canRead()) {
             Iterator<File> fileIter = org.apache.commons.io.FileUtils.iterateFiles(dirPackages, null, false);

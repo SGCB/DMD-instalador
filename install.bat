@@ -13,6 +13,7 @@ set verbose=0
 set dir_space_runtime=""
 set tomcat_base=""
 set step=1
+set language=""
 
 set argC=0
 for %%x in (%*) do set /A argC+=1
@@ -22,19 +23,25 @@ if %argC% == 0 call:help_sub
 :LoopArgs
     if "%1" == "" goto ContinueArgs
     if /I "%1" == "-d" (
-        if not "%2" == "" ( 
+        if not "%2" == "" (
             set dir_space_runtime=%2%
         )
     ) else (
         if /I "%1" == "-b" (
-            if not "%2" == "" ( 
+            if not "%2" == "" (
                 set tomcat_base=%2%
             )
         ) else (
-            if /I "%1" == "-s" ( 
-                if not "%2" == "" ( set /A step=%2% )
+            if /I "%1" == "-l" (
+                if not "%2" == "" (
+                    set language=%2%
+                )
             ) else (
-                if /I "%1" == "-v" ( set /A verbose=1 )
+                if /I "%1" == "-s" (
+                    if not "%2" == "" ( set /A step=%2% )
+                ) else (
+                    if /I "%1" == "-v" ( set /A verbose=1 )
+                )
             )
         )
     )
@@ -50,7 +57,7 @@ if %argC% == 0 call:help_sub
     if defined or_ (
         set my_dir=""
         set response=
-        set /P response=Directory running this install: 
+        set /P response=Directory running this install:
         if not "%response%" == "" ( set my_dir=!response! )
         goto MYDIRNOK
     ) else (
@@ -69,8 +76,8 @@ if %argC% == 0 call:help_sub
     if defined or_ (
         set dir_space_runtime=""
         set response=
-        set /P response=Directory where dspace is deployed: 
-        if not "%response%" == "" ( 
+        set /P response=Directory where dspace is deployed:
+        if not "%response%" == "" (
             set dir_space_runtime=!response!
         )
         goto DSRDIRNOK
@@ -90,8 +97,8 @@ if %argC% == 0 call:help_sub
     if defined or_ (
         set tomcat_base=""
         set response=
-        set /P response=Directory Base Tomcat: 
-        if not "%response%" == "" ( 
+        set /P response=Directory Base Tomcat:
+        if not "%response%" == "" (
             set tomcat_base=!response!
         )
         goto TOMCATDIRNOK
@@ -109,8 +116,8 @@ if %argC% == 0 call:help_sub
     if defined or_ (
         set step=0
         set response=
-        set /P response=Step 0 1,2,3,4,5: 
-        if not "%response%" == "" ( 
+        set /P response=Step 0 1,2,3,4,5:
+        if not "%response%" == "" (
             set /A step=!response!
         )
         goto STEPNOK
@@ -134,7 +141,7 @@ goto END
 
 :help_sub
     echo.
-    echo. "Use: "%my_name%": [-d dir_space_runtime] [-h] [-s step] [-t dir_tomcat_base] [-v]"
+    echo. "Use: "%my_name%": [-d dir_space_runtime] [-h] [-l language] [-s step] [-t dir_tomcat_base] [-v]"
     goto END
 GOTO:EOF
 

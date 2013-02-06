@@ -24,7 +24,12 @@ public class InstallerEDMDisplayImpl implements InstallerEDMDisplay
 
     public InstallerEDMDisplayImpl()
     {
-        loadFileDisplayMessages();
+        this(null);
+    }
+
+    public InstallerEDMDisplayImpl(String language)
+    {
+        loadFileDisplayMessages(language);
         if (isTerminal) {
             setTerminal();
         }
@@ -136,9 +141,16 @@ public class InstallerEDMDisplayImpl implements InstallerEDMDisplay
         return this.isTerminal;
     }
 
-    private void loadFileDisplayMessages()
+    @Override
+    public void reloadFileDisplayMessages(String language)
     {
-        loadFileMessages = new LoadFileMessages(nameFileDisplayMessages);
+        if (!properties.isEmpty()) properties.clear();
+        loadFileDisplayMessages(language);
+    }
+
+    private void loadFileDisplayMessages(String language)
+    {
+        loadFileMessages = new LoadFileMessages(nameFileDisplayMessages, language);
         for (Enumeration<String> e = loadFileMessages.getKeys(); e.hasMoreElements();) {
             String key = e.nextElement();
             String val = loadFileMessages.getString(key);

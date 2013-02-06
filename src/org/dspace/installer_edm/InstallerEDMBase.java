@@ -33,6 +33,8 @@ public abstract class InstallerEDMBase implements Observer
     protected static boolean verbose = false;
     protected static Context context = null;
 
+    protected static String language = "en";
+
     protected static Set<Integer> stepsSet = new HashSet<Integer>();
 
     protected static InstallerEDMDisplay installerEDMDisplay = null;
@@ -73,6 +75,12 @@ public abstract class InstallerEDMBase implements Observer
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+
+    public void setLanguage(String language)
+    {
+        this.language = language;
     }
 
     public void setInstallerEDMBase(InstallerEDM installerEDM)

@@ -28,4 +28,6 @@ public interface InstallerEDMDisplay
 
     public void showProgress(char prog);
 
+    public void reloadFileDisplayMessages(String language);
+
 }

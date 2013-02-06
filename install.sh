@@ -86,6 +86,7 @@ verbose=0
 dir_space_runtime=""
 tomcat_base=""
 step=1
+language=""
 
 
 clean_up ()
@@ -101,7 +102,7 @@ clean_up ()
 
 help_sub()
 {
-    message_sub "${BLUE}Use: "$my_name": [-d dir_space_runtime] [-h] [-s step] [-t dir_tomcat_base] [-v]${NC}" >&2
+    message_sub "${BLUE}Use: "$my_name": [-d dir_space_runtime] [-h] [-l language] [-s step] [-t dir_tomcat_base] [-v]${NC}" >&2
     clean_up
     exit 2
 }
@@ -115,6 +116,10 @@ do
         "-d" )
             shift
             dir_space_runtime=$1
+            ;;
+        "-l" )
+            shift
+            language=$1
             ;;
         "-s" )
             shift
@@ -211,7 +216,9 @@ fi
 
 arg_str=""
 
+test -n "$language" && arg_str="$arg_str -l $language"
 test $verbose -eq 1 && arg_str="$arg_str -v"
+
 
 JARS=$(echo $my_dir/lib/*.jar | sed 's/ /\:/g')
 JARS2=$(echo $dir_space_runtime/lib/*.jar | sed 's/ /\:/g')

@@ -21,16 +21,30 @@ public class LoadFileMessages extends ResourceBundle
 {
     String fileName;
     protected static final Control UTF8_CONTROL = new UTF8Control();
+    private Locale locale;
 
-    public LoadFileMessages(String fileName)
+
+    public LoadFileMessages(String fileName, String language)
     {
+        if (language != null && !language.isEmpty()) {
+            if (language.indexOf("_") > 0) {
+                String[] arrLang = language.split("_");
+                locale = new Locale(arrLang[0], arrLang[1]);
+            } else locale = new Locale(language);
+        }
         this.fileName = fileName;
-        if (Locale.getDefault() == null) Locale.setDefault(Locale.ENGLISH);
+        if (locale == null && Locale.getDefault() == null) Locale.setDefault(Locale.ENGLISH);
         try {
-            setParent(ResourceBundle.getBundle(fileName, Locale.getDefault(), UTF8_CONTROL));
+            if (locale != null) setParent(ResourceBundle.getBundle(fileName, locale, UTF8_CONTROL));
+            else setParent(ResourceBundle.getBundle(fileName, Locale.getDefault(), UTF8_CONTROL));
         } catch (java.util.MissingResourceException e) {
             setParent(ResourceBundle.getBundle(fileName, Locale.ENGLISH, UTF8_CONTROL));
         }
+    }
+
+    public LoadFileMessages(String fileName)
+    {
+        this(fileName, null);
     }
 
 

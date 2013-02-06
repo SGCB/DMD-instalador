@@ -91,7 +91,7 @@ public class InstallerEDMConfEDMExport extends InstallerEDMBase
                             NodeList resultsParamValue = contextParam.getElementsByTagName("param-value");
                             if (resultsParamValue.getLength() > 0) {
                                 Element valueParam = (Element) resultsParamValue.item(0);
-                                String dspaceCfg = DspaceDir + "config" + System.getProperty("file.separator") + "dspace.cfg";
+                                String dspaceCfg = DspaceDir + "config" + fileSeparator + "dspace.cfg";
                                 installerEDMDisplay.showQuestion(4, "configure.dspacecfg", new String[] {dspaceCfg});
                                 File dspaceCfgFile = new File(dspaceCfg);
                                 String response = null;
