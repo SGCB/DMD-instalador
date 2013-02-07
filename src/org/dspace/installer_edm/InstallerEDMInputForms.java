@@ -55,9 +55,9 @@ public class InstallerEDMInputForms extends InstallerEDMBase
     private HashMap<String, ArrayList<String>> formsColections;
 
 
-    public InstallerEDMInputForms(String dspaceInputFormsNewFile) throws IOException, SAXException, ParserConfigurationException
+    public InstallerEDMInputForms(int currentStepGlobal, String dspaceInputFormsNewFile) throws IOException, SAXException, ParserConfigurationException
     {
-        super();
+        super(currentStepGlobal);
         if (formsColections == null)
             formsColections = new HashMap<String, ArrayList<String>>();
         else formsColections.clear();
@@ -170,7 +170,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
                 modified = true;
             }
 
-            installerEDMDisplay.showQuestion(3, "readInputFormsDspace.element.page", new String[] {entry.getKey(), name});
+            installerEDMDisplay.showQuestion(currentStepGlobal, "readInputFormsDspace.element.page", new String[] {entry.getKey(), name});
             String pageResp = null;
             do {
                 pageResp = br.readLine();
@@ -219,7 +219,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
                 }
             }
 
-            installerEDMDisplay.showQuestion(3, "readInputFormsDspace.element.form", new String[] {entry.getKey(), name});
+            installerEDMDisplay.showQuestion(currentStepGlobal, "readInputFormsDspace.element.form", new String[] {entry.getKey(), name});
             String formResp = null;
             HashSet<String> forms = null;
             do {
@@ -232,7 +232,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
                     if (status == null) break;
                     else {
                         installerEDMDisplay.showMessage(status);
-                        installerEDMDisplay.showQuestion(3, "readInputFormsDspace.element.form", new String[] {entry.getKey(), name});
+                        installerEDMDisplay.showQuestion(currentStepGlobal, "readInputFormsDspace.element.form", new String[] {entry.getKey(), name});
                     }
                 }
             } while (true);
@@ -249,7 +249,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
             String xpathFormNameExpression = String.format(xpathFormNameTemplate, new Object[] { form });
             NodeList resultsFormName = (NodeList)xpathFormName.evaluate(xpathFormNameExpression, docInputForms, XPathConstants.NODESET);
             if (resultsFormName.getLength() > 0) {
-                installerEDMDisplay.showQuestion(3, "readInputFormsDspace.element.page", new String[] {entry.getKey(), form});
+                installerEDMDisplay.showQuestion(currentStepGlobal, "readInputFormsDspace.element.page", new String[] {entry.getKey(), form});
                 String pageResp = null;
                 do {
                     pageResp = br.readLine();
@@ -291,7 +291,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
             Element elementVocabulary = (Element) vocabularyList.item(0);
             String currentVocabulary = elementVocabulary.getFirstChild().getNodeValue();
             if (!currentVocabulary.equals(vocabulary)) {
-                installerEDMDisplay.showQuestion(3, "updateElementvocabulary", new String[] {currentVocabulary, entry.getKey(), form, vocabulary});
+                installerEDMDisplay.showQuestion(currentStepGlobal, "updateElementvocabulary", new String[] {currentVocabulary, entry.getKey(), form, vocabulary});
                 String response = null;
                 do {
                     response = br.readLine();
@@ -452,7 +452,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
         Element elemRequired = docInputForms.createElement("required");
         elem.appendChild(elemRequired);
 
-        installerEDMDisplay.showQuestion(3, "addFieldForm.label", new String[]{value.getMetadataField().getElement() + "." + value.getMetadataField().getQualifier()});
+        installerEDMDisplay.showQuestion(currentStepGlobal, "addFieldForm.label", new String[]{value.getMetadataField().getElement() + "." + value.getMetadataField().getQualifier()});
         String label = null;
         do {
             label = br.readLine();
@@ -467,7 +467,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
         elemLabel.appendChild(text);
         elem.appendChild(elemLabel);
 
-        installerEDMDisplay.showQuestion(3, "addFieldForm.hint", new String[]{value.getMetadataField().getElement() + "." + value.getMetadataField().getQualifier()});
+        installerEDMDisplay.showQuestion(currentStepGlobal, "addFieldForm.hint", new String[]{value.getMetadataField().getElement() + "." + value.getMetadataField().getQualifier()});
         String hint = null;
         do {
             hint = br.readLine();

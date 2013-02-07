@@ -23,9 +23,9 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
     private Writer out = null;
     private File dspaceDirConfNewFile;
 
-    public InstallerEDMDspaceCfg(File dspaceDirConfNewFile)
+    public InstallerEDMDspaceCfg(int currentStepGlobal, File dspaceDirConfNewFile)
     {
-        super();
+        super(currentStepGlobal);
         this.dspaceDirConfNewFile = dspaceDirConfNewFile;
         authDCElementsSetWritten = new HashMap<String, Integer>();
     }
@@ -38,15 +38,15 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
             if (askosiDataDir != null) askosiDataDestDirFile = new File(askosiDataDir);
             if (askosiDataDestDirFile != null && askosiDataDestDirFile.exists() && askosiDataDestDirFile.canRead()) {
                 AskosiDataDir = askosiDataDestDirFile.getAbsolutePath();
-                if (verbose) installerEDMDisplay.showQuestion(3, "configureDspaceCfg.askosidatadir",
+                if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "configureDspaceCfg.askosidatadir",
                         new String[]{AskosiDataDir});
             } else {
                 if (AskosiDataDir != null) {
                     askosiDataDestDirFile = new File(AskosiDataDir);
-                    if (verbose) installerEDMDisplay.showQuestion(3, "configureDspaceCfg.askosidatadir", new String[]{
+                    if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "configureDspaceCfg.askosidatadir", new String[]{
                             askosiDataDestDirFile.getAbsolutePath()});
                 } else {
-                    installerEDMDisplay.showQuestion(3, "configureDspaceCfg.askosidatadir", new String[]{""});
+                    installerEDMDisplay.showQuestion(currentStepGlobal, "configureDspaceCfg.askosidatadir", new String[]{""});
                     String response = null;
                     do {
                         response = br.readLine();
@@ -75,18 +75,18 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
                     boolean isOk = false;
                     if (authDCElementsSetWritten.containsKey(element)) {
                         if (authDCElementsSetWritten.get(element).intValue() == 3) isOk = true;
-                        else if (verbose) installerEDMDisplay.showQuestion(3, "configureDspaceCfg.element.incorrect",
+                        else if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "configureDspaceCfg.element.incorrect",
                          new String[]{element});
                     }
                     if (!isOk) {
                         if (!writeDspaceCfg(out, element)) {
-                            installerEDMDisplay.showQuestion(3, "configureDspaceCfg.element.add.fail",
+                            installerEDMDisplay.showQuestion(currentStepGlobal, "configureDspaceCfg.element.add.fail",
                                     new String[]{element});
-                        } else if (verbose) installerEDMDisplay.showQuestion(3, "configureDspaceCfg.element.add",
+                        } else if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "configureDspaceCfg.element.add",
                                 new String[]{element});
                     }
                 }
-            } else if (verbose) installerEDMDisplay.showQuestion(3, "configureDspaceCfg.nothing.add");
+            } else if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "configureDspaceCfg.nothing.add");
         } finally {
             if (out != null) {
                 out.flush();
@@ -118,7 +118,7 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
                     Matcher matcherAskosiDir = patternAskosiDir.matcher(line);
                     if (matcherAskosiDir.find()) {
                         dataDir = (String) matcherAskosiDir.group(1);
-                        if (verbose) installerEDMDisplay.showQuestion(3, "readDspaceCfg.line.found.data", new String[] {line, dataDir});
+                        if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "readDspaceCfg.line.found.data", new String[] {line, dataDir});
                     }
                 }
                 if (!patternAskosiAuthPluginRead) {
@@ -126,7 +126,7 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
                     if (matcherAskosiAuthPlugin.find()) {
                         patternAskosiAuthPluginRead = true;
                         String content = (String) matcherAskosiAuthPlugin.group(1);
-                        if (verbose) installerEDMDisplay.showQuestion(3, "readDspaceCfg.line.found.content", new String[] {line, content});
+                        if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "readDspaceCfg.line.found.content", new String[] {line, content});
                         Matcher matcherAskosiAuthPluginBe = patternAskosiAuthPluginBe.matcher(content);
                         if (matcherAskosiAuthPluginBe.find()) {
                             patternAskosiAuthPluginBeRead = true;
@@ -136,7 +136,7 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
                 if (!patternAskosiAuthPluginBeRead) {
                     Matcher matcherAskosiAuthPluginBe = patternAskosiAuthPluginBe.matcher(line);
                     if (matcherAskosiAuthPluginBe.find()) {
-                        if (verbose) installerEDMDisplay.showQuestion(3, "readDspaceCfg.line.found",
+                        if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "readDspaceCfg.line.found",
                                 new String[]{line});
                         patternAskosiAuthPluginBeRead = true;
                     }
@@ -146,7 +146,7 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
                 if (matcherPlugin.find()) {
                     String element = (String) matcherPlugin.group(1);
                     if (authBOHashMap.containsKey(element)) {
-                        if (verbose) installerEDMDisplay.showQuestion(3, "readDspaceCfg.line.found.element", new String[] {line, element});
+                        if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "readDspaceCfg.line.found.element", new String[] {line, element});
                         if (authDCElementsSetWritten.containsKey(element)) {
                             int valor = authDCElementsSetWritten.get(element).intValue() + 1;
                             authDCElementsSetWritten.put(element, Integer.valueOf(valor));
@@ -157,7 +157,7 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
                     if (matcherPresentation.find()) {
                         String element = (String) matcherPresentation.group(1);
                         if (authBOHashMap.containsKey(element)) {
-                            if (verbose) installerEDMDisplay.showQuestion(3, "readDspaceCfg.line.found.element", new String[] {line, element});
+                            if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "readDspaceCfg.line.found.element", new String[] {line, element});
                             if (authDCElementsSetWritten.containsKey(element)) {
                                 int valor = authDCElementsSetWritten.get(element).intValue() + 1;
                                 authDCElementsSetWritten.put(element, Integer.valueOf(valor));
@@ -168,7 +168,7 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
                         if (matcherControlled.find()) {
                             String element = (String) matcherControlled.group(1);
                             if (authBOHashMap.containsKey(element)) {
-                                if (verbose) installerEDMDisplay.showQuestion(3, "readDspaceCfg.line.found.element", new String[] {line, element});
+                                if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "readDspaceCfg.line.found.element", new String[] {line, element});
                                 if (authDCElementsSetWritten.containsKey(element)) {
                                     int valor = authDCElementsSetWritten.get(element).intValue() + 1;
                                     authDCElementsSetWritten.put(element, Integer.valueOf(valor));

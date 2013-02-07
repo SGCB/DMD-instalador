@@ -166,7 +166,7 @@ public class InstallerEDM extends InstallerEDMBase
             e.printStackTrace();
             finishInstaller();
         }
-        installerEDMAskosi = new InstallerEDMAskosi();
+        installerEDMAskosi = new InstallerEDMAskosi(Integer.parseInt(installerEDMDisplay.getQuestion(0, "step.askosi")));
         sh.addObserver( installerEDMAskosi );
         installEDM(iniStep);
     }
@@ -175,7 +175,7 @@ public class InstallerEDM extends InstallerEDMBase
     {
         File dirPackage;
         if (step > 0) {
-            if (step == 1) {
+            if (step == Integer.parseInt(installerEDMDisplay.getQuestion(0, "step.askosi"))) {
                 installerEDMDisplay.showLn();
                 installerEDMDisplay.showTitle(1);
                 installerEDMDisplay.showLn();
@@ -195,7 +195,7 @@ public class InstallerEDM extends InstallerEDMBase
                 }
             }
 
-            if (step == 2) {
+            if (step == Integer.parseInt(installerEDMDisplay.getQuestion(0, "step.auth_item"))) {
                 installerEDMDisplay.showLn();
                 installerEDMDisplay.showTitle(2);
                 installerEDMDisplay.showLn();
@@ -205,7 +205,7 @@ public class InstallerEDM extends InstallerEDMBase
                     installEDM(0);
                     return;
                 }
-                installerEDMCreateAuth = new InstallerEDMCreateAuth();
+                installerEDMCreateAuth = new InstallerEDMCreateAuth(Integer.parseInt(installerEDMDisplay.getQuestion(0, "step.auth_item")));
                 sh.addObserver( installerEDMCreateAuth );
                 if (installerEDMCreateAuth.createAuth()) iniStep++;
                 else {
@@ -214,7 +214,7 @@ public class InstallerEDM extends InstallerEDMBase
                 }
             }
 
-            if (step == 3) {
+            if (step == Integer.parseInt(installerEDMDisplay.getQuestion(0, "step.conf_dspace_askosi"))) {
                 installerEDMDisplay.showLn();
                 installerEDMDisplay.showTitle(3);
                 installerEDMDisplay.showLn();
@@ -224,11 +224,11 @@ public class InstallerEDM extends InstallerEDMBase
                     installEDM(0);
                     return;
                 }
-                installerEDMConf = new InstallerEDMConf();
+                installerEDMConf = new InstallerEDMConf(Integer.parseInt(installerEDMDisplay.getQuestion(0, "step.conf_dspace_askosi")));
                 installerEDMConf.configureAll();
             }
 
-            if (step == 4) {
+            if (step == Integer.parseInt(installerEDMDisplay.getQuestion(0, "step.edmexport"))) {
                 installerEDMDisplay.showLn();
                 installerEDMDisplay.showTitle(4);
                 installerEDMDisplay.showLn();
@@ -238,11 +238,12 @@ public class InstallerEDM extends InstallerEDMBase
                     installEDM(0);
                     return;
                 }
-                installerEDMConfEDMExport = new InstallerEDMConfEDMExport(myInstallerDirPath + fileSeparator + "packages" + fileSeparator + "EDMExport.war");
+                installerEDMConfEDMExport = new InstallerEDMConfEDMExport(Integer.parseInt(installerEDMDisplay.getQuestion(0, "step.edmexport")),
+                        myInstallerDirPath + fileSeparator + "packages" + fileSeparator + "EDMExport.war");
                 installerEDMConfEDMExport.configure();
             }
 
-            if (step == 5) {
+            if (step == Integer.parseInt(installerEDMDisplay.getQuestion(0, "step.edmcrosswalk"))) {
                 installerEDMDisplay.showLn();
                 installerEDMDisplay.showTitle(5);
                 installerEDMDisplay.showLn();
@@ -252,11 +253,12 @@ public class InstallerEDM extends InstallerEDMBase
                     installEDM(0);
                     return;
                 }
-                installerEDMCrosswalk = new InstallerEDMCrosswalk(myInstallerDirPath + fileSeparator + "packages" + fileSeparator + "EDMCrosswalk.java");
+                installerEDMCrosswalk = new InstallerEDMCrosswalk(Integer.parseInt(installerEDMDisplay.getQuestion(0, "step.edmcrosswalk")),
+                        myInstallerDirPath + fileSeparator + "packages" + fileSeparator + "EDMCrosswalk.java");
                 installerEDMCrosswalk.configure();
             }
 
-            if (step == 6) {
+            if (step == Integer.parseInt(installerEDMDisplay.getQuestion(0, "step.exit"))) {
                 System.exit(0);
             }
         } else {

@@ -27,9 +27,9 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
     private Set<String> elementsNotAuthSet = null;
 
 
-    public InstallerEDMConf()
+    public InstallerEDMConf(int currentStepGlobal)
     {
-        super();
+        super(currentStepGlobal);
         if (elementsNotAuthSet == null)
             elementsNotAuthSet = new HashSet<String>();
         else
@@ -69,16 +69,16 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
                             if (askosiDataDirFile.exists() && askosiDataDirFile.isDirectory() && askosiDataDirFile.canWrite()) {
                                 configureAskosiVocabularies(askosiDataDirFile);
                                 installerEDMDisplay.showLn();
-                                installerEDMDisplay.showQuestion(3, "configureAll.ok");
+                                installerEDMDisplay.showQuestion(currentStepGlobal, "configureAll.ok");
                                 return true;
                             } else {
-                                installerEDMDisplay.showQuestion(3, "configureAll.AskosiDataDir.notexist", new String[]{AskosiDataDir});
+                                installerEDMDisplay.showQuestion(currentStepGlobal, "configureAll.AskosiDataDir.notexist", new String[]{AskosiDataDir});
                             }
-                        } else installerEDMDisplay.showQuestion(3, "configureAll.AskosiDataDir.notexist");
-                    } else installerEDMDisplay.showQuestion(3, "configureAll.inputforms.notexist", new String[]{dspaceInputFormsName});
+                        } else installerEDMDisplay.showQuestion(currentStepGlobal, "configureAll.AskosiDataDir.notexist");
+                    } else installerEDMDisplay.showQuestion(currentStepGlobal, "configureAll.inputforms.notexist", new String[]{dspaceInputFormsName});
                 } else {
                     installerEDMDisplay.showLn();
-                    installerEDMDisplay.showQuestion(3, "configureAll.notauthdcelements");
+                    installerEDMDisplay.showQuestion(currentStepGlobal, "configureAll.notauthdcelements");
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -95,23 +95,23 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
             } catch (TransformerException e) {
                 e.printStackTrace();
             }
-        } else installerEDMDisplay.showQuestion(3, "configureAll.dspacedirconf.notexist", new String [] {dspaceDirConfName, dspaceDirConfNewFile.getAbsolutePath()});
+        } else installerEDMDisplay.showQuestion(currentStepGlobal, "configureAll.dspacedirconf.notexist", new String [] {dspaceDirConfName, dspaceDirConfNewFile.getAbsolutePath()});
         return false;
     }
 
 
     private void configureAskosiVocabularies(File askosiDataDirFile) throws IOException
     {
-        InstallerEDMAskosiVocabularies installerEDMAskosiVocabularies = new InstallerEDMAskosiVocabularies(askosiDataDirFile);
+        InstallerEDMAskosiVocabularies installerEDMAskosiVocabularies = new InstallerEDMAskosiVocabularies(currentStepGlobal, askosiDataDirFile);
         installerEDMAskosiVocabularies.processAskosiVocabularies();
     }
 
     private void configureInputFormsDspace(File dspaceInputFormsFile, File dspaceInputFormsNewFile, ArrayList<MetadataField> authDCElements) throws IOException, XPathExpressionException, ParserConfigurationException, SAXException, TransformerException, SQLException
     {
         installerEDMDisplay.showLn();
-        installerEDMDisplay.showQuestion(3, "configureInputFormsDspace.inputforms.add", new String [] {myInstallerWorkDirPath, dspaceInputFormsFile.getAbsolutePath()});
+        installerEDMDisplay.showQuestion(currentStepGlobal, "configureInputFormsDspace.inputforms.add", new String [] {myInstallerWorkDirPath, dspaceInputFormsFile.getAbsolutePath()});
         if (dspaceInputFormsNewFile.exists()) {
-            installerEDMDisplay.showQuestion(3, "configureInputFormsDspace.inputforms.file.exists", new String[]{dspaceInputFormsNewFile.getAbsolutePath()});
+            installerEDMDisplay.showQuestion(currentStepGlobal, "configureInputFormsDspace.inputforms.file.exists", new String[]{dspaceInputFormsNewFile.getAbsolutePath()});
             String response = null;
             do {
                 response = br.readLine();
@@ -128,7 +128,7 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
         File dspaceInputFormsFileDtd = new File(DspaceDir + "config" + fileSeparator + "input-forms.dtd");
         File dspaceInputFormsFileDtdNew = new File(myInstallerWorkDirPath + fileSeparator + "input-forms.dtd");
         org.apache.commons.io.FileUtils.copyFile(dspaceInputFormsFileDtd, dspaceInputFormsFileDtdNew);
-        InstallerEDMInputForms installerEDMInputForms = new InstallerEDMInputForms(dspaceInputFormsNewFile.getAbsolutePath());
+        InstallerEDMInputForms installerEDMInputForms = new InstallerEDMInputForms(currentStepGlobal, dspaceInputFormsNewFile.getAbsolutePath());
         installerEDMInputForms.processInputForms();
         org.apache.commons.io.FileUtils.deleteQuietly(dspaceInputFormsFileDtdNew);
     }
@@ -137,9 +137,9 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
     private void configureDspaceCfg(File dspaceDirConfFile, File dspaceDirConfNewFile, ArrayList<MetadataField> authDCElements) throws FileNotFoundException, IndexOutOfBoundsException, IOException, NullPointerException
     {
         installerEDMDisplay.showLn();
-        installerEDMDisplay.showQuestion(3, "configureDspaceCfg.dspacecfg.add", new String [] {myInstallerWorkDirPath, dspaceDirConfFile.getAbsolutePath()});
+        installerEDMDisplay.showQuestion(currentStepGlobal, "configureDspaceCfg.dspacecfg.add", new String [] {myInstallerWorkDirPath, dspaceDirConfFile.getAbsolutePath()});
         if (dspaceDirConfNewFile.exists()) {
-            installerEDMDisplay.showQuestion(3, "configureDspaceCfg.dspacecfg.file.exists", new String[]{dspaceDirConfNewFile.getAbsolutePath()});
+            installerEDMDisplay.showQuestion(currentStepGlobal, "configureDspaceCfg.dspacecfg.file.exists", new String[]{dspaceDirConfNewFile.getAbsolutePath()});
             String response = null;
             do {
                 response = br.readLine();
@@ -153,7 +153,7 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
             } while (true);
         }
         org.apache.commons.io.FileUtils.copyFile(dspaceDirConfFile, dspaceDirConfNewFile);
-        InstallerEDMDspaceCfg installerEDMDspaceCfg = new InstallerEDMDspaceCfg(dspaceDirConfNewFile);
+        InstallerEDMDspaceCfg installerEDMDspaceCfg = new InstallerEDMDspaceCfg(currentStepGlobal, dspaceDirConfNewFile);
         installerEDMDspaceCfg.processDspaceCfg(authDCElements);
     }
 
@@ -164,14 +164,14 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
         language = ConfigurationManager.getProperty("default.language");
         if (language == null) language = "en";
         Collection[] listCollections = Collection.findAll(context);
-        if (verbose) installerEDMDisplay.showQuestion(3, "checkAllSkosAuthElements.searching.elements", new String[] {String.valueOf(listCollections.length)});
+        if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "checkAllSkosAuthElements.searching.elements", new String[] {String.valueOf(listCollections.length)});
         if (listCollections.length > 0) {
             for (Collection collection : listCollections) {
-                if (verbose) installerEDMDisplay.showQuestion(3, "checkAllSkosAuthElements.searching.elements.collection", new String[] {collection.getName(), collection.getHandle()});
+                if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "checkAllSkosAuthElements.searching.elements.collection", new String[] {collection.getName(), collection.getHandle()});
                 ItemIterator iter = collection.getAllItems();
                 while (iter.hasNext()) {
                     Item item = iter.next();
-                    if (verbose) installerEDMDisplay.showQuestion(3, "checkAllSkosAuthElements.searching.elements.item", new String[] { item.getName(), item.getHandle()});
+                    if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "checkAllSkosAuthElements.searching.elements.item", new String[] { item.getName(), item.getHandle()});
                     DCValue[] listDCTypeValues = item.getMetadata(dcSchema.getName(), "type", null, language);
                     if (listDCTypeValues.length > 0) {
                         for (DCValue dcTypeValue : listDCTypeValues) {
@@ -190,13 +190,13 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
     private void checkSkosAuthItem(ArrayList<MetadataField> authDCElements, Item item)
     {
         DCValue[] listDCValues = item.getMetadata(dcSchema.getName() + ".*.*");
-        if (verbose) installerEDMDisplay.showQuestion(3, "checkSkosAuthItem.elements", new String[]{Integer.toString(listDCValues.length)});
+        if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "checkSkosAuthItem.elements", new String[]{Integer.toString(listDCValues.length)});
         if (listDCValues.length > 0) {
             for (DCValue dcValue : listDCValues) {
                 if (dcValue.value == null || dcValue.value.isEmpty()) continue;
                 String dcValueName = dcValue.element + ((dcValue.qualifier != null && !dcValue.qualifier.isEmpty())?"." + dcValue.qualifier:"");
                 if (!elementsNotAuthSet.contains(dcValueName) && !authBOHashMap.containsKey(dcValueName)) {
-                    if (verbose) installerEDMDisplay.showQuestion(3, "checkSkosAuthItem.element", new String[]{dcValueName});
+                    if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "checkSkosAuthItem.element", new String[]{dcValueName});
                     MetadataField metadataField = new MetadataField(dcSchema, dcValue.element, dcValue.qualifier, null);
                     Community community = null;
                     Collection collection = null;

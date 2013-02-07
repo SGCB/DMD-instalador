@@ -37,9 +37,9 @@ public class InstallerEDMCrosswalk extends InstallerEDMBase
     private File oaiCatPropertiesFile;
     private File oaiCatPropertiesWorkFile;
 
-    public InstallerEDMCrosswalk(String edmCrossWalk)
+    public InstallerEDMCrosswalk(int currentStepGlobal, String edmCrossWalk)
     {
-        super();
+        super(currentStepGlobal);
         this.edmCrossWalk = edmCrossWalk;
         this.edmCrossWalkFile = new File(edmCrossWalk);
     }
@@ -47,8 +47,8 @@ public class InstallerEDMCrosswalk extends InstallerEDMBase
     private boolean checkEdmCrowssWalk() throws IOException
     {
         if (!edmCrossWalkFile.exists() || !edmCrossWalkFile.isFile() || !edmCrossWalkFile.canWrite()) {
-            installerEDMDisplay.showQuestion(5, "checkEdmCrowssWalk.notexists", new String[]{edmCrossWalk});
-            installerEDMDisplay.showQuestion(5, "checkEdmCrowssWalk.newclass");
+            installerEDMDisplay.showQuestion(currentStepGlobal, "checkEdmCrowssWalk.notexists", new String[]{edmCrossWalk});
+            installerEDMDisplay.showQuestion(currentStepGlobal, "checkEdmCrowssWalk.newclass");
             String response = null;
             do {
                 response = br.readLine();
@@ -67,8 +67,8 @@ public class InstallerEDMCrosswalk extends InstallerEDMBase
     private boolean checkOaiApiJar() throws IOException
     {
         if (oaiApiJarFile == null || !oaiApiJarFile.exists() || !oaiApiJarFile.isFile() || !oaiApiJarFile.canWrite()) {
-            installerEDMDisplay.showQuestion(5, "checkOaiApiJar.notexists", new String[]{((oaiApiJarName == null)?"dspace-oai-api":oaiApiJarName)});
-            installerEDMDisplay.showQuestion(5, "checkOaiApiJar.newjar");
+            installerEDMDisplay.showQuestion(currentStepGlobal, "checkOaiApiJar.notexists", new String[]{((oaiApiJarName == null)?"dspace-oai-api":oaiApiJarName)});
+            installerEDMDisplay.showQuestion(currentStepGlobal, "checkOaiApiJar.newjar");
             String response = null;
             do {
                 response = br.readLine();
@@ -100,7 +100,7 @@ public class InstallerEDMCrosswalk extends InstallerEDMBase
                 if (edmOaiApiEdmCrossWalkZipentry != null) {
                     String response = null;
                     do {
-                        installerEDMDisplay.showQuestion(5, "configure.exists.class", new String[]{ edmCrossWalkClass, oaiApiJarFile.getAbsolutePath() });
+                        installerEDMDisplay.showQuestion(currentStepGlobal, "configure.exists.class", new String[]{ edmCrossWalkClass, oaiApiJarFile.getAbsolutePath() });
                         response = br.readLine();
                         if (response == null) continue;
                         response = response.trim();
@@ -110,15 +110,15 @@ public class InstallerEDMCrosswalk extends InstallerEDMBase
                     } while (true);
                 }
                 installerEDMDisplay.showLn();
-                installerEDMDisplay.showQuestion(5, "configure.edmcrosswalk.conf.begin", new String[]{edmCrossWalkName});
+                installerEDMDisplay.showQuestion(currentStepGlobal, "configure.edmcrosswalk.conf.begin", new String[]{edmCrossWalkName});
                 installerEDMDisplay.showLn();
                 readCrossWalk2String();
                 confEDMRights();
                 installerEDMDisplay.showLn();
                 confEDMTypes();
-                installerEDMDisplay.showQuestion(5, "configure.edmcrosswalk.conf.compile");
+                installerEDMDisplay.showQuestion(currentStepGlobal, "configure.edmcrosswalk.conf.compile");
                 if (compileEDMCrossWalk()) {
-                    installerEDMDisplay.showQuestion(5, "configure.edmcrosswalk.conf.updatejar", new String[]{oaiApiJarWorkFile.getAbsolutePath()});
+                    installerEDMDisplay.showQuestion(currentStepGlobal, "configure.edmcrosswalk.conf.updatejar", new String[]{oaiApiJarWorkFile.getAbsolutePath()});
                     writeNewJar();
                     org.apache.commons.io.FileUtils.deleteDirectory(new File(myInstallerWorkDirPath + fileSeparator + "org"));
                     oaiApiJarJarFile = new JarFile(oaiApiJarWorkFile);
@@ -126,15 +126,15 @@ public class InstallerEDMCrosswalk extends InstallerEDMBase
                     if (edmOaiApiEdmCrossWalkZipentry != null) {
                         if (confOaiCatProperties()) {
                             installerEDMDisplay.showLn();
-                            installerEDMDisplay.showQuestion(5, "configure.edmcrosswalk.conf.ok", new String[]{oaiApiJarWorkFile.getName()});
-                        } else installerEDMDisplay.showQuestion(5, "configure.edmcrosswalk.conf.nok");
-                    } else installerEDMDisplay.showQuestion(5, "configure.edmcrosswalk.conf.nok");
+                            installerEDMDisplay.showQuestion(currentStepGlobal, "configure.edmcrosswalk.conf.ok", new String[]{oaiApiJarWorkFile.getName()});
+                        } else installerEDMDisplay.showQuestion(currentStepGlobal, "configure.edmcrosswalk.conf.nok");
+                    } else installerEDMDisplay.showQuestion(currentStepGlobal, "configure.edmcrosswalk.conf.nok");
                     oaiApiJarJarFile.close();
-                } else installerEDMDisplay.showQuestion(5, "configure.edmcrosswalk.conf.nok");
+                } else installerEDMDisplay.showQuestion(currentStepGlobal, "configure.edmcrosswalk.conf.nok");
             }
         } catch (IOException e) {
             e.printStackTrace();
-            installerEDMDisplay.showQuestion(5, "configure.edmcrosswalk.conf.nok");
+            installerEDMDisplay.showQuestion(currentStepGlobal, "configure.edmcrosswalk.conf.nok");
         }
     }
 
@@ -147,7 +147,7 @@ public class InstallerEDMCrosswalk extends InstallerEDMBase
         String response = null;
         installerEDMDisplay.showLn();
         do {
-            installerEDMDisplay.showQuestion(5, "configure.edmcrosswalk.conf.oaicat", new String[]{ oaiCatPropertiesName });
+            installerEDMDisplay.showQuestion(currentStepGlobal, "configure.edmcrosswalk.conf.oaicat", new String[]{ oaiCatPropertiesName });
             response = br.readLine();
             if (response == null) continue;
             response = response.trim();
@@ -187,7 +187,7 @@ public class InstallerEDMCrosswalk extends InstallerEDMBase
         final Pattern EDMRIGHTS_PATTERN = Pattern.compile("private\\s+static\\s+final\\s+String\\s+EDMRIGHTS\\s+=\\s+\"(.*)\";");
         String response = null;
         do {
-            installerEDMDisplay.showQuestion(5, "configure.edmcrosswalk.conf.edmrights");
+            installerEDMDisplay.showQuestion(currentStepGlobal, "configure.edmcrosswalk.conf.edmrights");
             response = br.readLine();
             if (response == null) continue;
             response = response.trim();
@@ -201,7 +201,7 @@ public class InstallerEDMCrosswalk extends InstallerEDMBase
             if (edmRigths != null && !edmRigths.isEmpty()) {
                 String response2 = null;
                 do {
-                    installerEDMDisplay.showQuestion(5, "configure.edmcrosswalk.conf.edmrights.new", new String[]{ edmRigths, response });
+                    installerEDMDisplay.showQuestion(currentStepGlobal, "configure.edmcrosswalk.conf.edmrights.new", new String[]{ edmRigths, response });
                     response2 = br.readLine();
                     if (response2 == null) continue;
                     response2 = response2.trim();
@@ -241,9 +241,9 @@ public class InstallerEDMCrosswalk extends InstallerEDMBase
                 }
             };
 
-            installerEDMDisplay.showQuestion(5, "configure.edmcrosswalk.conf.edmtypes.exist");
+            installerEDMDisplay.showQuestion(currentStepGlobal, "configure.edmcrosswalk.conf.edmtypes.exist");
             for (String type : EDMTYPES.keySet()) {
-                installerEDMDisplay.showQuestion(5, "configure.edmcrosswalk.conf.edmtypes.type", new String[]{type});
+                installerEDMDisplay.showQuestion(currentStepGlobal, "configure.edmcrosswalk.conf.edmtypes.type", new String[]{type});
                 StringBuilder types = new StringBuilder();
                 for (String value : EDMTYPES.get(type)) {
                     types.append(value).append(", ");
@@ -255,7 +255,7 @@ public class InstallerEDMCrosswalk extends InstallerEDMBase
             installerEDMDisplay.showLn();
             String response = null;
             do {
-                installerEDMDisplay.showQuestion(5, "configure.edmcrosswalk.conf.edmtypes.type.update");
+                installerEDMDisplay.showQuestion(currentStepGlobal, "configure.edmcrosswalk.conf.edmtypes.type.update");
                 response = br.readLine();
                 if (response == null) continue;
                 response = response.trim();
@@ -287,7 +287,7 @@ public class InstallerEDMCrosswalk extends InstallerEDMBase
             types.append(value).append(",");
         }
         String strTypes = types.toString();
-        installerEDMDisplay.showQuestion(5, "configure.edmcrosswalk.conf.edmtypes.type.value.update", new String[]{type, strTypes.substring(0, strTypes.length() - 1)});
+        installerEDMDisplay.showQuestion(currentStepGlobal, "configure.edmcrosswalk.conf.edmtypes.type.value.update", new String[]{type, strTypes.substring(0, strTypes.length() - 1)});
         String response = null;
         do {
             response = br.readLine();
@@ -303,7 +303,7 @@ public class InstallerEDMCrosswalk extends InstallerEDMBase
             } else break;
         } while (true);
         installerEDMDisplay.showLn();
-        installerEDMDisplay.showQuestion(5, "configure.edmcrosswalk.conf.edmtypes.type", new String[]{type});
+        installerEDMDisplay.showQuestion(currentStepGlobal, "configure.edmcrosswalk.conf.edmtypes.type", new String[]{type});
         StringBuilder types2 = new StringBuilder();
         for (String value : EDMTYPES.get(type)) {
             types2.append(value).append(", ");

@@ -28,9 +28,9 @@ public class InstallerEDMAskosiVocabularies extends InstallerEDMBase
     private static final String [] propertiesVocabularyCfg = new String[] {"type", "pool", "labels"};
 
 
-    public InstallerEDMAskosiVocabularies(File askosiDataDirFile)
+    public InstallerEDMAskosiVocabularies(int currentStepGlobal, File askosiDataDirFile)
     {
-        super();
+        super(currentStepGlobal);
         dbUrl = ConfigurationManager.getProperty("db.url");
         dbDriver = ConfigurationManager.getProperty("db.driver");
         dbUserName = ConfigurationManager.getProperty("db.username");
@@ -46,9 +46,9 @@ public class InstallerEDMAskosiVocabularies extends InstallerEDMBase
             String vocabulary = name + "." + entry.getKey();
             String vocabularyCfg = askosiDataDirFile.getAbsolutePath() + fileSeparator + vocabulary + ".cfg";
             String vocabularyPoolCfg = askosiDataDirFile.getAbsolutePath() + fileSeparator + vocabulary + "-pool.cfg";
-            installerEDMDisplay.showQuestion(3, "processAskosiVocabularies.create", new String[] {vocabularyPoolCfg, vocabulary});
+            installerEDMDisplay.showQuestion(currentStepGlobal, "processAskosiVocabularies.create", new String[] {vocabularyPoolCfg, vocabulary});
             processVocabularyPoolCfg(vocabularyPoolCfg);
-            installerEDMDisplay.showQuestion(3, "processAskosiVocabularies.create", new String[] {vocabularyCfg, vocabulary});
+            installerEDMDisplay.showQuestion(currentStepGlobal, "processAskosiVocabularies.create", new String[] {vocabularyCfg, vocabulary});
             processVocabularyCfg(entry, vocabulary, handle, vocabularyCfg);
         }
     }

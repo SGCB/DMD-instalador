@@ -52,9 +52,18 @@ public abstract class InstallerEDMBase implements Observer
 
     protected MetadataField[] metadataFields;
 
+    protected int currentStepGlobal;
+
     protected static HashMap<String, InstallerEDMAuthBO> authBOHashMap;
 
     protected static final String[] elementsNotAuth = {"identifier.uri", "date.accessioned", "date.available", "date.issued", "description.provenance", "type"};
+
+
+    public InstallerEDMBase(int currentStepGlobal)
+    {
+        super();
+        this.currentStepGlobal = currentStepGlobal;
+    }
 
     public InstallerEDMBase()
     {

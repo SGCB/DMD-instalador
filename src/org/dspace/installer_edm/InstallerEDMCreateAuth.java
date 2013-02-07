@@ -32,28 +32,28 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
     private ArrayList<MetadataField> authDCElements;
 
 
-    public InstallerEDMCreateAuth()
+    public InstallerEDMCreateAuth(int currentStepGlobal)
     {
-        super();
+        super(currentStepGlobal);
     }
 
 
     public boolean createAuth()
     {
-        installerEDMDisplay.getQuestion(2, "title");
+        installerEDMDisplay.getQuestion(currentStepGlobal, "title");
         if (!loginUser())return false;
         if (dcSchema == null) {
-            installerEDMDisplay.showQuestion(2, "createAuth.notschema", new String[]{DCSCHEMA});
+            installerEDMDisplay.showQuestion(currentStepGlobal, "createAuth.notschema", new String[]{DCSCHEMA});
             return false;
         }
         if (metadataFields != null && metadataFields.length > 0) {
-            if (verbose) installerEDMDisplay.showQuestion(2, "createAuth.numelements", new String[]{DCSCHEMA, Integer.toString(metadataFields.length)});
+            if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "createAuth.numelements", new String[]{DCSCHEMA, Integer.toString(metadataFields.length)});
             if (authDCElements != null) authDCElements.clear();
             else authDCElements = new ArrayList<MetadataField>();
             if (authBOHashMap != null) authBOHashMap.clear();
             else authBOHashMap = new HashMap<String, InstallerEDMAuthBO>();
             while (true) {
-                installerEDMDisplay.getQuestion(2, "createAuth.menu");
+                installerEDMDisplay.getQuestion(currentStepGlobal, "createAuth.menu");
                 String response;
                 try {
                     response = br.readLine();
@@ -65,11 +65,11 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                 if (response.length() == 0) continue;
                 response = response.trim();
                 if (response.equalsIgnoreCase("a")) {
-                    installerEDMDisplay.getQuestion(2, "createAuth.listauth");
+                    installerEDMDisplay.getQuestion(currentStepGlobal, "createAuth.listauth");
                     MetadataField[] authArray = new MetadataField[authDCElements.size()];
                     listAllDCElements((MetadataField[])authDCElements.toArray(authArray));
                 } else if (response.equalsIgnoreCase("l")) {
-                    installerEDMDisplay.getQuestion(2, "createAuth.listdc");
+                    installerEDMDisplay.getQuestion(currentStepGlobal, "createAuth.listdc");
                     listAllDCElements(metadataFields);
                 } else if (response.equalsIgnoreCase("n")) {
                     createElementAuth();
@@ -78,7 +78,7 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                 }
             }
 
-        } else installerEDMDisplay.getQuestion(2, "createAuth.notmetadata");
+        } else installerEDMDisplay.getQuestion(currentStepGlobal, "createAuth.notmetadata");
         return false;
     }
 
@@ -89,8 +89,8 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
         String password;
         int step = 1;
         while (true) {
-            if (step == 1) installerEDMDisplay.getQuestion(2, "email.user");
-            else if (step == 2) installerEDMDisplay.getQuestion(2, "password.user");
+            if (step == 1) installerEDMDisplay.getQuestion(currentStepGlobal, "email.user");
+            else if (step == 2) installerEDMDisplay.getQuestion(currentStepGlobal, "password.user");
             String response = null;
             try {
                 response = br.readLine();
@@ -112,7 +112,7 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                         eperson = context.getCurrentUser();
                         return true;
                     } else {
-                        installerEDMDisplay.getQuestion(2, "invalid.user");
+                        installerEDMDisplay.getQuestion(currentStepGlobal, "invalid.user");
                         step = 1;
                     }
                     break;
@@ -133,11 +133,11 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
 
         while (true) {
             if (element == null)
-                installerEDMDisplay.getQuestion(2, "createElementAuth.dc.element");
+                installerEDMDisplay.getQuestion(currentStepGlobal, "createElementAuth.dc.element");
             else if (community == null)
-                installerEDMDisplay.getQuestion(2, "createElementAuth.handle.community");
+                installerEDMDisplay.getQuestion(currentStepGlobal, "createElementAuth.handle.community");
             else if (collection == null)
-                installerEDMDisplay.getQuestion(2, "createElementAuth.handle.collection");
+                installerEDMDisplay.getQuestion(currentStepGlobal, "createElementAuth.handle.collection");
             String response;
             try {
                 response = br.readLine();
@@ -155,7 +155,7 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                     try {
                         MetadataField elementMD = MetadataField.findByElement(context, dcSchema.getSchemaID(), (pos > 0)?response.substring(0, pos - 1):response, (pos > 0)?response.substring(pos + 1):null);
                         if (elementMD == null) {
-                            installerEDMDisplay.showQuestion(2, "createElementAuth.element.notexist", new String[]{response});
+                            installerEDMDisplay.showQuestion(currentStepGlobal, "createElementAuth.element.notexist", new String[]{response});
                         } else {
                             elementObj = elementMD;
                             element = elementMD.getElement() + ((elementMD.getQualifier() != null)?"." + elementMD.getQualifier():"");
@@ -191,7 +191,7 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
             if (step == 4 && element != null && community != null && collection != null) {
                 authDCElements.add(elementObj);
                 do {
-                    installerEDMDisplay.showQuestion(2, "createElementAuth.create", new String[] {community, collection});
+                    installerEDMDisplay.showQuestion(currentStepGlobal, "createElementAuth.create", new String[] {community, collection});
                     response = null;
                     try {
                         response = br.readLine();
@@ -223,7 +223,7 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                 if (collection.getID() == collectionObj.getID()) continue;
                 Community[] listCommunities = collection.getCommunities();
                 if (communityObj.getID() == listCommunities[0].getID()) continue;
-                if (verbose) installerEDMDisplay.showQuestion(2, "fillAuthItems.getitems", new String[]{collection.getName()});
+                if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "fillAuthItems.getitems", new String[]{collection.getName()});
                 ItemIterator iter = collection.getAllItems();
                 while (iter.hasNext()) {
                     Item item = iter.next();
@@ -241,7 +241,7 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                     DCValue[] listDCValues = item.getMetadata(dcSchema.getName(), elementObj.getElement(), elementObj.getQualifier(), language);
                     if (listDCValues.length > 0) {
                         for (DCValue dcValue : listDCValues) {
-                            if (verbose) installerEDMDisplay.showQuestion(2, "fillAuthItems.additem", new String[]{dcValue.value});
+                            if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "fillAuthItems.additem", new String[]{dcValue.value});
                             ItemIterator iterAuth = Item.findByMetadataField(context, dcSchema.getName(), elementObj.getElement(), elementObj.getQualifier(), dcValue.value);
                             if (iterAuth.hasNext()) {
                                 Item itemMatched = iterAuth.next();
@@ -255,7 +255,7 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                                         }
                                     }
                                     if (repeated) {
-                                        if (verbose) installerEDMDisplay.getQuestion(2, "fillAuthItems.canceladd");
+                                        if (verbose) installerEDMDisplay.getQuestion(currentStepGlobal, "fillAuthItems.canceladd");
                                         continue;
                                     }
                                 }
@@ -266,7 +266,7 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                             InstallItem.installItem(context, wi, null);
                             String myhandle = HandleManager.findHandle(context, itemAuth);
                             if (myhandle.equals(itemAuth.getHandle())) {
-                                if (verbose) installerEDMDisplay.showQuestion(2, "fillAuthItems.addmetadata", new String[] {element, language, dcValue.value});
+                                if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "fillAuthItems.addmetadata", new String[] {element, language, dcValue.value});
                                 itemAuth.addMetadata(dcSchema.getName(), elementObj.getElement(), elementObj.getQualifier(), language, new String[] {dcValue.value}, new String[] {itemAuth.getHandle()}, null);
                                 itemAuth.addMetadata(dcSchema.getName(), "type", null, language, new String[] {"SKOS_AUTH"}, null, null);
                                 //collectionObj.addItem(itemAuth);
@@ -275,10 +275,10 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                                 authBOHashMap.put(element, installerEDMAuthBO);
                                 context.commit();
                             } else {
-                                installerEDMDisplay.showQuestion(2, "fillAuthItems.item.mismatch", new String[] {String.valueOf(itemAuth.getID()), itemAuth.getHandle(), myhandle});
+                                installerEDMDisplay.showQuestion(currentStepGlobal, "fillAuthItems.item.mismatch", new String[] {String.valueOf(itemAuth.getID()), itemAuth.getHandle(), myhandle});
                             }
                         }
-                    } else if (verbose) installerEDMDisplay.showQuestion(2, "fillAuthItems.collection.item.noelement", new String[] {collection.getName(), item.getHandle(), element, language});
+                    } else if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "fillAuthItems.collection.item.noelement", new String[] {collection.getName(), item.getHandle(), element, language});
                 }
             }
             return true;
@@ -303,8 +303,8 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
             DSpaceObject communityObjParent = null;
             while (true) {
                 if (stepCommunity > 2) break;
-                if (stepCommunity == 1) installerEDMDisplay.showQuestion(2, "askCommunity.handle");
-                else if (stepCommunity == 2) installerEDMDisplay.showQuestion(2, "askCommunity.name");
+                if (stepCommunity == 1) installerEDMDisplay.showQuestion(currentStepGlobal, "askCommunity.handle");
+                else if (stepCommunity == 2) installerEDMDisplay.showQuestion(currentStepGlobal, "askCommunity.name");
                 try {
                     response = br.readLine();
                 } catch (IOException e) {
@@ -354,7 +354,7 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                     community = communityObj.getName();
                     step++;
                 } else {
-                    installerEDMDisplay.showQuestion(2, "askCommunity.notexist", new String[]{response});
+                    installerEDMDisplay.showQuestion(currentStepGlobal, "askCommunity.notexist", new String[]{response});
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -376,8 +376,8 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
             DSpaceObject collectionObjHandle = null;
             while (true) {
                 if (stepCollection > 2) break;
-                if (stepCollection == 1) installerEDMDisplay.showQuestion(2, "askCollection.handle");
-                else if (stepCollection == 2) installerEDMDisplay.showQuestion(2, "askCollection.name");
+                if (stepCollection == 1) installerEDMDisplay.showQuestion(currentStepGlobal, "askCollection.handle");
+                else if (stepCollection == 2) installerEDMDisplay.showQuestion(currentStepGlobal, "askCollection.name");
                 try {
                     response = br.readLine();
                 } catch (IOException e) {
@@ -430,7 +430,7 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                     collection = collectionObj.getName();
                     step++;
                 } else {
-                    installerEDMDisplay.showQuestion(2, "askCollection.notexist", new String[]{response});
+                    installerEDMDisplay.showQuestion(currentStepGlobal, "askCollection.notexist", new String[]{response});
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
