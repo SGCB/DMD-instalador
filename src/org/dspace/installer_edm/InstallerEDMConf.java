@@ -1,16 +1,14 @@
 package org.dspace.installer_edm;
 
-import org.dspace.content.Collection;
-import org.dspace.content.*;
-import org.dspace.core.ConfigurationManager;
-
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.*;
-import javax.xml.xpath.XPathExpressionException;
+import org.dspace.content.MetadataField;
 import org.xml.sax.SAXException;
 
-
-import java.io.*;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.xpath.XPathExpressionException;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -24,17 +22,11 @@ import java.util.*;
 public class InstallerEDMConf extends InstallerEDMBase implements Observer
 {
 
-    private Set<String> elementsNotAuthSet = null;
-
 
     public InstallerEDMConf(int currentStepGlobal)
     {
         super(currentStepGlobal);
-        if (elementsNotAuthSet == null)
-            elementsNotAuthSet = new HashSet<String>();
-        else
-            elementsNotAuthSet.clear();
-        Collections.addAll(elementsNotAuthSet, elementsNotAuth);
+        initElementsNotAuthSet();
     }
 
 
@@ -50,8 +42,7 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
                 authDCElements = installerEDM.getInstallerEDMCreateAuth().getAuthDCElements();
             } else {
                 authDCElements = new ArrayList<MetadataField>();
-                if (authBOHashMap == null) authBOHashMap = new HashMap<String, InstallerEDMAuthBO>();
-                else authBOHashMap.clear();
+                initAuthBOHashMap();
             }
             try {
                 checkAllSkosAuthElements(authDCElements);
@@ -157,64 +148,6 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
         installerEDMDspaceCfg.processDspaceCfg(authDCElements);
     }
 
-
-    private void checkAllSkosAuthElements(ArrayList<MetadataField> authDCElements) throws SQLException
-    {
-        String language;
-        language = ConfigurationManager.getProperty("default.language");
-        if (language == null) language = "en";
-        Collection[] listCollections = Collection.findAll(context);
-        if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "checkAllSkosAuthElements.searching.elements", new String[] {String.valueOf(listCollections.length)});
-        if (listCollections.length > 0) {
-            for (Collection collection : listCollections) {
-                if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "checkAllSkosAuthElements.searching.elements.collection", new String[] {collection.getName(), collection.getHandle()});
-                ItemIterator iter = collection.getAllItems();
-                while (iter.hasNext()) {
-                    Item item = iter.next();
-                    if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "checkAllSkosAuthElements.searching.elements.item", new String[] { item.getName(), item.getHandle()});
-                    DCValue[] listDCTypeValues = item.getMetadata(dcSchema.getName(), "type", null, language);
-                    if (listDCTypeValues.length > 0) {
-                        for (DCValue dcTypeValue : listDCTypeValues) {
-                            if (dcTypeValue.value.equals("SKOS_AUTH")) {
-                                checkSkosAuthItem(authDCElements, item);
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-
-    private void checkSkosAuthItem(ArrayList<MetadataField> authDCElements, Item item)
-    {
-        DCValue[] listDCValues = item.getMetadata(dcSchema.getName() + ".*.*");
-        if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "checkSkosAuthItem.elements", new String[]{Integer.toString(listDCValues.length)});
-        if (listDCValues.length > 0) {
-            for (DCValue dcValue : listDCValues) {
-                if (dcValue.value == null || dcValue.value.isEmpty()) continue;
-                String dcValueName = dcValue.element + ((dcValue.qualifier != null && !dcValue.qualifier.isEmpty())?"." + dcValue.qualifier:"");
-                if (!elementsNotAuthSet.contains(dcValueName) && !authBOHashMap.containsKey(dcValueName)) {
-                    if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "checkSkosAuthItem.element", new String[]{dcValueName});
-                    MetadataField metadataField = new MetadataField(dcSchema, dcValue.element, dcValue.qualifier, null);
-                    Community community = null;
-                    Collection collection = null;
-                    try {
-                        Collection[] collections = item.getCollections();
-                        if (collections.length > 0) collection = collections[0];
-                        Community[] communities = item.getCommunities();
-                        if (communities.length > 0) community = communities[0];
-                    } catch (SQLException e) {
-                        e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-                    }
-                    InstallerEDMAuthBO installerEDMAuthBO = new InstallerEDMAuthBO(item, community, collection, dcSchema, metadataField);
-                    authBOHashMap.put(dcValueName, installerEDMAuthBO);
-                    authDCElements.add(metadataField);
-                }
-            }
-        }
-    }
 
 
     @Override
