@@ -112,6 +112,13 @@ poder crear los ítems de las autoridades.
 Cuando se termine, si se quiere que las comunidades, colecciones e ítems de las autoridades aparezcan en el
 buscador de Dspace, se tendrá que reindexar Solr.
 
+Con la aplicación Askosi se logra que cuando cataloga pueda asociar al valor de un elemento dc de su nuevo ítem, el
+handle del ítem autoridad que tiene el mismo nombre, cualificador y valor. Este handle se guarda en el campo authority
+de la tabla metadatavalue de la base de datos relacional.
+El EDMExport y el EDMCrosswalk para generar la case de SKOS en el esquema EDM comprueba si el campo authority del ítems
+tiene un valor, si es una url válida la muestra tal cual, si es un handle comprueba que exista en nuestra base de datos
+y construye la url final del comcepto skos con la url base de dspace y el handle.
+
 El instalador consta de los siguientes pasos:
 
 1: Instalar Askosi
