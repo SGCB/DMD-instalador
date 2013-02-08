@@ -10,6 +10,7 @@ set my_dir=%~dp0
 
 set help=0
 set verbose=0
+set debug=0
 set dir_space_runtime=""
 set tomcat_base=""
 set step=1
@@ -40,7 +41,11 @@ if %argC% == 0 call:help_sub
                 if /I "%1" == "-s" (
                     if not "%2" == "" ( set /A step=%2% )
                 ) else (
-                    if /I "%1" == "-v" ( set /A verbose=1 )
+                    if /I "%1" == "-v" (
+                        set /A verbose=1
+                    ) else (
+                        if /I "%1" == "-g" ( set /A debug=1 )
+                    )
                 )
             )
         )
@@ -141,7 +146,7 @@ goto END
 
 :help_sub
     echo.
-    echo. "Use: "%my_name%": [-d dir_space_runtime] [-h] [-l language] [-s step] [-t dir_tomcat_base] [-v]"
+    echo. "Use: "%my_name%": [-d dir_space_runtime] [-h] [-l language] [-s step] [-t dir_tomcat_base] [-v] [-g]"
     goto END
 GOTO:EOF
 

@@ -77,6 +77,7 @@ public class InstallerEDM extends InstallerEDMBase
             Options options = new Options();
             options.addOption("d", "dspace_dir", true, installerEDM.getInstallerEDMDisplay().getQuestion(0, "dspace_dir.option"));
             options.addOption("h", "help", false, installerEDM.getInstallerEDMDisplay().getQuestion(0, "help.option"));
+            options.addOption("g", "debug", false, installerEDM.getInstallerEDMDisplay().getQuestion(0, "debug.option"));
             options.addOption("l", "language", true, installerEDM.getInstallerEDMDisplay().getQuestion(0, "language.option"));
             options.addOption("m", "terminal", false, installerEDM.getInstallerEDMDisplay().getQuestion(0, "terminal.option"));
             options.addOption("s", "step", true, installerEDM.getInstallerEDMDisplay().getQuestion(0, "step.option"));
@@ -92,9 +93,11 @@ public class InstallerEDM extends InstallerEDMBase
             if (line.hasOption('d')) {
                  installerEDM.setDspaceDir(line.getOptionValue('d') + System.getProperty("file.separator"));
             }
+
             if (line.hasOption('t')) {
                 installerEDM.setTomcatBase(line.getOptionValue('t') + System.getProperty("file.separator"));
             }
+
             if (line.hasOption('s')) {
                 iniStep = Integer.parseInt(line.getOptionValue('s').trim());
             }
@@ -106,6 +109,10 @@ public class InstallerEDM extends InstallerEDMBase
 
             if (line.hasOption('m')) {
                 installerEDM.getInstallerEDMDisplay().setIsTerminal(true);
+            }
+
+            if (line.hasOption('g')) {
+                installerEDM.setDebug(true);
             }
 
             if (line.hasOption('v')) {
@@ -189,7 +196,6 @@ public class InstallerEDM extends InstallerEDMBase
                 if ((dirPackage = installerEDMAskosi.checkPackages()) != null && installerEDMAskosi.installPackages(dirPackage)) {
                     installerEDMDisplay.showLn();
                     installerEDMDisplay.showQuestion(step, "ok");
-                    iniStep++;
                 } else {
                     installerEDMDisplay.showLn();
                     installerEDMDisplay.showQuestion(step, "fail");
@@ -208,8 +214,7 @@ public class InstallerEDM extends InstallerEDMBase
                 }
                 installerEDMCreateAuth = new InstallerEDMCreateAuth(Integer.parseInt(installerEDMDisplay.getQuestion(0, "step.auth_item")));
                 sh.addObserver( installerEDMCreateAuth );
-                if (installerEDMCreateAuth.createAuth()) iniStep++;
-                else {
+                if (!installerEDMCreateAuth.createAuth()) {
                     installerEDMDisplay.showLn();
                     installerEDMDisplay.showQuestion(step, "fail");
                 }
@@ -275,8 +280,13 @@ public class InstallerEDM extends InstallerEDMBase
 
             if (step == Integer.parseInt(installerEDMDisplay.getQuestion(0, "step.exit"))) {
                 System.exit(0);
+            } else {
+                installEDM(0);
+                return;
             }
         } else {
+            installerEDMDisplay.showLn();
+            installerEDMDisplay.showLn();
             installerEDMDisplay.showTitle(0);
             while (true) {
                 installerEDMDisplay.showLn();

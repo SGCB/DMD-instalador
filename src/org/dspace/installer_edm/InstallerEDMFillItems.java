@@ -1,14 +1,14 @@
 package org.dspace.installer_edm;
 
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.AuthorizeManager;
 import org.dspace.content.*;
+import org.dspace.content.Collection;
 import org.dspace.handle.HandleManager;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Observable;
-import java.util.Observer;
+import java.util.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -30,15 +30,23 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
 
     public void configure()
     {
+        if (eperson == null && !loginUser()) return;
         ArrayList<MetadataField> authDCElements = new ArrayList<MetadataField>();
         try {
+            if (verbose) {
+                installerEDMDisplay.showLn();
+                installerEDMDisplay.showQuestion(currentStepGlobal, "configure.checkAllSkosAuthElements");
+            }
             checkAllSkosAuthElements(authDCElements);
             if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "configure.auth.num", new String[]{Integer.toString(authDCElements.size())});
             if (authDCElements.size() > 0) {
                 installerEDMDisplay.showLn();
+                if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "configure.traverseNonauthItems");
                 traverseNonauthItems(authDCElements);
             }
         } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (AuthorizeException e) {
             e.printStackTrace();
         }
     }
@@ -47,13 +55,18 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
     {
         Collection[] listCollections = Collection.findAll(context);
         for (Collection collection : listCollections) {
+            if (debug) installerEDMDisplay.showQuestion(7, "traverseNonauthItems.collection", new String[]{collection.getName(), collection.getHandle()});
             ItemIterator iter = collection.getAllItems();
             while (iter.hasNext()) {
                 installerEDMDisplay.showProgress('.');
                 Item item = iter.next();
+                if (!AuthorizeManager.isAdmin(context, item)) {
+                    installerEDMDisplay.showQuestion(currentStepGlobal, "traverseNonauthItems.nopermission", new String[]{eperson.getEmail(), item.getHandle()});
+                    continue;
+                }
                 boolean itemUpdated = false;
                 boolean isTypeAuth = false;
-                DCValue[] listDCTypeValues = item.getMetadata(dcSchema.getName(), "type", "", language);
+                DCValue[] listDCTypeValues = item.getMetadata(dcSchema.getName(), "type", null, language);
                 if (listDCTypeValues.length > 0) {
                     for (DCValue dcTypeValue : listDCTypeValues) {
                         if (dcTypeValue.value.equals("SKOS_AUTH")) {
@@ -63,16 +76,23 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
                     }
                     if (isTypeAuth) continue;
                 }
+                if (debug) installerEDMDisplay.showQuestion(7, "traverseNonauthItems.item", new String[]{item.getName(), item.getHandle()});
+                Map<MetadataField, DCValue[]> metadataField2Clear = new HashMap<MetadataField, DCValue[]>();
                 for (MetadataField metadataField : authDCElements) {
-                    listDCTypeValues = item.getMetadata(dcSchema.getName(), metadataField.getElement(), metadataField.getQualifier(), language);
-                    if (listDCTypeValues.length > 0) {
-                        for (DCValue dcTypeValue : listDCTypeValues) {
-                            if (dcTypeValue.authority != null && isValidURI(dcTypeValue.authority)) continue;
+                    String dcValueName = metadataField.getElement() + ((metadataField.getQualifier() != null && !metadataField.getQualifier().isEmpty())?"." + metadataField.getQualifier():"");
+                    if (elementsNotAuthSet.contains(dcValueName)) continue;
+                    DCValue[] listDCValues = item.getMetadata(dcSchema.getName(), metadataField.getElement(), metadataField.getQualifier(), language);
+                    if (listDCValues.length > 0) {
+                        for (DCValue dcValue : listDCValues) {
+                            if (dcValue.authority != null && isValidURI(dcValue.authority)) continue;
                             try {
-                                String handle = searchNonAuthItems(metadataField, dcTypeValue.value);
+                                if (debug) installerEDMDisplay.showQuestion(7, "traverseNonauthItems.searchNonAuthItems", new String[]{dcValueName, dcValue.value});
+                                String handle = searchNonAuthItems(metadataField, dcValue.value);
                                 if (handle != null) {
-                                    dcTypeValue.authority = handle;
+                                    if (debug) installerEDMDisplay.showQuestion(7, "traverseNonauthItems.changeitem", new String[]{item.getHandle(), handle});
+                                    dcValue.authority = handle;
                                     itemUpdated = true;
+                                    if (!metadataField2Clear.containsKey(metadataField)) metadataField2Clear.put(metadataField, listDCValues);
                                 }
                             } catch (IOException e) {
                                 e.printStackTrace();
@@ -83,7 +103,15 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
                     }
                 }
                 if (itemUpdated) {
+                    for (MetadataField metadataField : metadataField2Clear.keySet()) {
+                        item.clearMetadata(dcSchema.getName(), metadataField.getElement(), metadataField.getQualifier(), language);
+                        for (DCValue dcValue : metadataField2Clear.get(metadataField)) {
+                            System.out.format("%s.%s.%s %s %s %s", dcSchema.getName(), metadataField.getElement(), metadataField.getQualifier(), language, dcValue.value, dcValue.authority);
+                            item.addMetadata(dcSchema.getName(), metadataField.getElement(), metadataField.getQualifier(), language, dcValue.value, dcValue.authority, -1);
+                        }
+                    }
                     item.update();
+                    context.commit();
                 }
             }
         }
@@ -93,9 +121,9 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
     private String searchNonAuthItems(MetadataField metadataField, String value) throws SQLException, IOException, AuthorizeException
     {
         ItemIterator iterAuth = Item.findByMetadataField(context, dcSchema.getName(), metadataField.getElement(), metadataField.getQualifier(), value);
-        if (iterAuth.hasNext()) {
+        while (iterAuth.hasNext()) {
             Item itemMatched = iterAuth.next();
-            DCValue[] listItemMatchedDCValues = itemMatched.getMetadata(dcSchema.getName(), "type", "", language);
+            DCValue[] listItemMatchedDCValues = itemMatched.getMetadata(dcSchema.getName(), "type", null, language);
             if (listItemMatchedDCValues.length > 0) {
                 for (DCValue dcValueMatched : listItemMatchedDCValues) {
                     if (dcValueMatched.value.equals("SKOS_AUTH")) {

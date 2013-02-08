@@ -88,7 +88,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
         dirInstallJar = null;
         while (true) {
             if (TomcatBaseShared != null) installerEDMDisplay.showQuestion(currentStepGlobal, "copyJarsShared.dir.copyjars", new String[]{TomcatBaseShared});
-            else installerEDMDisplay.getQuestion(currentStepGlobal, "copyJarsShared.dirnew.copyjars");
+            else installerEDMDisplay.showQuestion(currentStepGlobal, "copyJarsShared.dirnew.copyjars");
             String response = null;
             try {
                 response = br.readLine();
@@ -138,7 +138,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
                 dirInstallJar = null;
                 while (true) {
                     if (TomcatBaseCommon != null) installerEDMDisplay.showQuestion(currentStepGlobal, "copyDatabaseDrivers.dir.copyjars", new String[]{TomcatBaseCommon});
-                    else installerEDMDisplay.getQuestion(currentStepGlobal, "copyDatabaseDrivers.dirnew.copyjars");
+                    else installerEDMDisplay.showQuestion(currentStepGlobal, "copyDatabaseDrivers.dirnew.copyjars");
                     String response = null;
                     try {
                         response = br.readLine();
@@ -167,7 +167,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
                     }
                 }
                 installerEDMDisplay.showLn();
-                installerEDMDisplay.getQuestion(currentStepGlobal, "copyDatabaseDrivers.copy.ok");
+                installerEDMDisplay.showQuestion(currentStepGlobal, "copyDatabaseDrivers.copy.ok");
                 return true;
             } else {
                 installerEDMDisplay.showQuestion(currentStepGlobal, "copyDatabaseDrivers.dir.nojar", new String[]{databaseDriverSourceDir});
@@ -215,11 +215,11 @@ public class InstallerEDMAskosi extends InstallerEDMBase
         }
         if (copyPackageZipFile(sourcePackageFile, finalAskosiWebAppDestDirFile.getAbsolutePath() + fileSeparator)) {
             installerEDMDisplay.showLn();
-            installerEDMDisplay.getQuestion(currentStepGlobal, "copyAskosiWebApp.ok");
+            installerEDMDisplay.showQuestion(currentStepGlobal, "copyAskosiWebApp.ok");
             return true;
         } else {
             installerEDMDisplay.showLn();
-            installerEDMDisplay.getQuestion(currentStepGlobal, "copyAskosiWebApp.fail");
+            installerEDMDisplay.showQuestion(currentStepGlobal, "copyAskosiWebApp.fail");
         }
         return false;
     }
@@ -249,11 +249,11 @@ public class InstallerEDMAskosi extends InstallerEDMBase
         }
         if (copyPackageZipFile(sourcePackageFile, finalAskosiPlugJspDestDirFile.getAbsolutePath() + fileSeparator)) {
             installerEDMDisplay.showLn();
-            installerEDMDisplay.getQuestion(currentStepGlobal, "copyAskosiPlugJspui.ok");
+            installerEDMDisplay.showQuestion(currentStepGlobal, "copyAskosiPlugJspui.ok");
             return true;
         } else {
             installerEDMDisplay.showLn();
-            installerEDMDisplay.getQuestion(currentStepGlobal, "copyAskosiPlugJspui.fail");
+            installerEDMDisplay.showQuestion(currentStepGlobal, "copyAskosiPlugJspui.fail");
         }
         return false;
     }
@@ -263,7 +263,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
     {
         finalAskosiDataDestDirFile = null;
         while (true) {
-            installerEDMDisplay.getQuestion(currentStepGlobal, "copyAskosiDataDir");
+            installerEDMDisplay.showQuestion(currentStepGlobal, "copyAskosiDataDir");
             String response = null;
             try {
                 response = br.readLine();
@@ -300,9 +300,9 @@ public class InstallerEDMAskosi extends InstallerEDMBase
         installerEDMDisplay.showLn();
         if (copyPackageZipFile(sourcePackageFile, finalAskosiDataDestDirFile.getAbsolutePath() + fileSeparator)) {
             setAskosiDataDir(finalAskosiDataDestDirFile.getAbsolutePath());
-            installerEDMDisplay.getQuestion(currentStepGlobal, "copyAskosiDataDir.ok");
+            installerEDMDisplay.showQuestion(currentStepGlobal, "copyAskosiDataDir.ok");
             return true;
-        } else installerEDMDisplay.getQuestion(currentStepGlobal, "copyAskosiDataDir.fail");
+        } else installerEDMDisplay.showQuestion(currentStepGlobal, "copyAskosiDataDir.fail");
         return false;
     }
 
@@ -377,7 +377,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
                 return false;
             }
             if (response.trim().equalsIgnoreCase("y")) {
-                if (verbose) installerEDMDisplay.getQuestion(currentStepGlobal, "copyPackageFile.orverwritingfile");
+                if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "copyPackageFile.orverwritingfile");
                 try {
                     org.apache.commons.io.FileUtils.copyFile(sourcePackageFile, desPackageFile);
                 } catch (IOException e) {

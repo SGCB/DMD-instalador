@@ -1,11 +1,14 @@
 package org.dspace.installer_edm;
 
+import org.dspace.authenticate.AuthenticationManager;
 import org.dspace.content.*;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
+import org.dspace.eperson.EPerson;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -32,9 +35,10 @@ public abstract class InstallerEDMBase implements Observer
     protected static String TomcatBase = null;
     protected static String AskosiDataDir;
     protected static boolean verbose = false;
+    protected static boolean debug = false;
     protected static Context context = null;
 
-    protected static String language = "en";
+    protected static String language = null;
 
     protected static Set<Integer> stepsSet = new HashSet<Integer>();
 
@@ -56,6 +60,11 @@ public abstract class InstallerEDMBase implements Observer
 
     protected int currentStepGlobal;
 
+    protected static EPerson eperson;
+    protected static String user;
+    protected static String password;
+
+
     protected static HashMap<String, InstallerEDMAuthBO> authBOHashMap;
 
     protected static final String[] elementsNotAuth = {"identifier.uri", "date.accessioned", "date.available", "date.issued", "description.provenance", "type"};
@@ -70,7 +79,7 @@ public abstract class InstallerEDMBase implements Observer
     public InstallerEDMBase()
     {
         try {
-            context = new Context();
+            if (context == null) context = new Context();
             if (installerEDMDisplay == null) installerEDMDisplay = new InstallerEDMDisplayImpl();
             if (isr == null) isr = new InputStreamReader(System.in);
             if (br == null) br = new BufferedReader(isr);
@@ -79,6 +88,8 @@ public abstract class InstallerEDMBase implements Observer
             File myInstallerWorkDirFile = new File(myInstallerWorkDirPath);
             if (!myInstallerWorkDirFile.exists()) myInstallerWorkDirFile.mkdir();
             checkDspaceDC();
+            if (language == null) language = ConfigurationManager.getProperty("default.language");
+            if (language == null) language = "en";
         } catch (SQLException e) {
             installerEDMDisplay.showLn();
             installerEDMDisplay.showQuestion(0, "step.fail");
@@ -119,12 +130,17 @@ public abstract class InstallerEDMBase implements Observer
         this.verbose = verbose;
     }
 
+    public void setDebug(boolean debug)
+    {
+        this.debug = debug;
+    }
+
     private void checkDspaceDC() throws SQLException
     {
         if (dcSchema == null) dcSchema = MetadataSchema.findByNamespace(context, DCSCHEMA);
     }
 
-    private void checkDspaceMetadataDC() throws SQLException
+    protected void checkDspaceMetadataDC() throws SQLException
     {
         metadataFields = MetadataField.findAllInSchema(context, dcSchema.getSchemaID());
     }
@@ -198,20 +214,60 @@ public abstract class InstallerEDMBase implements Observer
     }
 
 
+    protected boolean loginUser()
+    {
+        installerEDMDisplay.showQuestion(0, "authentication");
+        String userAux = null;
+        String passwordAux;
+        int step = 1;
+        while (true) {
+            if (step == 1) installerEDMDisplay.showQuestion(0, "email.user");
+            else if (step == 2) installerEDMDisplay.showQuestion(0, "password.user");
+            String response = null;
+            try {
+                response = br.readLine();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return false;
+            }
+            if (response == null || response.length() == 0) continue;
+            response = response.trim();
+            switch (step) {
+                case 1:
+                    userAux = response;
+                    step++;
+                    break;
+                case 2:
+                    passwordAux = response;
+                    int status = AuthenticationManager.authenticate(context, userAux, passwordAux, null, null);
+                    if (status == 1) {
+                        eperson = context.getCurrentUser();
+                        user = userAux;
+                        password = passwordAux;
+                        return true;
+                    } else {
+                        installerEDMDisplay.showQuestion(0, "invalid.user");
+                        step = 1;
+                    }
+                    break;
+            }
+        }
+    }
+
+
+
     protected void checkAllSkosAuthElements(ArrayList<MetadataField> authDCElements) throws SQLException
     {
-        String language;
-        language = ConfigurationManager.getProperty("default.language");
-        if (language == null) language = "en";
         org.dspace.content.Collection[] listCollections = org.dspace.content.Collection.findAll(context);
-        if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "checkAllSkosAuthElements.searching.elements", new String[] {String.valueOf(listCollections.length)});
+        if (debug) installerEDMDisplay.showQuestion(0, "checkAllSkosAuthElements.searching.elements", new String[] {String.valueOf(listCollections.length)});
         if (listCollections.length > 0) {
             for (org.dspace.content.Collection collection : listCollections) {
-                if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "checkAllSkosAuthElements.searching.elements.collection", new String[] {collection.getName(), collection.getHandle()});
+                if (debug) installerEDMDisplay.showQuestion(0, "checkAllSkosAuthElements.searching.elements.collection", new String[] {collection.getName(), collection.getHandle()});
                 ItemIterator iter = collection.getAllItems();
                 while (iter.hasNext()) {
                     Item item = iter.next();
-                    if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "checkAllSkosAuthElements.searching.elements.item", new String[] { item.getName(), item.getHandle()});
+                    if (debug) installerEDMDisplay.showQuestion(0, "checkAllSkosAuthElements.searching.elements.item", new String[] { item.getName(), item.getHandle()});
+                    else installerEDMDisplay.showProgress('.');
                     DCValue[] listDCTypeValues = item.getMetadata(dcSchema.getName(), "type", null, language);
                     if (listDCTypeValues.length > 0) {
                         for (DCValue dcTypeValue : listDCTypeValues) {
@@ -230,13 +286,13 @@ public abstract class InstallerEDMBase implements Observer
     protected void checkSkosAuthItem(ArrayList<MetadataField> authDCElements, Item item)
     {
         DCValue[] listDCValues = item.getMetadata(dcSchema.getName() + ".*.*");
-        if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "checkSkosAuthItem.elements", new String[]{Integer.toString(listDCValues.length)});
+        if (debug) installerEDMDisplay.showQuestion(0, "checkSkosAuthItem.elements", new String[]{Integer.toString(listDCValues.length)});
         if (listDCValues.length > 0) {
             for (DCValue dcValue : listDCValues) {
                 if (dcValue.value == null || dcValue.value.isEmpty()) continue;
                 String dcValueName = dcValue.element + ((dcValue.qualifier != null && !dcValue.qualifier.isEmpty())?"." + dcValue.qualifier:"");
                 if (!elementsNotAuthSet.contains(dcValueName) && !authBOHashMap.containsKey(dcValueName)) {
-                    if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "checkSkosAuthItem.element", new String[]{dcValueName});
+                    if (debug) installerEDMDisplay.showQuestion(0, "checkSkosAuthItem.element", new String[]{dcValueName});
                     MetadataField metadataField = new MetadataField(dcSchema, dcValue.element, dcValue.qualifier, null);
                     Community community = null;
                     org.dspace.content.Collection collection = null;
