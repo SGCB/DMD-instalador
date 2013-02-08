@@ -4,6 +4,7 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.AuthorizeManager;
 import org.dspace.content.*;
 import org.dspace.content.Collection;
+import org.dspace.core.Constants;
 import org.dspace.handle.HandleManager;
 
 import java.io.IOException;
@@ -20,18 +21,24 @@ import java.util.*;
 public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
 {
 
+    private ArrayList<MetadataField> authDCElements;
+    private Hashtable<String, Item> cacheAuthValues;
+
     public InstallerEDMFillItems(int currentStepGlobal)
     {
         super(currentStepGlobal);
         initElementsNotAuthSet();
         initAuthBOHashMap();
+        authDCElements = new ArrayList<MetadataField>();
+        cacheAuthValues = new Hashtable<String, Item>();
     }
 
 
     public void configure()
     {
         if (eperson == null && !loginUser()) return;
-        ArrayList<MetadataField> authDCElements = new ArrayList<MetadataField>();
+        authDCElements.clear();
+        cacheAuthValues.clear();
         try {
             if (verbose) {
                 installerEDMDisplay.showLn();
@@ -41,8 +48,16 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
             if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "configure.auth.num", new String[]{Integer.toString(authDCElements.size())});
             if (authDCElements.size() > 0) {
                 installerEDMDisplay.showLn();
-                if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "configure.traverseNonauthItems");
-                traverseNonauthItems(authDCElements);
+                List<MetadataField> metadataFieldList = new ArrayList<MetadataField>();
+                int statusElementsDC = showMenuDCElements(metadataFieldList);
+                if (statusElementsDC > 0) {
+                    List<Collection> collectionList = new ArrayList<Collection>();
+                    int statusCollection = showMenuCollections(collectionList);
+                    if (statusCollection > 0) {
+                        if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "configure.traverseNonauthItems");
+                        traverseNonAuthItems(metadataFieldList, collectionList);
+                    }
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -51,70 +66,175 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
         }
     }
 
-    private void traverseNonauthItems(ArrayList<MetadataField> authDCElements) throws SQLException, AuthorizeException
+    private int showMenuCollections(List<Collection> collectionList) throws SQLException
     {
-        Collection[] listCollections = Collection.findAll(context);
+        while (true) {
+            installerEDMDisplay.showLn();
+            installerEDMDisplay.showQuestion(currentStepGlobal, "showMenuCollections");
+            installerEDMDisplay.showQuestion(currentStepGlobal, "showMenuCollections.menu");
+            String response = null;
+            try {
+                response = br.readLine();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return -1;
+            }
+            if (response == null) break;
+            if (response.isEmpty()) continue;
+            response = response.trim();
+            if (response.equalsIgnoreCase("a")) {
+                return 1;
+            } else if (response.equalsIgnoreCase("x")) {
+                return 0;
+            } else {
+                String[] handles = response.split(",");
+                for (String handle : handles) {
+                    if (handle.matches("^\\d+\\/\\d+$")) {
+                        DSpaceObject collection = HandleManager.resolveToObject(context, handle);
+                        if (collection == null || collection.getType() != Constants.COLLECTION) installerEDMDisplay.showQuestion
+                                (currentStepGlobal,
+                                "showMenuCollections.collection.notexist", new String[]{handle});
+                        else collectionList.add((Collection) collection);
+                    }
+                }
+                return 2;
+            }
+        }
+        return 0;
+    }
+
+    private int showMenuDCElements(List<MetadataField> metadataFieldList)
+    {
+        while (true) {
+            installerEDMDisplay.showLn();
+            installerEDMDisplay.showQuestion(currentStepGlobal, "showMenuDCElements");
+            installerEDMDisplay.showQuestion(currentStepGlobal, "showMenuDCElements.menu");
+            String response = null;
+            try {
+                response = br.readLine();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return -1;
+            }
+            if (response == null) break;
+            if (response.isEmpty()) continue;
+            response = response.trim();
+            if (response.equalsIgnoreCase("l")) {
+                installerEDMDisplay.showQuestion(currentStepGlobal, "showMenuDCElements.listdc");
+                listAllDCElements(metadataFields);
+            } else if (response.equalsIgnoreCase("a")) {
+                return 1;
+            } else if (response.equalsIgnoreCase("x")) {
+                return 0;
+            } else {
+                String[] dcElements = response.split(",");
+                for (String dcElement : dcElements) {
+                    MetadataField elementObj = findElementDC(dcElement);
+                    if (elementObj == null) installerEDMDisplay.showQuestion(currentStepGlobal,
+                            "showMenuDCElements.dcelement.notexist", new String[]{dcElement});
+                    else metadataFieldList.add(elementObj);
+                }
+                return 2;
+            }
+        }
+        return 0;
+    }
+
+    private void traverseNonAuthItems(List<MetadataField> metadataFieldList, List<Collection> collectionList) throws SQLException, AuthorizeException
+    {
+        if (metadataFieldList.isEmpty()) metadataFieldList = authDCElements;
+        Collection[] listCollections = (!collectionList.isEmpty())?(Collection[]) collectionList.toArray():Collection.findAll(context);
         for (Collection collection : listCollections) {
-            if (debug) installerEDMDisplay.showQuestion(7, "traverseNonauthItems.collection", new String[]{collection.getName(), collection.getHandle()});
-            ItemIterator iter = collection.getAllItems();
-            while (iter.hasNext()) {
-                installerEDMDisplay.showProgress('.');
-                Item item = iter.next();
-                if (!AuthorizeManager.isAdmin(context, item)) {
-                    installerEDMDisplay.showQuestion(currentStepGlobal, "traverseNonauthItems.nopermission", new String[]{eperson.getEmail(), item.getHandle()});
-                    continue;
-                }
-                boolean itemUpdated = false;
-                boolean isTypeAuth = false;
-                DCValue[] listDCTypeValues = item.getMetadata(dcSchema.getName(), "type", null, language);
-                if (listDCTypeValues.length > 0) {
-                    for (DCValue dcTypeValue : listDCTypeValues) {
-                        if (dcTypeValue.value.equals("SKOS_AUTH")) {
-                            isTypeAuth = true;
-                            break;
-                        }
-                    }
-                    if (isTypeAuth) continue;
-                }
-                if (debug) installerEDMDisplay.showQuestion(7, "traverseNonauthItems.item", new String[]{item.getName(), item.getHandle()});
-                Map<MetadataField, DCValue[]> metadataField2Clear = new HashMap<MetadataField, DCValue[]>();
-                for (MetadataField metadataField : authDCElements) {
-                    String dcValueName = metadataField.getElement() + ((metadataField.getQualifier() != null && !metadataField.getQualifier().isEmpty())?"." + metadataField.getQualifier():"");
-                    if (elementsNotAuthSet.contains(dcValueName)) continue;
-                    DCValue[] listDCValues = item.getMetadata(dcSchema.getName(), metadataField.getElement(), metadataField.getQualifier(), language);
-                    if (listDCValues.length > 0) {
-                        for (DCValue dcValue : listDCValues) {
-                            if (dcValue.authority != null && isValidURI(dcValue.authority)) continue;
-                            try {
-                                if (debug) installerEDMDisplay.showQuestion(7, "traverseNonauthItems.searchNonAuthItems", new String[]{dcValueName, dcValue.value});
-                                String handle = searchNonAuthItems(metadataField, dcValue.value);
-                                if (handle != null) {
-                                    if (debug) installerEDMDisplay.showQuestion(7, "traverseNonauthItems.changeitem", new String[]{item.getHandle(), handle});
-                                    dcValue.authority = handle;
-                                    itemUpdated = true;
-                                    if (!metadataField2Clear.containsKey(metadataField)) metadataField2Clear.put(metadataField, listDCValues);
-                                }
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            } catch (AuthorizeException e) {
-                                e.printStackTrace();
-                            }
-                        }
+            fillCollection(collection, metadataFieldList);
+        }
+    }
+
+
+    private void fillCollection(Collection collection, List<MetadataField> metadataFieldList) throws SQLException
+    {
+        if (debug) installerEDMDisplay.showQuestion(7, "traverseNonauthItems.collection", new String[]{collection.getName(), collection.getHandle()});
+        ItemIterator iter = collection.getAllItems();
+        while (iter.hasNext()) {
+            installerEDMDisplay.showProgress('.');
+            Item item = iter.next();
+            if (!AuthorizeManager.isAdmin(context, item)) {
+                installerEDMDisplay.showQuestion(currentStepGlobal, "traverseNonauthItems.nopermission", new String[]{eperson.getEmail(), item.getHandle()});
+                continue;
+            }
+            boolean itemUpdated = false;
+            boolean isTypeAuth = false;
+            DCValue[] listDCTypeValues = item.getMetadata(dcSchema.getName(), "type", null, language);
+            if (listDCTypeValues.length > 0) {
+                for (DCValue dcTypeValue : listDCTypeValues) {
+                    if (dcTypeValue.value.equals("SKOS_AUTH")) {
+                        isTypeAuth = true;
+                        break;
                     }
                 }
-                if (itemUpdated) {
-                    for (MetadataField metadataField : metadataField2Clear.keySet()) {
-                        item.clearMetadata(dcSchema.getName(), metadataField.getElement(), metadataField.getQualifier(), language);
-                        for (DCValue dcValue : metadataField2Clear.get(metadataField)) {
-                            System.out.format("%s.%s.%s %s %s %s", dcSchema.getName(), metadataField.getElement(), metadataField.getQualifier(), language, dcValue.value, dcValue.authority);
-                            item.addMetadata(dcSchema.getName(), metadataField.getElement(), metadataField.getQualifier(), language, dcValue.value, dcValue.authority, -1);
-                        }
-                    }
-                    item.update();
-                    context.commit();
+                if (isTypeAuth) continue;
+            }
+            if (debug) installerEDMDisplay.showQuestion(7, "traverseNonauthItems.item", new String[]{item.getName(), item.getHandle()});
+            Map<MetadataField, DCValue[]> metadataField2Clear = new Hashtable<MetadataField, DCValue[]>();
+            for (MetadataField metadataField : authDCElements) {
+                if (checkMetadataFieldIsModifiable(item, metadataField, metadataField2Clear)) itemUpdated = true;
+            }
+            if (itemUpdated) {
+                try {
+                    updateItem(item, metadataField2Clear);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                } catch (AuthorizeException e) {
+                    e.printStackTrace();
                 }
             }
         }
+    }
+
+
+    private boolean checkMetadataFieldIsModifiable(Item item, MetadataField metadataField, Map<MetadataField, DCValue[]> metadataField2Clear) throws SQLException
+    {
+        boolean itemUpdated = false;
+
+        String dcValueName = metadataField.getElement() + ((metadataField.getQualifier() != null && !metadataField.getQualifier().isEmpty())?"." + metadataField.getQualifier():"");
+        if (elementsNotAuthSet.contains(dcValueName)) return false;
+        DCValue[] listDCValues = item.getMetadata(dcSchema.getName(), metadataField.getElement(), metadataField.getQualifier(), language);
+        if (listDCValues.length > 0) {
+            for (DCValue dcValue : listDCValues) {
+                if (dcValue.authority != null) {
+                    if (isValidURI(dcValue.authority)) continue;
+                    if (dcValue.authority.matches("^\\d+\\/\\d+$") && HandleManager.resolveToObject(context,
+                            dcValue.authority) != null) continue;
+                }
+                try {
+                    if (debug) installerEDMDisplay.showQuestion(7, "traverseNonauthItems.searchNonAuthItems", new String[]{dcValueName, dcValue.value});
+                    String handle = searchNonAuthItems(metadataField, dcValue.value);
+                    if (handle != null) {
+                        if (debug) installerEDMDisplay.showQuestion(7, "traverseNonauthItems.changeitem", new String[]{item.getHandle(), handle});
+                        dcValue.authority = handle;
+                        itemUpdated = true;
+                        if (!metadataField2Clear.containsKey(metadataField)) metadataField2Clear.put(metadataField, listDCValues);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (AuthorizeException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return itemUpdated;
+    }
+
+    private void updateItem(Item item, Map<MetadataField, DCValue[]> metadataField2Clear) throws SQLException, AuthorizeException
+    {
+        for (MetadataField metadataField : metadataField2Clear.keySet()) {
+            item.clearMetadata(dcSchema.getName(), metadataField.getElement(), metadataField.getQualifier(), language);
+            for (DCValue dcValue : metadataField2Clear.get(metadataField)) {
+                System.out.format("%s.%s.%s %s %s %s", dcSchema.getName(), metadataField.getElement(), metadataField.getQualifier(), language, dcValue.value, dcValue.authority);
+                item.addMetadata(dcSchema.getName(), metadataField.getElement(), metadataField.getQualifier(), language, dcValue.value, dcValue.authority, -1);
+            }
+        }
+        item.update();
+        context.commit();
     }
 
 

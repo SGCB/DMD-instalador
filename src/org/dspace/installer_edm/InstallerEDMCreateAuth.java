@@ -112,20 +112,11 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                 case 1:
                     if (response.length() == 0) continue;
                     if (response.equalsIgnoreCase("x")) return true;
-                    int pos = response.indexOf(".");
-                    try {
-                        MetadataField elementMD = MetadataField.findByElement(context, dcSchema.getSchemaID(), (pos > 0)?response.substring(0, pos - 1):response, (pos > 0)?response.substring(pos + 1):null);
-                        if (elementMD == null) {
-                            installerEDMDisplay.showQuestion(currentStepGlobal, "createElementAuth.element.notexist", new String[]{response});
-                        } else {
-                            elementObj = elementMD;
-                            element = elementMD.getElement() + ((elementMD.getQualifier() != null)?"." + elementMD.getQualifier():"");
-                            step++;
-                        }
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    } catch (AuthorizeException e) {
-                        e.printStackTrace();
+                    elementObj = findElementDC(response);
+                    if (elementObj == null) installerEDMDisplay.showQuestion(currentStepGlobal, "createElementAuth.element.notexist", new String[]{response});
+                    else {
+                        element = elementObj.getElement() + ((elementObj.getQualifier() != null)?"." + elementObj.getQualifier():"");
+                        step++;
                     }
                     break;
                 case 2:
@@ -397,27 +388,6 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
         argv[0] = collectionObj;
         argv[1] = collection;
         return step;
-    }
-
-
-    private void listAllDCElements(MetadataField[] arrFields)
-    {
-        int i = 1;
-        for (MetadataField metadataField : arrFields) {
-            String qualifier = metadataField.getQualifier();
-            int elementLength = metadataField.getElement().length() + ((qualifier != null)?qualifier.length() + 1:0);
-            int padding = 80 - elementLength;
-            if (i % 2 == 1) {
-                System.out.printf("%s%s%" + padding + "s", metadataField.getElement(), (qualifier != null)?"."+qualifier:"", " ");
-            } else {
-                System.out.printf("%s%s", metadataField.getElement(), (qualifier != null)?"."+qualifier:"");
-                System.out.printf("%n");
-            }
-            i++;
-        }
-        System.out.flush();
-        System.out.println("");
-        System.out.println("");
     }
 
 

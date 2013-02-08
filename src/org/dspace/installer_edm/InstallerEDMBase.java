@@ -1,6 +1,7 @@
 package org.dspace.installer_edm;
 
 import org.dspace.authenticate.AuthenticationManager;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.*;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
@@ -310,6 +311,46 @@ public abstract class InstallerEDMBase implements Observer
                 }
             }
         }
+    }
+
+
+    protected MetadataField findElementDC(String name)
+    {
+        int pos = name.indexOf(".");
+        try {
+            MetadataField elementMD = MetadataField.findByElement(context, dcSchema.getSchemaID(), (pos > 0)?name.substring(0, pos - 1):name, (pos > 0)?name.substring(pos + 1):null);
+            if (elementMD == null) {
+                return null;
+            } else {
+                return elementMD;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (AuthorizeException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
+    protected void listAllDCElements(MetadataField[] arrFields)
+    {
+        int i = 1;
+        for (MetadataField metadataField : arrFields) {
+            String qualifier = metadataField.getQualifier();
+            int elementLength = metadataField.getElement().length() + ((qualifier != null)?qualifier.length() + 1:0);
+            int padding = 80 - elementLength;
+            if (i % 2 == 1) {
+                System.out.printf("%s%s%" + padding + "s", metadataField.getElement(), (qualifier != null)?"."+qualifier:"", " ");
+            } else {
+                System.out.printf("%s%s", metadataField.getElement(), (qualifier != null)?"."+qualifier:"");
+                System.out.printf("%n");
+            }
+            i++;
+        }
+        System.out.flush();
+        System.out.println("");
+        System.out.println("");
     }
 
 
