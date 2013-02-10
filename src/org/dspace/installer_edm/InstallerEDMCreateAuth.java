@@ -176,17 +176,7 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                 ItemIterator iter = collection.getAllItems();
                 while (iter.hasNext()) {
                     Item item = iter.next();
-                    boolean isTypeAuth = false;
-                    DCValue[] listDCTypeValues = item.getMetadata(dcSchema.getName(), "type", null, language);
-                    if (listDCTypeValues.length > 0) {
-                        for (DCValue dcTypeValue : listDCTypeValues) {
-                            if (dcTypeValue.value.equals("SKOS_AUTH")) {
-                                isTypeAuth = true;
-                                break;
-                            }
-                        }
-                        if (isTypeAuth) continue;
-                    }
+                    if (searchSkosAuthItem(item)) continue;
                     DCValue[] listDCValues = item.getMetadata(dcSchema.getName(), elementObj.getElement(), elementObj.getQualifier(), language);
                     if (listDCValues.length > 0) {
                         for (DCValue dcValue : listDCValues) {
@@ -194,19 +184,9 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                             ItemIterator iterAuth = Item.findByMetadataField(context, dcSchema.getName(), elementObj.getElement(), elementObj.getQualifier(), dcValue.value);
                             if (iterAuth.hasNext()) {
                                 Item itemMatched = iterAuth.next();
-                                DCValue[] listItemMatchedDCValues = itemMatched.getMetadata(dcSchema.getName(), "type", null, language);
-                                if (listItemMatchedDCValues.length > 0) {
-                                    boolean repeated = false;
-                                    for (DCValue dcValueMatched : listItemMatchedDCValues) {
-                                        if (dcValueMatched.value.equals("SKOS_AUTH")) {
-                                            repeated = true;
-                                            break;
-                                        }
-                                    }
-                                    if (repeated) {
-                                        if (debug) installerEDMDisplay.showQuestion(currentStepGlobal, "fillAuthItems.canceladd");
-                                        continue;
-                                    }
+                                if (searchSkosAuthItem(itemMatched)) {
+                                    if (debug) installerEDMDisplay.showQuestion(currentStepGlobal, "fillAuthItems.canceladd");
+                                    continue;
                                 }
                             }
                             Item itemAuth = null;

@@ -256,6 +256,33 @@ public abstract class InstallerEDMBase implements Observer
     }
 
 
+    protected boolean searchSkosAuthTypeItem(Item item)
+    {
+        DCValue[] listDCTypeValues = item.getMetadata(dcSchema.getName(), "type", null, language);
+        if (listDCTypeValues.length > 0) {
+            for (DCValue dcTypeValue : listDCTypeValues) {
+                if (dcTypeValue.value.equals("SKOS_AUTH")) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    protected boolean searchSkosAuthItem(Item item)
+    {
+        if (searchSkosAuthTypeItem(item)) return true;
+        DCValue[] listDCValues = item.getMetadata(dcSchema.getName() + ".*.*");
+        if (listDCValues.length > 0) {
+            for (DCValue dcValue : listDCValues) {
+                String dcValueName = dcValue.element + ((dcValue.qualifier != null && !dcValue.qualifier.isEmpty())?"." + dcValue.qualifier:"");
+                if (elementsNotAuthSet.contains(dcValueName) || dcValueName.equals("type")) continue;
+                if (dcValue.authority == null || dcValue.authority.isEmpty()) continue;
+                if (dcValue.authority.equals(item.getHandle())) return true;
+            }
+        }
+        return false;
+    }
 
     protected void checkAllSkosAuthElements(ArrayList<MetadataField> authDCElements) throws SQLException
     {
@@ -269,15 +296,7 @@ public abstract class InstallerEDMBase implements Observer
                     Item item = iter.next();
                     if (debug) installerEDMDisplay.showQuestion(0, "checkAllSkosAuthElements.searching.elements.item", new String[] { item.getName(), item.getHandle()});
                     else installerEDMDisplay.showProgress('.');
-                    DCValue[] listDCTypeValues = item.getMetadata(dcSchema.getName(), "type", null, language);
-                    if (listDCTypeValues.length > 0) {
-                        for (DCValue dcTypeValue : listDCTypeValues) {
-                            if (dcTypeValue.value.equals("SKOS_AUTH")) {
-                                checkSkosAuthItem(authDCElements, item);
-                                break;
-                            }
-                        }
-                    }
+                    if (searchSkosAuthItem(item)) checkSkosAuthItem(authDCElements, item);
                 }
             }
         }

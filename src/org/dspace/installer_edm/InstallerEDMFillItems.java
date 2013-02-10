@@ -162,17 +162,7 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
                 continue;
             }
             boolean itemUpdated = false;
-            boolean isTypeAuth = false;
-            DCValue[] listDCTypeValues = item.getMetadata(dcSchema.getName(), "type", null, language);
-            if (listDCTypeValues.length > 0) {
-                for (DCValue dcTypeValue : listDCTypeValues) {
-                    if (dcTypeValue.value.equals("SKOS_AUTH")) {
-                        isTypeAuth = true;
-                        break;
-                    }
-                }
-                if (isTypeAuth) continue;
-            }
+            if (searchSkosAuthItem(item)) continue;
             if (debug) installerEDMDisplay.showQuestion(7, "traverseNonauthItems.item", new String[]{item.getName(), item.getHandle()});
             Map<MetadataField, DCValue[]> metadataField2Clear = new Hashtable<MetadataField, DCValue[]>();
             for (MetadataField metadataField : authDCElements) {
@@ -243,14 +233,7 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
         ItemIterator iterAuth = Item.findByMetadataField(context, dcSchema.getName(), metadataField.getElement(), metadataField.getQualifier(), value);
         while (iterAuth.hasNext()) {
             Item itemMatched = iterAuth.next();
-            DCValue[] listItemMatchedDCValues = itemMatched.getMetadata(dcSchema.getName(), "type", null, language);
-            if (listItemMatchedDCValues.length > 0) {
-                for (DCValue dcValueMatched : listItemMatchedDCValues) {
-                    if (dcValueMatched.value.equals("SKOS_AUTH")) {
-                        return HandleManager.findHandle(context, itemMatched);
-                    }
-                }
-            }
+            if (searchSkosAuthItem(itemMatched)) return HandleManager.findHandle(context, itemMatched);
         }
         return null;
     }
