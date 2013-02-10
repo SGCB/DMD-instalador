@@ -119,19 +119,19 @@ public class InstallerEDMConfEDMExport extends InstallerEDMBase
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            showException(e);
             installerEDMDisplay.showQuestion(currentStepGlobal, "configure.dspacecfg.nok");
         } catch (ParserConfigurationException e) {
-            e.printStackTrace();
+            showException(e);
             installerEDMDisplay.showQuestion(currentStepGlobal, "configure.dspacecfg.nok");
         } catch (SAXException e) {
-            e.printStackTrace();
+            showException(e);
             installerEDMDisplay.showQuestion(currentStepGlobal, "configure.dspacecfg.nok");
         } catch (XPathExpressionException e) {
-            e.printStackTrace();
+            showException(e);
             installerEDMDisplay.showQuestion(currentStepGlobal, "configure.dspacecfg.nok");
         } catch (TransformerException e) {
-            e.printStackTrace();
+            showException(e);
             installerEDMDisplay.showQuestion(currentStepGlobal, "configure.dspacecfg.nok");
         }
     }

@@ -60,9 +60,9 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            showException(e);
         } catch (AuthorizeException e) {
-            e.printStackTrace();
+            showException(e);
         }
     }
 
@@ -76,7 +76,7 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
             try {
                 response = br.readLine();
             } catch (IOException e) {
-                e.printStackTrace();
+                showException(e);
                 return -1;
             }
             if (response == null) break;
@@ -113,7 +113,7 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
             try {
                 response = br.readLine();
             } catch (IOException e) {
-                e.printStackTrace();
+                showException(e);
                 return -1;
             }
             if (response == null) break;
@@ -172,9 +172,9 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
                 try {
                     updateItem(item, metadataField2Clear);
                 } catch (SQLException e) {
-                    e.printStackTrace();
+                    showException(e);
                 } catch (AuthorizeException e) {
-                    e.printStackTrace();
+                    showException(e);
                 }
             }
         }
@@ -205,9 +205,9 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
                         if (!metadataField2Clear.containsKey(metadataField)) metadataField2Clear.put(metadataField, listDCValues);
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    showException(e);
                 } catch (AuthorizeException e) {
-                    e.printStackTrace();
+                    showException(e);
                 }
             }
         }

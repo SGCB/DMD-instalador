@@ -44,7 +44,7 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
         try {
             checkDspaceMetadataDC();
         } catch (SQLException e) {
-            e.printStackTrace();
+            showException(e);
         }
         if (metadataFields != null && metadataFields.length > 0) {
             if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "createAuth.numelements", new String[]{DCSCHEMA, Integer.toString(metadataFields.length)});
@@ -57,7 +57,7 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                 try {
                     response = br.readLine();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    showException(e);
                     return false;
                 }
                 if (response == null) break;
@@ -103,7 +103,7 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
             try {
                 response = br.readLine();
             } catch (IOException e) {
-                e.printStackTrace();
+                showException(e);
                 return false;
             }
             if (response == null) break;
@@ -148,7 +148,7 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                     try {
                         response = br.readLine();
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        showException(e);
                         return false;
                     }
                     if (response == null) break;
@@ -212,11 +212,11 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
             }
             return true;
         } catch (SQLException e) {
-            e.printStackTrace();
+            showException(e);
         } catch (AuthorizeException e) {
-            e.printStackTrace();
+            showException(e);
         } catch (IOException e) {
-            e.printStackTrace();
+            showException(e);
         }
         return false;
     }
@@ -237,7 +237,7 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                 try {
                     response = br.readLine();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    showException(e);
                     return 2;
                 }
                 if (response == null) break;
@@ -253,7 +253,7 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                                 }
                             } else stepCommunity++;
                         } catch (SQLException e) {
-                            e.printStackTrace();
+                            showException(e);
                         }
                         break;
                     case 2:
@@ -266,11 +266,11 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                             community = communityObj.getName();
                             step++;
                         } catch (SQLException e) {
-                            e.printStackTrace();
+                            showException(e);
                         } catch (AuthorizeException e) {
-                            e.printStackTrace();
+                            showException(e);
                         } catch (IOException e) {
-                            e.printStackTrace();
+                            showException(e);
                         }
                         break;
                 }
@@ -286,7 +286,7 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                     installerEDMDisplay.showQuestion(currentStepGlobal, "askCommunity.notexist", new String[]{response});
                 }
             } catch (SQLException e) {
-                e.printStackTrace();
+                showException(e);
             }
         }
         argv[0] = communityObj;
@@ -310,7 +310,7 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                 try {
                     response = br.readLine();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    showException(e);
                     return 3;
                 }
                 if (response == null) break;
@@ -329,7 +329,7 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                                 }
                             } else stepCollection++;
                         } catch (SQLException e) {
-                            e.printStackTrace();
+                            showException(e);
                         }
                         break;
                     case 2:
@@ -342,11 +342,11 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                             collection = collectionObj.getName();
                             step++;
                         } catch (SQLException e) {
-                            e.printStackTrace();
+                            showException(e);
                         } catch (AuthorizeException e) {
-                            e.printStackTrace();
+                            showException(e);
                         } catch (IOException e) {
-                            e.printStackTrace();
+                            showException(e);
                         }
                         break;
                 }
@@ -362,7 +362,7 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                     installerEDMDisplay.showQuestion(currentStepGlobal, "askCollection.notexist", new String[]{response});
                 }
             } catch (SQLException e) {
-                e.printStackTrace();
+                showException(e);
             }
         }
         argv[0] = collectionObj;

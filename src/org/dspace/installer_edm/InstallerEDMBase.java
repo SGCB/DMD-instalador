@@ -94,9 +94,9 @@ public abstract class InstallerEDMBase implements Observer
         } catch (SQLException e) {
             installerEDMDisplay.showLn();
             installerEDMDisplay.showQuestion(0, "step.fail");
-            e.printStackTrace();
+            showException(e);
         } catch (Exception e) {
-            e.printStackTrace();
+            showException(e);
         }
     }
 
@@ -228,7 +228,7 @@ public abstract class InstallerEDMBase implements Observer
             try {
                 response = br.readLine();
             } catch (IOException e) {
-                e.printStackTrace();
+                showException(e);
                 return false;
             }
             if (response == null || response.length() == 0) continue;
@@ -322,7 +322,7 @@ public abstract class InstallerEDMBase implements Observer
                         Community[] communities = item.getCommunities();
                         if (communities.length > 0) community = communities[0];
                     } catch (SQLException e) {
-                        e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                        showException(e);
                     }
                     InstallerEDMAuthBO installerEDMAuthBO = new InstallerEDMAuthBO(item, community, collection, dcSchema, metadataField);
                     authBOHashMap.put(dcValueName, installerEDMAuthBO);
@@ -344,9 +344,9 @@ public abstract class InstallerEDMBase implements Observer
                 return elementMD;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            showException(e);
         } catch (AuthorizeException e) {
-            e.printStackTrace();
+            showException(e);
         }
         return null;
     }
@@ -372,5 +372,11 @@ public abstract class InstallerEDMBase implements Observer
         System.out.println("");
     }
 
+
+    protected void showException(Exception e)
+    {
+        if (verbose) installerEDMDisplay.showMessage(e.getMessage());
+        if (debug) e.printStackTrace();
+    }
 
 }

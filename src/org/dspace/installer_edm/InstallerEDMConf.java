@@ -72,19 +72,19 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
                     installerEDMDisplay.showQuestion(currentStepGlobal, "configureAll.notauthdcelements");
                 }
             } catch (SQLException e) {
-                e.printStackTrace();
+                showException(e);
             } catch (FileNotFoundException e) {
-                e.printStackTrace();
+                showException(e);
             } catch (IOException e) {
-                e.printStackTrace();
+                showException(e);
             } catch (XPathExpressionException e) {
-                e.printStackTrace();
+                showException(e);
             } catch (ParserConfigurationException e) {
-                e.printStackTrace();
+                showException(e);
             } catch (SAXException e) {
-                e.printStackTrace();
+                showException(e);
             } catch (TransformerException e) {
-                e.printStackTrace();
+                showException(e);
             }
         } else installerEDMDisplay.showQuestion(currentStepGlobal, "configureAll.dspacedirconf.notexist", new String [] {dspaceDirConfName, dspaceDirConfNewFile.getAbsolutePath()});
         return false;

@@ -171,7 +171,7 @@ public class InstallerEDM extends InstallerEDMBase
                 stepsSet.add(Integer.parseInt(stepDisplay.trim()));
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            showException(e);
             finishInstaller();
         }
         installerEDMAskosi = new InstallerEDMAskosi(Integer.parseInt(installerEDMDisplay.getQuestion(0, "step.askosi")));
@@ -297,7 +297,7 @@ public class InstallerEDM extends InstallerEDMBase
                 try {
                     response = br.readLine();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    showException(e);
                 }
                 if ((response != null) && !response.isEmpty() && stepsSet.contains(Integer.decode(response))) {
                     response = response.trim();
@@ -315,7 +315,7 @@ public class InstallerEDM extends InstallerEDMBase
             try {
                 response = br.readLine();
             } catch (IOException e) {
-                e.printStackTrace();
+                showException(e);
             }
             if (response == null) continue;
             response = response.trim();

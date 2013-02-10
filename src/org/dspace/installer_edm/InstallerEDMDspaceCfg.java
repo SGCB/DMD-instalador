@@ -193,7 +193,7 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
         try {
             out.write(choice);
         } catch (IOException e) {
-            e.printStackTrace();
+            showException(e);
             return false;
         }
         return true;

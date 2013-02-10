@@ -93,10 +93,10 @@ public class InstallerEDMAskosi extends InstallerEDMBase
             try {
                 response = br.readLine();
             } catch (IOException e) {
-                e.printStackTrace();
+                showException(e);
                 return false;
             } catch (Exception e) {
-                e.printStackTrace();
+                showException(e);
             }
             if ((response != null) && (response.length() > 0)) {
                 response = response.trim();
@@ -143,7 +143,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
                     try {
                         response = br.readLine();
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        showException(e);
                         return false;
                     }
                     if ((response != null) && (response.length() > 0)) {
@@ -197,7 +197,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
             try {
                 response = br.readLine();
             } catch (IOException e) {
-                e.printStackTrace();
+                showException(e);
                 return false;
             }
             if ((response != null) && (response.length() > 0)) {
@@ -234,7 +234,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
             try {
                 response = br.readLine();
             } catch (IOException e) {
-                e.printStackTrace();
+                showException(e);
                 return false;
             }
             if ((response != null) && (response.length() > 0)) {
@@ -268,7 +268,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
             try {
                 response = br.readLine();
             } catch (IOException e) {
-                e.printStackTrace();
+                showException(e);
                 return false;
             }
             if ((response != null) && (response.length() > 0)) {
@@ -286,7 +286,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
                     try {
                         response = br.readLine();
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        showException(e);
                         return false;
                     }
                     if ((response != null) && (response.length() > 0) && response.trim().equals("y")) {
@@ -345,7 +345,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
             }
             return true;
         } catch (IOException e) {
-            e.printStackTrace();
+            showException(e);
         }
         return false;
     }
@@ -373,7 +373,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
             try {
                 response = br.readLine();
             } catch (IOException e) {
-                e.printStackTrace();
+                showException(e);
                 return false;
             }
             if (response.trim().equalsIgnoreCase("y")) {
@@ -381,7 +381,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
                 try {
                     org.apache.commons.io.FileUtils.copyFile(sourcePackageFile, desPackageFile);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    showException(e);
                     return false;
                 }
             }
@@ -389,7 +389,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
             try {
                 org.apache.commons.io.FileUtils.copyFile(sourcePackageFile, desPackageFile);
             } catch (IOException e) {
-                e.printStackTrace();
+                showException(e);
                 return false;
             }
         }
@@ -429,10 +429,10 @@ public class InstallerEDMAskosi extends InstallerEDMBase
                         }
                     }
                 } catch (FileNotFoundException e) {
-                    e.printStackTrace();
+                    showException(e);
                     return null;
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    showException(e);
                     return null;
                 }
             }

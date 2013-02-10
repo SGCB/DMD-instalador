@@ -133,7 +133,7 @@ public class InstallerEDMCrosswalk extends InstallerEDMBase
                 } else installerEDMDisplay.showQuestion(currentStepGlobal, "configure.edmcrosswalk.conf.nok");
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            showException(e);
             installerEDMDisplay.showQuestion(currentStepGlobal, "configure.edmcrosswalk.conf.nok");
         }
     }
@@ -349,7 +349,7 @@ public class InstallerEDMCrosswalk extends InstallerEDMBase
         try {
             stdFileManager.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            showException(e);
         }
         return status;
     }
