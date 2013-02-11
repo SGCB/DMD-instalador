@@ -121,7 +121,7 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
             response = response.trim();
             if (response.equalsIgnoreCase("l")) {
                 installerEDMDisplay.showQuestion(currentStepGlobal, "showMenuDCElements.listdc");
-                listAllDCElements(metadataFields);
+                listAllDCElements((MetadataField[]) authDCElements.toArray(new MetadataField[authDCElements.size()]));
             } else if (response.equalsIgnoreCase("a")) {
                 return 1;
             } else if (response.equalsIgnoreCase("x")) {
@@ -142,8 +142,9 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
 
     private void traverseNonAuthItems(List<MetadataField> metadataFieldList, List<Collection> collectionList) throws SQLException, AuthorizeException
     {
+        context.clearCache();
         if (metadataFieldList.isEmpty()) metadataFieldList = authDCElements;
-        Collection[] listCollections = (!collectionList.isEmpty())?(Collection[]) collectionList.toArray():Collection.findAll(context);
+        Collection[] listCollections = (!collectionList.isEmpty())?(Collection[]) collectionList.toArray(new Collection[collectionList.size()]):Collection.findAll(context);
         for (Collection collection : listCollections) {
             fillCollection(collection, metadataFieldList);
         }
@@ -165,7 +166,7 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
             if (searchSkosAuthItem(item)) continue;
             if (debug) installerEDMDisplay.showQuestion(7, "traverseNonauthItems.item", new String[]{item.getName(), item.getHandle()});
             Map<MetadataField, DCValue[]> metadataField2Clear = new Hashtable<MetadataField, DCValue[]>();
-            for (MetadataField metadataField : authDCElements) {
+            for (MetadataField metadataField : metadataFieldList) {
                 if (checkMetadataFieldIsModifiable(item, metadataField, metadataField2Clear)) itemUpdated = true;
             }
             if (itemUpdated) {
