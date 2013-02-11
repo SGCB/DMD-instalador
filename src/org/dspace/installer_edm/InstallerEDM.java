@@ -41,6 +41,7 @@ public class InstallerEDM extends InstallerEDMBase
     private InstallerEDMConf installerEDMConf = null;
     private InstallerEDMConfEDMExport installerEDMConfEDMExport = null;
     private InstallerEDMCrosswalk installerEDMCrosswalk = null;
+    private InstallerEDMCrosswalkXSL installerEDMCrosswalkXSL = null;
     private InstallerEDMFillItems installerEDMFillItems = null;
 
 
@@ -262,6 +263,20 @@ public class InstallerEDM extends InstallerEDMBase
                 installerEDMCrosswalk = new InstallerEDMCrosswalk(Integer.parseInt(installerEDMDisplay.getQuestion(0, "step.edmcrosswalk")),
                         myInstallerDirPath + fileSeparator + "packages" + fileSeparator + "EDMCrosswalk.java");
                 installerEDMCrosswalk.configure();
+            }
+
+            if (step == Integer.parseInt(installerEDMDisplay.getQuestion(0, "step.edmcrosswalkxsl"))) {
+                installerEDMDisplay.showLn();
+                installerEDMDisplay.showTitle(step);
+                installerEDMDisplay.showLn();
+                installerEDMDisplay.showQuestion(step, "summary");
+                installerEDMDisplay.showLn();
+                if (!proceed()) {
+                    installEDM(0);
+                    return;
+                }
+                installerEDMCrosswalkXSL = new InstallerEDMCrosswalkXSL(Integer.parseInt(installerEDMDisplay.getQuestion(0, "step.edmcrosswalkxsl")));
+                installerEDMCrosswalkXSL.configure();
             }
 
             if (step == Integer.parseInt(installerEDMDisplay.getQuestion(0, "step.fillitems"))) {

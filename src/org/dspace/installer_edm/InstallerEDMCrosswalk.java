@@ -93,9 +93,10 @@ public class InstallerEDMCrosswalk extends InstallerEDMBase
                 edmCrossWalkClass = "org/dspace/app/oai/" + edmCrossWalkName.replaceFirst("\\.java", ".class");
 
                 oaiApiJarWorkFile = new File(myInstallerWorkDirPath + fileSeparator + oaiApiJarFile.getName());
+                copyDspaceFile2Work(oaiApiJarFile, oaiApiJarWorkFile, "configure.edmcrosswalk.oaiapijar");
                 oaiApiJarName = oaiApiJarWorkFile.getAbsolutePath();
-                org.apache.commons.io.FileUtils.copyFile(oaiApiJarFile, oaiApiJarWorkFile);
                 oaiApiJarJarFile = new JarFile(oaiApiJarWorkFile);
+
                 ZipEntry edmOaiApiEdmCrossWalkZipentry = oaiApiJarJarFile.getEntry(edmCrossWalkClass);
                 if (edmOaiApiEdmCrossWalkZipentry != null) {
                     String response = null;
@@ -157,7 +158,7 @@ public class InstallerEDMCrosswalk extends InstallerEDMBase
             if (oaiCatPropertiesFile.exists() && oaiCatPropertiesFile.canRead()) break;
         } while (true);
         oaiCatPropertiesWorkFile = new File(myInstallerWorkDirPath + fileSeparator + oaiCatPropertiesFile.getName());
-        org.apache.commons.io.FileUtils.copyFile(oaiCatPropertiesFile, oaiCatPropertiesWorkFile);
+        copyDspaceFile2Work(oaiCatPropertiesFile, oaiCatPropertiesWorkFile, "configure.edmcrosswalk.oaicat");
 
         Properties properties = new Properties();
         URL url = oaiCatPropertiesWorkFile.toURI().toURL();

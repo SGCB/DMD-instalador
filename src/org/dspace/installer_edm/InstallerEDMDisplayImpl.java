@@ -75,6 +75,9 @@ public class InstallerEDMDisplayImpl implements InstallerEDMDisplay
         for (String arg : args) {
             if (arg == null) arg = "";
             arg = arg.replaceAll("\\\\[^\\\\]*",  " ");
+            arg = arg.replaceAll("[^\\\\]*\\(",  "\\(");
+            arg = arg.replaceAll("[^\\\\]*\\)",  "\\)");
+            arg = arg.replaceAll("[^\\\\]*\\$",  "\\$");
             text = text.replaceFirst("#\\?#", arg);
         }
         return text;

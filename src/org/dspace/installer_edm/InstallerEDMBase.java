@@ -6,7 +6,13 @@ import org.dspace.content.*;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -19,7 +25,6 @@ import java.text.Normalizer;
 import java.text.Normalizer.Form;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.Collection;
 
 /**
  * Created with IntelliJ IDEA.
@@ -70,8 +75,9 @@ public abstract class InstallerEDMBase implements Observer
 
     protected static final String[] elementsNotAuth = {"identifier.uri", "date.accessioned", "date.available", "date.issued", "description.provenance", "type"};
 
-    protected static final String[] packages = {"ASKOSI.jar", "askosiWebapp.zip", "classes.zip", "commons-dbcp.jar", "commons-pool.jar", "EDMCrosswalk.java", "EDMExport.war", "exampleAskosiData.zip", "jaxb-xalan-1.5.jar", "jsr311-api-1.1.1.jar", "jstl-1.2.jar", "log4j.jar", "openrdf-alibaba-2.0-beta6.jar", "openrdf-sesame-2.3.2-onejar.jar"};
-    protected static final String[] packagesMD5 = {"f800262e9587383fa0dbd8f748cc831e", "ab932907d73a8031cb266d20d341a6e2", "0bffffb990ea99eb02a989d346454d8e", "2666cfeb7be74b1c2d8a1665ae21192c", "01f9bed60e2f88372132d34040ee81bb", "b44cb32a1651322074ab077d3d1113b2", "202e9994bdd6f04ac4f83208a5bbec3b", "2be860d3a2529cb8789d6c27cfae5a92", "261968cebe30ffe8adcc201ad0bfa395", "c9803468299ec255c047a280ddec510f", "51e15f798e69358cb893e38c50596b9b", "599b8ba07d1d04f0ea34414e861d7ad1", "1f699edb215bcee75cb6f0616fa56993", "3054aa9109f78903852d38991b5a4ea8"};
+    protected static final String[] packages = {"ASKOSI.jar", "askosiWebapp.zip", "classes.zip", "commons-dbcp.jar", "commons-pool.jar", "EDMCrosswalk.java", "EDMExport.war", "exampleAskosiData.zip", "jaxb-xalan-1.5.jar", "jsr311-api-1.1.1.jar", "jstl-1.2.jar", "log4j.jar", "openrdf-alibaba-2.0-beta6.jar", "openrdf-sesame-2.3.2-onejar.jar", "DIM2EDM.xsl"};
+
+    protected static final String[] packagesMD5 = {"f800262e9587383fa0dbd8f748cc831e", "ab932907d73a8031cb266d20d341a6e2", "0bffffb990ea99eb02a989d346454d8e", "2666cfeb7be74b1c2d8a1665ae21192c", "01f9bed60e2f88372132d34040ee81bb", "b44cb32a1651322074ab077d3d1113b2", "202e9994bdd6f04ac4f83208a5bbec3b", "2be860d3a2529cb8789d6c27cfae5a92", "261968cebe30ffe8adcc201ad0bfa395", "c9803468299ec255c047a280ddec510f", "51e15f798e69358cb893e38c50596b9b", "599b8ba07d1d04f0ea34414e861d7ad1", "1f699edb215bcee75cb6f0616fa56993", "3054aa9109f78903852d38991b5a4ea8", "4848484a04285097cba450dcd329880c"};
 
 
 
@@ -374,6 +380,37 @@ public abstract class InstallerEDMBase implements Observer
         System.out.flush();
         System.out.println("");
         System.out.println("");
+    }
+
+
+    protected void copyDspaceFile2Work(File dspaceFileFile, File dspaceFileNewFile, String prefixMessage) throws IOException
+    {
+        installerEDMDisplay.showLn();
+        installerEDMDisplay.showQuestion(currentStepGlobal, prefixMessage + ".add", new String [] {myInstallerWorkDirPath, dspaceFileFile.getAbsolutePath()});
+        if (dspaceFileNewFile.exists()) {
+            installerEDMDisplay.showQuestion(currentStepGlobal, prefixMessage + ".file.exists", new String[]{dspaceFileNewFile.getAbsolutePath()});
+            String response = null;
+            do {
+                response = br.readLine();
+                if (response == null) continue;
+                response = response.trim();
+                if (response.length() == 0 || response.equalsIgnoreCase("y")) {
+                    dspaceFileNewFile.delete();
+                    break;
+                }
+                else return;
+            } while (true);
+        }
+        org.apache.commons.io.FileUtils.copyFile(dspaceFileFile, dspaceFileNewFile);
+    }
+
+
+    protected Document getDocumentFromInputSource(InputSource IS) throws ParserConfigurationException, IOException, SAXException
+    {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setNamespaceAware(true);
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        return builder.parse(IS);
     }
 
 

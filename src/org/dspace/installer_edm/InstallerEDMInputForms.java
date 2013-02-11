@@ -6,8 +6,6 @@ import org.w3c.dom.*;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
@@ -160,7 +158,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
             String handle = entry.getValue().getCollection().getHandle();
             String name = removeAccents(entry.getValue().getCollection().getName().toLowerCase());
             String xpathFormMapNameExpression = String.format(xpathFormMapNameTemplate, new Object[] { handle });
-            NodeList resultsFormMapName = (NodeList)xpathFormMap.evaluate(xpathFormMapNameExpression, docInputForms, XPathConstants.NODESET);
+            NodeList resultsFormMapName = (NodeList)xpathFormMapName.evaluate(xpathFormMapNameExpression, docInputForms, XPathConstants.NODESET);
             if (resultsFormMapName.getLength() == 0) {
                 System.out.println("No " + xpathFormMapNameExpression);
                 Comment simpleComment = docInputForms.createComment(getTime() + " Appended by installerEDM to add the form map " + handle + ":" + name);
@@ -484,12 +482,4 @@ public class InstallerEDMInputForms extends InstallerEDMBase
         return elem;
     }
 
-
-    private Document getDocumentFromInputSource(InputSource IS) throws ParserConfigurationException, IOException, SAXException
-    {
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        factory.setNamespaceAware(true);
-        DocumentBuilder builder = factory.newDocumentBuilder();
-        return builder.parse(IS);
-    }
 }

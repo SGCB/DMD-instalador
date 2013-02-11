@@ -71,7 +71,7 @@ public class InstallerEDMConfEDMExport extends InstallerEDMBase
         try {
             if (checkEDMExporWar()) {
                 eDMExportWarWorkFile = new File(myInstallerWorkDirPath + fileSeparator + eDMExportWarFile.getName());
-                org.apache.commons.io.FileUtils.copyFile(eDMExportWarFile, eDMExportWarWorkFile);
+                copyDspaceFile2Work(eDMExportWarFile, eDMExportWarWorkFile, "configure.edmexport");
 
                 eDMExportWarJarFile = new JarFile(eDMExportWarWorkFile);
                 ZipEntry edmExportWebZipentry = eDMExportWarJarFile.getEntry("WEB-INF/web.xml");

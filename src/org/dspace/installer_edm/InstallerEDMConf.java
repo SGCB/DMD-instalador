@@ -99,23 +99,7 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
 
     private void configureInputFormsDspace(File dspaceInputFormsFile, File dspaceInputFormsNewFile, ArrayList<MetadataField> authDCElements) throws IOException, XPathExpressionException, ParserConfigurationException, SAXException, TransformerException, SQLException
     {
-        installerEDMDisplay.showLn();
-        installerEDMDisplay.showQuestion(currentStepGlobal, "configureInputFormsDspace.inputforms.add", new String [] {myInstallerWorkDirPath, dspaceInputFormsFile.getAbsolutePath()});
-        if (dspaceInputFormsNewFile.exists()) {
-            installerEDMDisplay.showQuestion(currentStepGlobal, "configureInputFormsDspace.inputforms.file.exists", new String[]{dspaceInputFormsNewFile.getAbsolutePath()});
-            String response = null;
-            do {
-                response = br.readLine();
-                if (response == null) continue;
-                response = response.trim();
-                if (response.length() == 0 || response.equalsIgnoreCase("y")) {
-                    dspaceInputFormsNewFile.delete();
-                    break;
-                }
-                else return;
-            } while (true);
-        }
-        org.apache.commons.io.FileUtils.copyFile(dspaceInputFormsFile, dspaceInputFormsNewFile);
+        copyDspaceFile2Work(dspaceInputFormsFile, dspaceInputFormsNewFile, "configureInputFormsDspace.inputforms");
         File dspaceInputFormsFileDtd = new File(DspaceDir + "config" + fileSeparator + "input-forms.dtd");
         File dspaceInputFormsFileDtdNew = new File(myInstallerWorkDirPath + fileSeparator + "input-forms.dtd");
         org.apache.commons.io.FileUtils.copyFile(dspaceInputFormsFileDtd, dspaceInputFormsFileDtdNew);
@@ -125,25 +109,9 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
     }
 
 
-    private void configureDspaceCfg(File dspaceDirConfFile, File dspaceDirConfNewFile, ArrayList<MetadataField> authDCElements) throws FileNotFoundException, IndexOutOfBoundsException, IOException, NullPointerException
+    private void configureDspaceCfg(File dspaceDirConfFile, File dspaceDirConfNewFile, ArrayList<MetadataField> authDCElements) throws IndexOutOfBoundsException, IOException, NullPointerException
     {
-        installerEDMDisplay.showLn();
-        installerEDMDisplay.showQuestion(currentStepGlobal, "configureDspaceCfg.dspacecfg.add", new String [] {myInstallerWorkDirPath, dspaceDirConfFile.getAbsolutePath()});
-        if (dspaceDirConfNewFile.exists()) {
-            installerEDMDisplay.showQuestion(currentStepGlobal, "configureDspaceCfg.dspacecfg.file.exists", new String[]{dspaceDirConfNewFile.getAbsolutePath()});
-            String response = null;
-            do {
-                response = br.readLine();
-                if (response == null) continue;
-                response = response.trim();
-                if (response.length() == 0 || response.equalsIgnoreCase("y")) {
-                    dspaceDirConfNewFile.delete();
-                    break;
-                }
-                else return;
-            } while (true);
-        }
-        org.apache.commons.io.FileUtils.copyFile(dspaceDirConfFile, dspaceDirConfNewFile);
+        copyDspaceFile2Work(dspaceDirConfFile, dspaceDirConfNewFile, "configureDspaceCfg.dspacecfg");
         InstallerEDMDspaceCfg installerEDMDspaceCfg = new InstallerEDMDspaceCfg(currentStepGlobal, dspaceDirConfNewFile);
         installerEDMDspaceCfg.processDspaceCfg(authDCElements);
     }
