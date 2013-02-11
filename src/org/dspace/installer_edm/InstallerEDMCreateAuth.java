@@ -2,6 +2,7 @@ package org.dspace.installer_edm;
 
 import org.dspace.authenticate.AuthenticationManager;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.AuthorizeManager;
 import org.dspace.content.*;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
@@ -37,6 +38,14 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
     public boolean createAuth()
     {
         if (eperson == null && !loginUser()) return false;
+        try {
+            if (!AuthorizeManager.isAdmin(context)) {
+                installerEDMDisplay.showQuestion(currentStepGlobal, "createAuth.noadmin", new String[]{eperson.getEmail()});
+                return false;
+            }
+        } catch (SQLException e) {
+            showException(e);
+        }
         if (dcSchema == null) {
             installerEDMDisplay.showQuestion(currentStepGlobal, "createAuth.notschema", new String[]{DCSCHEMA});
             return false;
