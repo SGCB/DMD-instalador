@@ -214,7 +214,7 @@ public class InstallerEDM extends InstallerEDMBase
                 }
                 installerEDMCreateAuth = new InstallerEDMCreateAuth(Integer.parseInt(installerEDMDisplay.getQuestion(0, "step.auth_item")));
                 sh.addObserver( installerEDMCreateAuth );
-                if (!installerEDMCreateAuth.createAuth()) {
+                if (!installerEDMCreateAuth.configure()) {
                     installerEDMDisplay.showLn();
                     installerEDMDisplay.showQuestion(step, "fail");
                 }

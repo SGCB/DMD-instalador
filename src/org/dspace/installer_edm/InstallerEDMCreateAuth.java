@@ -32,10 +32,12 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
     public InstallerEDMCreateAuth(int currentStepGlobal)
     {
         super(currentStepGlobal);
+        initElementsNotAuthSet();
+        initAuthBOHashMap();
     }
 
 
-    public boolean createAuth()
+    public boolean configure()
     {
         if (eperson == null && !loginUser()) return false;
         try {
@@ -59,7 +61,6 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
             if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "createAuth.numelements", new String[]{DCSCHEMA, Integer.toString(metadataFields.length)});
             if (authDCElements != null) authDCElements.clear();
             else authDCElements = new ArrayList<MetadataField>();
-            initAuthBOHashMap();
             while (true) {
                 installerEDMDisplay.showQuestion(currentStepGlobal, "createAuth.menu");
                 String response;
@@ -191,30 +192,17 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                         for (DCValue dcValue : listDCValues) {
                             if (debug) installerEDMDisplay.showQuestion(currentStepGlobal, "fillAuthItems.additem", new String[]{dcValue.value});
                             ItemIterator iterAuth = Item.findByMetadataField(context, dcSchema.getName(), elementObj.getElement(), elementObj.getQualifier(), dcValue.value);
-                            if (iterAuth.hasNext()) {
+                            boolean isAuth = false;
+                            while (iterAuth.hasNext()) {
                                 Item itemMatched = iterAuth.next();
                                 if (searchSkosAuthItem(itemMatched)) {
                                     if (debug) installerEDMDisplay.showQuestion(currentStepGlobal, "fillAuthItems.canceladd");
-                                    continue;
+                                    isAuth = true;
+                                    break;
                                 }
                             }
-                            Item itemAuth = null;
-                            WorkspaceItem wi = WorkspaceItem.create(context, collectionObj, false);
-                            itemAuth = wi.getItem();
-                            InstallItem.installItem(context, wi, null);
-                            String myhandle = HandleManager.findHandle(context, itemAuth);
-                            if (myhandle.equals(itemAuth.getHandle())) {
-                                if (debug) installerEDMDisplay.showQuestion(currentStepGlobal, "fillAuthItems.addmetadata", new String[] {element, language, dcValue.value});
-                                itemAuth.addMetadata(dcSchema.getName(), elementObj.getElement(), elementObj.getQualifier(), language, new String[] {dcValue.value}, new String[] {itemAuth.getHandle()}, null);
-                                itemAuth.addMetadata(dcSchema.getName(), "type", null, language, new String[] {"SKOS_AUTH"}, null, null);
-                                //collectionObj.addItem(itemAuth);
-                                itemAuth.update();
-                                InstallerEDMAuthBO installerEDMAuthBO = new InstallerEDMAuthBO(itemAuth, communityObj, collectionObj, dcSchema, elementObj);
-                                authBOHashMap.put(element, installerEDMAuthBO);
-                                context.commit();
-                            } else {
-                                installerEDMDisplay.showQuestion(currentStepGlobal, "fillAuthItems.item.mismatch", new String[] {String.valueOf(itemAuth.getID()), itemAuth.getHandle(), myhandle});
-                            }
+                            if (isAuth) continue;
+                            createAuth(elementObj, communityObj, collectionObj, element, dcValue);
                         }
                     } else if (debug) installerEDMDisplay.showQuestion(currentStepGlobal, "fillAuthItems.collection.item.noelement", new String[] {collection.getName(), item.getHandle(), element, language});
                 }
@@ -228,6 +216,28 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
             showException(e);
         }
         return false;
+    }
+
+
+    private void createAuth(MetadataField elementObj, Community communityObj, Collection collectionObj, String element, DCValue dcValue) throws SQLException, IOException, AuthorizeException
+    {
+        Item itemAuth = null;
+        WorkspaceItem wi = WorkspaceItem.create(context, collectionObj, false);
+        itemAuth = wi.getItem();
+        InstallItem.installItem(context, wi, null);
+        String myhandle = HandleManager.findHandle(context, itemAuth);
+        if (myhandle.equals(itemAuth.getHandle())) {
+            if (debug) installerEDMDisplay.showQuestion(currentStepGlobal, "fillAuthItems.addmetadata", new String[] {element, language, dcValue.value});
+            itemAuth.addMetadata(dcSchema.getName(), elementObj.getElement(), elementObj.getQualifier(), language, new String[] {dcValue.value}, new String[] {itemAuth.getHandle()}, null);
+            itemAuth.addMetadata(dcSchema.getName(), "type", null, language, new String[] {"SKOS_AUTH"}, null, null);
+            //collectionObj.addItem(itemAuth);
+            itemAuth.update();
+            InstallerEDMAuthBO installerEDMAuthBO = new InstallerEDMAuthBO(itemAuth, communityObj, collectionObj, dcSchema, elementObj);
+            authBOHashMap.put(element, installerEDMAuthBO);
+            context.commit();
+        } else {
+            installerEDMDisplay.showQuestion(currentStepGlobal, "fillAuthItems.item.mismatch", new String[] {String.valueOf(itemAuth.getID()), itemAuth.getHandle(), myhandle});
+        }
     }
 
 
