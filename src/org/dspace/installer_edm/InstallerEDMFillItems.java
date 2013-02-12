@@ -22,15 +22,15 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
 {
 
     private ArrayList<MetadataField> authDCElements;
-    private Hashtable<String, Item> cacheAuthValues;
+    private Map<MetadataField, CacheAuthValues> cacheAuthValues;
 
     public InstallerEDMFillItems(int currentStepGlobal)
     {
         super(currentStepGlobal);
         initElementsNotAuthSet();
         initAuthBOHashMap();
-        authDCElements = new ArrayList<MetadataField>();
-        cacheAuthValues = new Hashtable<String, Item>();
+        if (authDCElements == null) authDCElements = new ArrayList<MetadataField>();
+        if (cacheAuthValues == null) cacheAuthValues = new Hashtable<MetadataField, CacheAuthValues>();
     }
 
 
@@ -167,6 +167,7 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
             if (debug) installerEDMDisplay.showQuestion(7, "traverseNonauthItems.item", new String[]{item.getName(), item.getHandle()});
             Map<MetadataField, DCValue[]> metadataField2Clear = new Hashtable<MetadataField, DCValue[]>();
             for (MetadataField metadataField : metadataFieldList) {
+                if (!cacheAuthValues.containsKey(metadataField)) cacheAuthValues.put(metadataField, new CacheAuthValues());
                 if (checkMetadataFieldIsModifiable(item, metadataField, metadataField2Clear)) itemUpdated = true;
             }
             if (itemUpdated) {
@@ -198,8 +199,13 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
                 }
                 try {
                     if (debug) installerEDMDisplay.showQuestion(7, "traverseNonauthItems.searchNonAuthItems", new String[]{dcValueName, dcValue.value});
-                    String handle = searchNonAuthItems(metadataField, dcValue.value);
+                    String handle = cacheAuthValues.get(metadataField).searchHandleFromValue(dcValue.value);
+                    if (handle == null) {
+                        handle = searchNonAuthItems(metadataField, dcValue.value);
+                    }
                     if (handle != null) {
+                        cacheAuthValues.get(metadataField).addCacheAuthValue(dcValue.value, handle);
+                        System.out.println(cacheAuthValues.get(metadataField).getNumAuth());
                         if (debug) installerEDMDisplay.showQuestion(7, "traverseNonauthItems.changeitem", new String[]{item.getHandle(), handle});
                         dcValue.authority = handle;
                         itemUpdated = true;
