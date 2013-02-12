@@ -19,7 +19,10 @@ set language=""
 set argC=0
 for %%x in (%*) do set /A argC+=1
 
-if %argC% == 0 call:help_sub
+if %argC% == 0 (
+    call:help_sub
+    goto END
+)
 
 :LoopArgs
     if "%1" == "" goto ContinueArgs
