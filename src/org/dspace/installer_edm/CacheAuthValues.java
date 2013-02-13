@@ -11,9 +11,10 @@ import java.util.*;
  */
 public class CacheAuthValues
 {
-    private LinkedList<LinkedList<CacheAuthValue>> levelList;
+    private ArrayList<LinkedList<CacheAuthValue>> levelList;
     private HashMap<String, CacheAuthValue> hashtable;
     private int numAuth = 0;
+    private int minLevel = 0;
     private static final int NUM_MAX = 100;
 
     public CacheAuthValues()
@@ -24,16 +25,17 @@ public class CacheAuthValues
     public CacheAuthValues(int capacity)
     {
         hashtable = new HashMap<String, CacheAuthValue>(capacity);
-        levelList = new LinkedList<LinkedList<CacheAuthValue>>();
+        levelList = new ArrayList<LinkedList<CacheAuthValue>>();
     }
 
     public CacheAuthValue pollCacheAuthValue()
     {
         CacheAuthValue cacheAuthValue = null;
-        if (!levelList.isEmpty()) {
-            cacheAuthValue = levelList.get(0).removeLast();
+        if (!levelList.isEmpty() && !levelList.get(minLevel).isEmpty()) {
+            cacheAuthValue = levelList.get(minLevel).removeLast();
             hashtable.remove(cacheAuthValue.getValue());
             numAuth--;
+            if (levelList.get(minLevel).isEmpty()) minLevel = searchNewMinLevel(minLevel + 1);
         }
         return cacheAuthValue;
     }
@@ -41,6 +43,13 @@ public class CacheAuthValues
     public int getNumAuth()
     {
         return numAuth;
+    }
+
+    private int searchNewMinLevel(int currentLevel)
+    {
+        for (int i = currentLevel; i < levelList.size(); i++)
+            if (!levelList.get(i).isEmpty()) return i;
+        return 0;
     }
 
     public void addCacheAuthValue(String value, String handle)
@@ -54,9 +63,10 @@ public class CacheAuthValues
         } else {
             if (numAuth == NUM_MAX) pollCacheAuthValue();
             cacheAuthValue = new CacheAuthValue(value, handle);
-            if (levelList.isEmpty()) levelList.addFirst(new LinkedList<CacheAuthValue>());
+            if (levelList.isEmpty()) levelList.add(new LinkedList<CacheAuthValue>());
             levelList.get(0).addFirst(cacheAuthValue);
             hashtable.put(value, cacheAuthValue);
+            minLevel = 0;
             numAuth++;
         }
     }
@@ -65,8 +75,9 @@ public class CacheAuthValues
     private CacheAuthValue moveCacheAuthValueDown(CacheAuthValue cacheAuthValue)
     {
         ListIterator<LinkedList<CacheAuthValue>> iterator = levelList.listIterator();
-        LinkedList<CacheAuthValue> cacheAuthValueList = searchLevel(cacheAuthValue.getValue(), cacheAuthValue.getNumMatches(), iterator);
+        LinkedList<CacheAuthValue> cacheAuthValueList = searchLevel(cacheAuthValue.getNumMatches(), iterator);
         if (cacheAuthValueList != null && cacheAuthValueList.remove(cacheAuthValue)) {
+            int currentLevel = cacheAuthValue.getNumMatches();
             cacheAuthValue.incNumMatches();
             LinkedList<CacheAuthValue> cacheAuthValueNewList = null;
             if (!iterator.hasNext()) {
@@ -76,6 +87,7 @@ public class CacheAuthValues
                 cacheAuthValueNewList = iterator.next();
             }
             cacheAuthValueNewList.addFirst(cacheAuthValue);
+            if (currentLevel == minLevel && cacheAuthValueList.isEmpty()) minLevel = searchNewMinLevel(currentLevel);
         }
         return null;
     }
@@ -90,10 +102,10 @@ public class CacheAuthValues
 
     private LinkedList<CacheAuthValue> searchLevel(String value, int level)
     {
-        return searchLevel(value, level, levelList.listIterator());
+        return searchLevel(level, levelList.listIterator());
     }
 
-    private LinkedList<CacheAuthValue> searchLevel(String value, int level, ListIterator<LinkedList<CacheAuthValue>> iterator)
+    private LinkedList<CacheAuthValue> searchLevel(int level, ListIterator<LinkedList<CacheAuthValue>> iterator)
     {
         while (iterator.hasNext()) {
             LinkedList<CacheAuthValue> listAux = iterator.next();

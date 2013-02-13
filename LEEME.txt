@@ -82,7 +82,7 @@ unidad:\ruta_al_instalador\install.bat -d directorio_dspace_desplegado -t direct
 Para ver la ayuda:
 $ ./install.bat -h
 
-Saldría: Use: install.sh: [-d dir_space_runtime] [-h] [-l language] [-s step] [-t dir_tomcat_base] [-v]
+Saldría: Use: install.sh: [-d dir_space_runtime] [-h] [-l language] [-s step] [-t dir_tomcat_base] [-v] [-g]
 
 
 Las opciones son las siguientes:
@@ -91,6 +91,7 @@ Las opciones son las siguientes:
 -t: ruta del directorio raíz de Tomcat.
 -s: paso al que queremos ir. Mejor poner 0 para que nos salga el menú principal.
 -v: que sea verboso y nos diga más cosas.
+-g: mostrar mensajes de debug.
 -l: idioma de los mensajes. Si se deja en blanco se coge el que tenga el sistema.
     Actualmente seporta inglés y español. Para español explícitamente poner: es_ES.
     Para inglés: en.
@@ -126,7 +127,10 @@ El instalador consta de los siguientes pasos:
 3: Configurar Dspace y Askosi
 4: Configurar EDMExport
 5: Configurar EDMCrosswalk
-6: Salir
+6: Configurar EDMCrosswalk mediante xsl
+7: Rellenar skos:about de ítems con valores de autoridades
+8: Salir
+
 
 El primer paso instala la aplicación Askosi en el servidor. Todos los archivos necesarios los coge del directorio
 packages del instalador.
@@ -156,6 +160,22 @@ También se copia el archivo oaicat.properties de dspace a work para añadirle e
 manualmente luego a dspace.
 Sería necesario reiniciar el Tomcat o Dspace al realizar este paso.
 
+El sexto paso copia el archivo de configuración de dspace "dspace.cfg" al directorio de trabajo. Se copiará el archivo
+DIM2EDM.xsl al directorio de trabajo. Se copiará el archivo "oaicat.properties" desde el directorio de configuración de
+dspace al directorio de trabajo.
+Se configurará el archivo DIM2EDM.xsl pidiendo valores para elementos de edm específicos.
+Se modificará el archivo dspace.cfg del directorio de trabajo para aceptar este crosswalk de diseminación.
+Se modificará el archivo del directorio de trabajo oaicat.properties para añadir el edmcrosswalk.
+Los archivos dspace.cfg y oaicat.properties se tendrán que copiar manualmente luego a dspace.
+El archivo DIM2EDM.xsl se tendrá que copiar manualmente al directorio crosswalk de dspace.
+Sería necesario reiniciar el Tomcat o Dspace al realizar este paso.
+
+El séptimo paso se recorrerá todas las colecciones con ítems que son autoridades para recoger los elementos dc asociados.
+Se recorrerá todas las colecciones con ítems que no son autoridades para recoger los elementos dc que se corresponden con
+los recogidos de las autoridades.
+Si hay una coincidencia se almacenará el handle de la autoridad en el campo authority de la tabla metadatavalue de la
+bbdd para el element dc del ítem normal.
+No sería necesario reiniciar el Tomcat o Dspace.
 
 A medida que se vayan descubriendo errores o se tenga que adaptar a nuevas versiones de Dspace se irán sacando
 parches o nuevas versiones.

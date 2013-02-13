@@ -81,7 +81,7 @@ drive:\path2installer\install.bat -d dspace_deployed_dir -t tomcat_base_physycal
 View the help:
 $ ./install.bat -h
 
-Result: Use: install.sh: [-d dir_space_runtime] [-h] [-l language] [-s step] [-t dir_tomcat_base] [-v]
+Result: Use: install.sh: [-d dir_space_runtime] [-h] [-l language] [-s step] [-t dir_tomcat_base] [-v] [-g]
 
 
 The options are:
@@ -90,6 +90,7 @@ The options are:
 -t: path to Tomcat root dir.
 -s: step to launch. 0 is preferred to see the main menu first.
 -v: verbosity.
+-g: show debug messages
 -l: Messages language. If blank the systema default locale will be taken.
     Actually spanish and english is supported. For spanish: es_ES.
     For english: en.
