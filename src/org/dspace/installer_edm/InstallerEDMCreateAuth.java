@@ -4,6 +4,7 @@ import org.dspace.authenticate.AuthenticationManager;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.AuthorizeManager;
 import org.dspace.content.*;
+import org.dspace.content.authority.MetadataAuthorityManager;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
@@ -126,7 +127,13 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                     if (elementObj == null) installerEDMDisplay.showQuestion(currentStepGlobal, "createElementAuth.element.notexist", new String[]{response});
                     else {
                         element = elementObj.getElement() + ((elementObj.getQualifier() != null)?"." + elementObj.getQualifier():"");
-                        step++;
+                        if (!metadataAuthorityManager.isAuthorityControlled(dcSchema.getName(), elementObj.getElement(), elementObj.getQualifier())) {
+                            installerEDMDisplay.showQuestion(currentStepGlobal, "createElementAuth.element.nonauthcontrolled", new String[]{element});
+                            installerEDMDisplay.showLn();
+                            element = null;
+                        } else {
+                            step++;
+                        }
                     }
                     break;
                 case 2:
@@ -227,7 +234,7 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
         InstallItem.installItem(context, wi, null);
         String myhandle = HandleManager.findHandle(context, itemAuth);
         if (myhandle.equals(itemAuth.getHandle())) {
-            if (debug) installerEDMDisplay.showQuestion(currentStepGlobal, "fillAuthItems.addmetadata", new String[] {element, language, dcValue.value});
+            if (debug) installerEDMDisplay.showQuestion(currentStepGlobal, "fillAuthItems.addmetadata", new String[] {element, language, dcValue.value, itemAuth.getHandle()});
             itemAuth.addMetadata(dcSchema.getName(), elementObj.getElement(), elementObj.getQualifier(), language, new String[] {dcValue.value}, new String[] {itemAuth.getHandle()}, null);
             itemAuth.addMetadata(dcSchema.getName(), "type", null, language, new String[] {"SKOS_AUTH"}, null, null);
             //collectionObj.addItem(itemAuth);

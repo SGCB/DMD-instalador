@@ -186,9 +186,9 @@ public class InstallerEDM extends InstallerEDMBase
         if (step > 0) {
             if (step == Integer.parseInt(installerEDMDisplay.getQuestion(0, "step.askosi"))) {
                 installerEDMDisplay.showLn();
-                installerEDMDisplay.showTitle(1);
+                installerEDMDisplay.showTitle(step);
                 installerEDMDisplay.showLn();
-                installerEDMDisplay.showQuestion(1, "summary");
+                installerEDMDisplay.showQuestion(step, "summary");
                 installerEDMDisplay.showLn();
                 if (!proceed()) {
                     installEDM(0);

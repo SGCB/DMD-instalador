@@ -153,18 +153,21 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
 
     private void fillCollection(Collection collection, List<MetadataField> metadataFieldList) throws SQLException
     {
-        if (debug) installerEDMDisplay.showQuestion(7, "traverseNonauthItems.collection", new String[]{collection.getName(), collection.getHandle()});
+        if (debug) installerEDMDisplay.showQuestion(currentStepGlobal, "traverseNonauthItems.collection", new String[]{collection.getName(), collection.getHandle()});
         ItemIterator iter = collection.getAllItems();
         while (iter.hasNext()) {
             installerEDMDisplay.showProgress('.');
             Item item = iter.next();
-            if (!AuthorizeManager.isAdmin(context, item)) {
+            if (!AuthorizeManager.isAdmin(context, item) || !item.canEdit()) {
                 installerEDMDisplay.showQuestion(currentStepGlobal, "traverseNonauthItems.nopermission", new String[]{eperson.getEmail(), item.getHandle()});
                 continue;
             }
             boolean itemUpdated = false;
             if (searchSkosAuthItem(item)) continue;
-            if (debug) installerEDMDisplay.showQuestion(7, "traverseNonauthItems.item", new String[]{item.getName(), item.getHandle()});
+            if (debug) {
+                installerEDMDisplay.showLn();
+                installerEDMDisplay.showQuestion(currentStepGlobal, "traverseNonauthItems.item", new String[]{item.getName(), item.getHandle()});
+            }
             Map<MetadataField, DCValue[]> metadataField2Clear = new Hashtable<MetadataField, DCValue[]>();
             for (MetadataField metadataField : metadataFieldList) {
                 if (!cacheAuthValues.containsKey(metadataField)) cacheAuthValues.put(metadataField, new CacheAuthValues());
@@ -198,7 +201,7 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
                             dcValue.authority) != null) continue;
                 }
                 try {
-                    if (debug) installerEDMDisplay.showQuestion(7, "traverseNonauthItems.searchNonAuthItems", new String[]{dcValueName, dcValue.value});
+                    if (debug) installerEDMDisplay.showQuestion(currentStepGlobal, "traverseNonauthItems.searchNonAuthItems", new String[]{dcValueName, dcValue.value});
                     String handle = cacheAuthValues.get(metadataField).searchHandleFromValue(dcValue.value);
                     if (handle == null) {
                         handle = searchNonAuthItems(metadataField, dcValue.value);
@@ -206,7 +209,7 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
                     if (handle != null) {
                         cacheAuthValues.get(metadataField).addCacheAuthValue(dcValue.value, handle);
                         System.out.println(cacheAuthValues.get(metadataField).getNumAuth());
-                        if (debug) installerEDMDisplay.showQuestion(7, "traverseNonauthItems.changeitem", new String[]{item.getHandle(), handle});
+                        if (debug) installerEDMDisplay.showQuestion(currentStepGlobal, "traverseNonauthItems.changeitem", new String[]{item.getHandle(), handle});
                         dcValue.authority = handle;
                         itemUpdated = true;
                         if (!metadataField2Clear.containsKey(metadataField)) metadataField2Clear.put(metadataField, listDCValues);
@@ -226,7 +229,10 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
         for (MetadataField metadataField : metadataField2Clear.keySet()) {
             item.clearMetadata(dcSchema.getName(), metadataField.getElement(), metadataField.getQualifier(), language);
             for (DCValue dcValue : metadataField2Clear.get(metadataField)) {
-                System.out.format("%s.%s.%s %s %s %s", dcSchema.getName(), metadataField.getElement(), metadataField.getQualifier(), language, dcValue.value, dcValue.authority);
+                if (debug) {
+                    System.out.format("%s.%s.%s %s %s %s", dcSchema.getName(), metadataField.getElement(), metadataField.getQualifier(), language, dcValue.value, dcValue.authority);
+                    installerEDMDisplay.showLn();
+                }
                 item.addMetadata(dcSchema.getName(), metadataField.getElement(), metadataField.getQualifier(), language, dcValue.value, dcValue.authority, -1);
             }
         }

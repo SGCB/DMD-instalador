@@ -3,6 +3,7 @@ package org.dspace.installer_edm;
 import org.dspace.authenticate.AuthenticationManager;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.*;
+import org.dspace.content.authority.MetadataAuthorityManager;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
@@ -70,6 +71,8 @@ public abstract class InstallerEDMBase implements Observer
     protected static String user;
     protected static String password;
 
+    protected static MetadataAuthorityManager metadataAuthorityManager = null;
+
 
     protected static HashMap<String, InstallerEDMAuthBO> authBOHashMap;
 
@@ -91,6 +94,8 @@ public abstract class InstallerEDMBase implements Observer
     {
         try {
             if (context == null) context = new Context();
+            if (context == null || !(context instanceof Context)) throw new Exception("Impossible to create dspace context.");
+            if (metadataAuthorityManager == null) metadataAuthorityManager = MetadataAuthorityManager.getManager();
             if (installerEDMDisplay == null) installerEDMDisplay = new InstallerEDMDisplayImpl();
             if (isr == null) isr = new InputStreamReader(System.in);
             if (br == null) br = new BufferedReader(isr);
@@ -250,7 +255,12 @@ public abstract class InstallerEDMBase implements Observer
                     break;
                 case 2:
                     passwordAux = response;
-                    int status = AuthenticationManager.authenticate(context, userAux, passwordAux, null, null);
+                    int status = 0;
+                    try {
+                        status = AuthenticationManager.authenticate(context, userAux, passwordAux, null, null);
+                    } catch (Exception e) {
+                        showException(e);
+                    }
                     if (status == 1) {
                         eperson = context.getCurrentUser();
                         user = userAux;
