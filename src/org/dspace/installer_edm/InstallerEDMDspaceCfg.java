@@ -30,9 +30,10 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
         authDCElementsSetWritten = new HashMap<String, Integer>();
     }
 
-    public void processDspaceCfg(ArrayList<MetadataField> authDCElements) throws IOException, NullPointerException, FileNotFoundException, IndexOutOfBoundsException
+    public void processDspaceCfg(ArrayList<MetadataField> authDCElements) throws IOException, NullPointerException, IndexOutOfBoundsException
     {
         try {
+            addAuthDCElements(authDCElements);
             String askosiDataDir = readDspaceCfg();
             File askosiDataDestDirFile = null;
             if (askosiDataDir != null) askosiDataDestDirFile = new File(askosiDataDir);
@@ -95,6 +96,65 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
         }
     }
 
+
+    private void addAuthDCElements(ArrayList<MetadataField> authDCElements)
+    {
+        while (true) {
+            installerEDMDisplay.showLn();
+            installerEDMDisplay.showQuestion(currentStepGlobal, "addAuthDCElements");
+            String response = null;
+            try {
+                response = br.readLine();
+            } catch (IOException e) {
+                showException(e);
+                return;
+            }
+            if (response == null) break;
+            if (response.isEmpty()) continue;
+            response = response.trim();
+            if (response.equalsIgnoreCase("a")) {
+                installerEDMDisplay.showQuestion(currentStepGlobal, "addAuthDCElements.listauth");
+                MetadataField[] authArray = new MetadataField[authDCElements.size()];
+                listAllDCElements((MetadataField[])authDCElements.toArray(authArray));
+            } else if (response.equalsIgnoreCase("l")) {
+                installerEDMDisplay.showQuestion(currentStepGlobal, "addAuthDCElements.listdc");
+                listAllDCElements(metadataFields);
+            } else if (response.equalsIgnoreCase("n")) {
+                addAuthDCElement(authDCElements);
+            } else if (response.equalsIgnoreCase("x")) {
+                return;
+            }
+        }
+    }
+
+
+    private void addAuthDCElement(ArrayList<MetadataField> authDCElements)
+    {
+        while (true) {
+            installerEDMDisplay.showLn();
+            installerEDMDisplay.showQuestion(currentStepGlobal, "addAuthDCElement");
+            String response = null;
+            try {
+                response = br.readLine();
+            } catch (IOException e) {
+                showException(e);
+                return;
+            }
+            if (response == null) break;
+            if (response.isEmpty()) continue;
+            response = response.trim();
+            if (response.equalsIgnoreCase("x")) {
+                return;
+            } else {
+                MetadataField elementObj = findElementDC(response);
+                if (elementObj == null) installerEDMDisplay.showQuestion(currentStepGlobal, "addAuthDCElement.element.notexist", new String[]{response});
+                else {
+                    authDCElements.add(elementObj);
+                    return;
+                }
+            }
+        }
+    }
 
 
     private String readDspaceCfg() throws FileNotFoundException, IndexOutOfBoundsException

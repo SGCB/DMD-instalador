@@ -143,7 +143,8 @@ Esos elementos se buscan en el resto de colecciones de no autoridades para ident
 No sería necesario reiniciar el Tomcat o Dspace.
 
 El tercer paso copia el fichero de configuración de Dspace "dspace.cfg" y el de catalogación "input-forms.xml"
-a un directorio llamado work en el directorio donde está el instalador. Los modifica con las directivas o propiedades
+a un directorio llamado work en el directorio donde está el instalador. Se preguntará si se quieren añadir más
+elementos como autoridad en dspace.cfg. Los modifica con las directivas o propiedades
 nuevas y los deja ahí para revisión del administrador. Éste es el que manualmente (como medida de seguridad) tendrá
 que llevarlos a Dspace.
 Sería necesario reiniciar el Tomcat o Dspace al realizar este paso.
