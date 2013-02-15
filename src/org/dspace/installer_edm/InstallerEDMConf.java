@@ -53,19 +53,20 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
                     File dspaceInputFormsFile = new File(dspaceInputFormsName);
 
                     if (dspaceInputFormsFile.exists() && dspaceInputFormsFile.canRead()) {
-                        configureInputFormsDspace(dspaceInputFormsFile, new File(dspaceDirConfNewFile.getAbsolutePath() + fileSeparator + "input-forms.xml"), authDCElements);
+                        if (configureInputFormsDspace(dspaceInputFormsFile, new File(dspaceDirConfNewFile.getAbsolutePath() + fileSeparator + "input-forms.xml"), authDCElements)) {
 
-                        if (AskosiDataDir != null) {
-                            File askosiDataDirFile = new File(AskosiDataDir);
-                            if (askosiDataDirFile.exists() && askosiDataDirFile.isDirectory() && askosiDataDirFile.canWrite()) {
-                                configureAskosiVocabularies(askosiDataDirFile);
-                                installerEDMDisplay.showLn();
-                                installerEDMDisplay.showQuestion(currentStepGlobal, "configureAll.ok");
-                                return true;
-                            } else {
-                                installerEDMDisplay.showQuestion(currentStepGlobal, "configureAll.AskosiDataDir.notexist", new String[]{AskosiDataDir});
-                            }
-                        } else installerEDMDisplay.showQuestion(currentStepGlobal, "configureAll.AskosiDataDir.notexist");
+                            if (AskosiDataDir != null) {
+                                File askosiDataDirFile = new File(AskosiDataDir);
+                                if (askosiDataDirFile.exists() && askosiDataDirFile.isDirectory() && askosiDataDirFile.canWrite()) {
+                                    configureAskosiVocabularies(askosiDataDirFile);
+                                    installerEDMDisplay.showLn();
+                                    installerEDMDisplay.showQuestion(currentStepGlobal, "configureAll.ok");
+                                    return true;
+                                } else {
+                                    installerEDMDisplay.showQuestion(currentStepGlobal, "configureAll.AskosiDataDir.notexist", new String[]{AskosiDataDir});
+                                }
+                            } else installerEDMDisplay.showQuestion(currentStepGlobal, "configureAll.AskosiDataDir.notexist");
+                        }
                     } else installerEDMDisplay.showQuestion(currentStepGlobal, "configureAll.inputforms.notexist", new String[]{dspaceInputFormsName});
                 } else {
                     installerEDMDisplay.showLn();
@@ -97,8 +98,12 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
         installerEDMAskosiVocabularies.processAskosiVocabularies();
     }
 
-    private void configureInputFormsDspace(File dspaceInputFormsFile, File dspaceInputFormsNewFile, ArrayList<MetadataField> authDCElements) throws IOException, XPathExpressionException, ParserConfigurationException, SAXException, TransformerException, SQLException
+    private boolean configureInputFormsDspace(File dspaceInputFormsFile, File dspaceInputFormsNewFile, ArrayList<MetadataField> authDCElements) throws IOException, XPathExpressionException, ParserConfigurationException, SAXException, TransformerException, SQLException
     {
+        if (authBOHashMap.size() == 0) {
+            installerEDMDisplay.showQuestion(currentStepGlobal, "configureInputFormsDspace.notauth");
+            return false;
+        }
         copyDspaceFile2Work(dspaceInputFormsFile, dspaceInputFormsNewFile, "configureInputFormsDspace.inputforms");
         File dspaceInputFormsFileDtd = new File(DspaceDir + "config" + fileSeparator + "input-forms.dtd");
         File dspaceInputFormsFileDtdNew = new File(myInstallerWorkDirPath + fileSeparator + "input-forms.dtd");
@@ -106,6 +111,7 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
         InstallerEDMInputForms installerEDMInputForms = new InstallerEDMInputForms(currentStepGlobal, dspaceInputFormsNewFile.getAbsolutePath());
         installerEDMInputForms.processInputForms();
         org.apache.commons.io.FileUtils.deleteQuietly(dspaceInputFormsFileDtdNew);
+        return true;
     }
 
 

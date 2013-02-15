@@ -182,6 +182,11 @@ public class InstallerEDM extends InstallerEDMBase
 
     private void installEDM(int step)
     {
+        try {
+            checkDspaceMetadataDC();
+        } catch (SQLException e) {
+            showException(e);
+        }
         File dirPackage;
         if (step > 0) {
             if (step == Integer.parseInt(installerEDMDisplay.getQuestion(0, "step.askosi"))) {

@@ -54,11 +54,6 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
             installerEDMDisplay.showQuestion(currentStepGlobal, "createAuth.notschema", new String[]{DCSCHEMA});
             return false;
         }
-        try {
-            checkDspaceMetadataDC();
-        } catch (SQLException e) {
-            showException(e);
-        }
         if (metadataFields != null && metadataFields.length > 0) {
             if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "createAuth.numelements", new String[]{DCSCHEMA, Integer.toString(metadataFields.length)});
             if (authDCElements != null) authDCElements.clear();
