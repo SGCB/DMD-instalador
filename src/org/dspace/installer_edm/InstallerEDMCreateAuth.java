@@ -54,8 +54,8 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
             installerEDMDisplay.showQuestion(currentStepGlobal, "createAuth.notschema", new String[]{DCSCHEMA});
             return false;
         }
-        if (metadataFields != null && metadataFields.length > 0) {
-            if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "createAuth.numelements", new String[]{DCSCHEMA, Integer.toString(metadataFields.length)});
+        if (metadataFields != null && metadataFields.size() > 0) {
+            if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "createAuth.numelements", new String[]{DCSCHEMA, Integer.toString(metadataFields.size())});
             if (authDCElements != null) authDCElements.clear();
             else authDCElements = new ArrayList<MetadataField>();
             while (true) {
@@ -72,8 +72,7 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                 response = response.trim();
                 if (response.equalsIgnoreCase("a")) {
                     installerEDMDisplay.showQuestion(currentStepGlobal, "createAuth.listauth");
-                    MetadataField[] authArray = new MetadataField[authDCElements.size()];
-                    listAllDCElements((MetadataField[])authDCElements.toArray(authArray));
+                    listAllDCElements(authDCElements);
                 } else if (response.equalsIgnoreCase("l")) {
                     installerEDMDisplay.showQuestion(currentStepGlobal, "createAuth.listdc");
                     listAllDCElements(metadataFields);

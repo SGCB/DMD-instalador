@@ -114,8 +114,7 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
             response = response.trim();
             if (response.equalsIgnoreCase("a")) {
                 installerEDMDisplay.showQuestion(currentStepGlobal, "addAuthDCElements.listauth");
-                MetadataField[] authArray = new MetadataField[authDCElements.size()];
-                listAllDCElements((MetadataField[])authDCElements.toArray(authArray));
+                listAllDCElements(authDCElements);
             } else if (response.equalsIgnoreCase("l")) {
                 installerEDMDisplay.showQuestion(currentStepGlobal, "addAuthDCElements.listdc");
                 listAllDCElements(metadataFields);

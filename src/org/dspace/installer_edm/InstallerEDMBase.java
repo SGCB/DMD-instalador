@@ -62,7 +62,7 @@ public abstract class InstallerEDMBase implements Observer
     protected final String DCSCHEMA = "http://dublincore.org/documents/dcmi-terms/";
     protected MetadataSchema dcSchema = null;
 
-    protected MetadataField[] metadataFields;
+    protected static ArrayList<MetadataField> metadataFields;
     protected Set<String> elementsNotAuthSet = null;
 
     protected int currentStepGlobal;
@@ -158,7 +158,12 @@ public abstract class InstallerEDMBase implements Observer
 
     protected void checkDspaceMetadataDC() throws SQLException
     {
-        metadataFields = MetadataField.findAllInSchema(context, dcSchema.getSchemaID());
+        MetadataField[] metadataFieldsArr = MetadataField.findAllInSchema(context, dcSchema.getSchemaID());
+        if (metadataFields != null) {
+            metadataFields.clear();
+            metadataFields = null;
+        }
+        metadataFields = new ArrayList<MetadataField>(Arrays.asList(metadataFieldsArr));
     }
 
     public HashMap<String, InstallerEDMAuthBO> getAuthBOHashMap()
@@ -372,7 +377,7 @@ public abstract class InstallerEDMBase implements Observer
     }
 
 
-    protected void listAllDCElements(MetadataField[] arrFields)
+    protected void listAllDCElements(ArrayList<MetadataField> arrFields)
     {
         int i = 1;
         for (MetadataField metadataField : arrFields) {
