@@ -6,6 +6,7 @@ import org.dspace.authorize.AuthorizeManager;
 import org.dspace.content.*;
 import org.dspace.content.authority.MetadataAuthorityManager;
 import org.dspace.core.ConfigurationManager;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.handle.HandleManager;
@@ -274,7 +275,7 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                         try {
                             if (response.length() > 0) {
                                 communityObjParent = HandleManager.resolveToObject(context, response);
-                                if (communityObjParent != null && communityObjParent instanceof Community) {
+                                if (communityObjParent != null && communityObjParent instanceof Community && communityObjParent.getType() == Constants.COMMUNITY) {
                                     stepCommunity++;
                                 }
                             } else stepCommunity++;
@@ -347,7 +348,7 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                         try {
                             if (response.length() > 0) {
                                 collectionObjHandle = HandleManager.resolveToObject(context, response);
-                                if (collectionObjHandle != null && collectionObjHandle instanceof org.dspace.content.Collection) {
+                                if (collectionObjHandle != null && collectionObjHandle instanceof org.dspace.content.Collection && collectionObjHandle.getType() == Constants.COLLECTION) {
                                     collectionObj = (org.dspace.content.Collection) collectionObjHandle;
                                     collection = collectionObj.getName();
                                     stepCollection = 3;
