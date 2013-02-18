@@ -170,6 +170,8 @@ public class InstallerEDMCrosswalk extends InstallerEDMBase
                 out = new OutputStreamWriter(new FileOutputStream(oaiCatPropertiesWorkFile, true));
                 out.write("\n# " + getTime() + " Appended by installerEDM to add the EDMCrosswalk\n");
                 out.write("Crosswalks.edm=org.dspace.app.oai.EDMCrosswalk\n");
+            } else {
+                installerEDMDisplay.showQuestion(currentStepGlobal, "confOaiCatProperties.exist", new String[]{properties.getProperty("Crosswalks.edm"), "org.dspace.app.oai.EDMCrosswalk"});
             }
             status = true;
         } finally {
