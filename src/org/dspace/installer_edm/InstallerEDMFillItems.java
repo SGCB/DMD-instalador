@@ -23,6 +23,7 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
 
     private ArrayList<MetadataField> authDCElements;
     private Map<MetadataField, CacheAuthValues> cacheAuthValues;
+    private int numItemsModified = 0;
 
     public InstallerEDMFillItems(int currentStepGlobal)
     {
@@ -39,6 +40,7 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
         if (eperson == null && !loginUser()) return;
         authDCElements.clear();
         cacheAuthValues.clear();
+        numItemsModified = 0;
         try {
             if (verbose) {
                 installerEDMDisplay.showLn();
@@ -56,6 +58,7 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
                     if (statusCollection > 0) {
                         if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "configure.traverseNonauthItems");
                         traverseNonAuthItems(metadataFieldList, collectionList);
+                        installerEDMDisplay.showQuestion(currentStepGlobal, "configure.numItemsModified", new String[]{Integer.toString(numItemsModified)});
                     }
                 }
             }
@@ -121,7 +124,7 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
             response = response.trim();
             if (response.equalsIgnoreCase("l")) {
                 installerEDMDisplay.showQuestion(currentStepGlobal, "showMenuDCElements.listdc");
-                listAllDCElements((MetadataField[]) authDCElements.toArray(new MetadataField[authDCElements.size()]));
+                listAllDCElements(authDCElements);
             } else if (response.equalsIgnoreCase("a")) {
                 return 1;
             } else if (response.equalsIgnoreCase("x")) {
@@ -176,6 +179,7 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
             if (itemUpdated) {
                 try {
                     updateItem(item, metadataField2Clear);
+                    numItemsModified++;
                 } catch (SQLException e) {
                     showException(e);
                 } catch (AuthorizeException e) {

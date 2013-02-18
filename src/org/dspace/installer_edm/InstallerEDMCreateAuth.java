@@ -73,6 +73,7 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                 if (response.equalsIgnoreCase("a")) {
                     installerEDMDisplay.showQuestion(currentStepGlobal, "createAuth.listauth");
                     listAllDCElements(authDCElements);
+                    if (authDCElements.size() == 0) installerEDMDisplay.showQuestion(currentStepGlobal, "createAuth.notauthdcelements");
                 } else if (response.equalsIgnoreCase("l")) {
                     installerEDMDisplay.showQuestion(currentStepGlobal, "createAuth.listdc");
                     listAllDCElements(metadataFields);

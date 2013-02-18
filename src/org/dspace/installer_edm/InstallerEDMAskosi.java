@@ -287,7 +287,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
                         showException(e);
                         return false;
                     }
-                    if ((response != null) && (response.length() > 0) && response.trim().equals("y")) {
+                    if (response == null || response.length() == 0 || response.trim().equals("y")) {
                         if (!finalAskosiDataDestDirFile.mkdir()) {
                             installerEDMDisplay.showQuestion(currentStepGlobal, "copyAskosiDataDir.failcreate", new String[]{finalAskosiDataDestDirFile.getAbsolutePath()});
                         } else break;
