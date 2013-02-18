@@ -1,11 +1,9 @@
 /**
- * Created with IntelliJ IDEA.
- * User: salvazm-adm
+ *
  * Date: 18/10/12
- * Time: 9:33
  * ESECrosswalk.java
  *
- * Date: $Date: 20120-10-18
+ * Date: $Date: 2012-10-18
  *
  * Copyright (c) 2002-2005, Hewlett-Packard Company and Massachusetts
  * Institute of Technology.  All rights reserved.
@@ -67,14 +65,38 @@ import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.util.*;
 
+
+/**
+ * OAICat Crosswalk implementation that extracts data from the Dublin Core elements from Dspace
+ * and maps them to build the <i>Europeana Schema</i> inside the <i>OAI-PMH schema</i>.
+ * This source code file is to be used together with the <tt>installerEDM</tt> that will modify it to fill
+ * the <strong>EDMRIGHTS</strong> and <strong>EDMTYPES</strong> with the values entered. Afterwards this file will
+ * be compile and added to the <i>Dspace Oai Api Jar file</i>.
+ *
+ * <p>This file also can be modified manually to compile and to add it to the jar file.</p>
+ *
+ * <p>The classes that are showed are: <tt>edm:ProviderCHO</tt>, <tt>edm:WebResource</tt>, <tt>skos:Concept</tt>
+ * and <tt>ore:Aggregation</tt>.
+ * </p>
+ * <p><tt>edm:ProviderCHO</tt> receives all the data from the dc elements of the dspace item and its handle</p>
+ * <p><tt>edm:WebResource</tt> receives all the data from the handle and bitstream information</p>
+ * <p><tt>skos:Concept</tt> receives all the data from authority field of the dc element</p>
+ * <p><tt>ore:Aggregation</tt> receives all the data from the dc elements of the dspace item and its handle and bitstream information</p>
+ *
+ * @author MasMedios S.L.
+ */
+
+
 @SuppressWarnings("deprecation")
 public class EDMCrosswalk extends Crosswalk
 {
 
+    // Url with the licence of the rights
     /* BEGIN EDMRIGHTS */
     private static final String EDMRIGHTS = "";
     /* END EDMRIGHTS */
 
+    // Map with the terms to search in dc.type and change if matched with the generic type
     /* BEGIN EDMTYPES */
     private static final Map<String, List<String>> EDMTYPES;
     static {
@@ -94,6 +116,7 @@ public class EDMCrosswalk extends Crosswalk
     }
     /* END EDMTYPES */
 
+    // Namespaces required by the EDM schema
     private static final String NAMESPACE_URI_DCTERMS = "http://purl.org/dc/terms/";
     private static final String NAMESPACE_URI_EDM = "http://www.europeana.eu/schemas/edm/";
     private static final String NAMESPACE_URI_ENRICHMENT = "http://www.europeana.eu/schemas/edm/enrichment/";
@@ -122,19 +145,40 @@ public class EDMCrosswalk extends Crosswalk
     private Namespace XML = Namespace.getNamespace("xml", NAMESPACE_URI_XML);
 
 
+    /**
+     * Constructs the crosswalk with the namespace and the validation schema
+     *
+     * @param properties    the properties table received from dspace
+     */
     public EDMCrosswalk(Properties properties)
     {
         super("http://www.europeana.eu/schemas/edm/ http://www.europeana.eu/schemas/edm/EDM.xsd");
     }
 
+
+    /**
+     *
+     * @param nativeItem    object received from dspace
+     * @return  always true because we have DC for everything
+     */
     public boolean isAvailableFor(Object nativeItem)
     {
         return true;
     }
 
+
+    /**
+     * Creates the metadata element of the OAI schema with the data for the EDM-RDF schema
+     * We use the <i>jdom</i> library to generate the document that will represent the metadata
+     *
+     * @param nativeItem    object received from dspace, in this case an item
+     * @return              returns the xml formatted string with the content of the OAI metadata element
+     * @throws CannotDisseminateFormatException
+     */
     public String createMetadata(Object nativeItem) throws CannotDisseminateFormatException
     {
 
+        // element rdf with all the namespaces
         Element rdf_RDF = new Element("RDF", "rdf");
 
         rdf_RDF.addNamespaceDeclaration(DCTERMS);
@@ -160,21 +204,26 @@ public class EDMCrosswalk extends Crosswalk
         rdf_RDF.addNamespaceDeclaration(XSI);
         rdf_RDF.setAttribute("schemaLocation", NAMESPACE_URI_SCHEMALOCATION, XSI);
 
+        // creates a document with element rdf as root
         Document doc = new Document(rdf_RDF);
 
+        // get url of our dspace from dspace configuration file
         String baseUrl = ConfigurationManager.getProperty("dspace.url");
 
+        // List with all the children elements of the root
         List<Element> listElements = new ArrayList<Element>();
 
+        // Cast object received from dspace to an item
         Item item = ((HarvestedItemInfo) nativeItem).item;
 
+        // Get all the dc elements from the item
         DCValue[] allDC = item.getDC(Item.ANY, Item.ANY, Item.ANY);
 
-        DCValue[] allEDM = item.getMetadata("edm", Item.ANY, Item.ANY, Item.ANY);
-
+        // Creates edm:ProviderCHO element and add to the children list
         Element ProviderCHO = processProviderCHO(item, baseUrl);
         listElements.add(ProviderCHO);
 
+        // Get the original set of bundles from the item
         Bundle[] origBundles = new Bundle[0];
         try {
             origBundles = item.getBundles("ORIGINAL");
@@ -183,31 +232,43 @@ public class EDMCrosswalk extends Crosswalk
         }
 
         if (origBundles.length > 0) {
+
+            // Get the thumbnail set of bundles from the item
             Bundle[] thumbBundles = new Bundle[0];
             try {
                 thumbBundles = item.getBundles("THUMBNAIL");
             } catch (SQLException e) {
                 e.printStackTrace();
             }
+
+            // Get the files from the original bundle, only create edm:WebResource, skos:Concept and ore:Aggregation
+            // elements if there are files
             Bitstream[] bitstreams = origBundles[0].getBitstreams();
             if (bitstreams.length > 0) {
+
+                // Create edm:WebResource element with the first file and add it to the children list
                 Element WebResource = processWebResource(item, bitstreams[0], baseUrl);
                 if (WebResource != null) listElements.add(WebResource);
 
-                List<Element> listSkosConcept = processSkosConcept(allDC, nativeItem);
+                // Create skos:Concept elements with the authority value of the dc element and add them to the children list
+                List<Element> listSkosConcept = processSkosConcept(allDC, nativeItem, baseUrl);
                 if (listSkosConcept != null && listSkosConcept.size() > 0) {
                     for (Element skosConceptElement : listSkosConcept)
                         listElements.add(skosConceptElement);
                 }
+
+                // Create ore:Aggregation element with the files and add them to the children list
                 Element oreAggregation = processOreAgreggation(item, origBundles, thumbBundles, bitstreams[0], baseUrl);
                 if (oreAggregation != null) listElements.add(oreAggregation);
             }
         }
 
+        // Add all the children to the root
         for (Element element : listElements) {
             rdf_RDF.addContent(element);
         }
 
+        // Get the string content of the document
         doc.setContent(rdf_RDF);
         XMLOutputter xmlOutput = new XMLOutputter();
         Format format = Format.getPrettyFormat();
@@ -218,6 +279,17 @@ public class EDMCrosswalk extends Crosswalk
     }
 
 
+    /**
+     *
+     * Creates the edm:ProviderCHO element with all the dc and dcterms elements required.
+     * The data is taken from the dc elements of the dspace item
+     * To elaborate the types, the terms from the map are searched and matched against the dc.type element
+     * and then replaced by the corresponding type
+     *
+     * @param item      dspace item object to get information from
+     * @param baseUrl   string with the dspace url
+     * @return          jdom element
+     */
     private Element processProviderCHO(Item item, String baseUrl)
     {
         Element ProviderCHO = new Element("ProviderCHO", EDM);
@@ -225,83 +297,83 @@ public class EDMCrosswalk extends Crosswalk
         DCValue[] identifiers = item.getDC("identifier", "uri", null);
         if (identifiers.length > 0) ProviderCHO.setAttribute(new Attribute("about", identifiers[0].value, RDF));
 
-        createElementDC(item, "contributor", DC, "contributor", Item.ANY, ProviderCHO, true);
+        createElementEDM(item, "contributor", DC, "contributor", Item.ANY, ProviderCHO, true);
 
-        createElementDC(item, "coverage", DC, "coverage", null, ProviderCHO, true);
+        createElementEDM(item, "coverage", DC, "coverage", null, ProviderCHO, true);
 
-        createElementDC(item, "creator", DC, "creator", null, ProviderCHO, true);
+        createElementEDM(item, "creator", DC, "creator", null, ProviderCHO, true);
 
-        createElementDC(item, "date", DC, "date", null, ProviderCHO, true);
+        createElementEDM(item, "date", DC, "date", null, ProviderCHO, true);
 
-        createElementDC(item, "description", DC, "description", Item.ANY, ProviderCHO, true);
+        createElementEDM(item, "description", DC, "description", Item.ANY, ProviderCHO, true);
 
-        createElementDC(item, "format", DC, "format", Item.ANY, ProviderCHO, true);
+        createElementEDM(item, "format", DC, "format", Item.ANY, ProviderCHO, true);
 
-        createElementDC(item, "identifier", DC, "identifier", Item.ANY, ProviderCHO, true);
+        createElementEDM(item, "identifier", DC, "identifier", Item.ANY, ProviderCHO, true);
 
-        createElementDC(item, "language", DC, "language", "iso", ProviderCHO, true);
-        createElementDC(item, "language", DC, "language", null, ProviderCHO, true);
+        createElementEDM(item, "language", DC, "language", "iso", ProviderCHO, true);
+        createElementEDM(item, "language", DC, "language", null, ProviderCHO, true);
 
-        createElementDC(item, "publisher", DC, "publisher", null, ProviderCHO, false);
+        createElementEDM(item, "publisher", DC, "publisher", null, ProviderCHO, false);
 
-        createElementDC(item, "relation", DC, "relation", null, ProviderCHO, false);
+        createElementEDM(item, "relation", DC, "relation", null, ProviderCHO, false);
 
-        createElementDC(item, "rights", DC, "rights", "holder", ProviderCHO, true);
-        createElementDC(item, "rights", DC, "rights", "uri", ProviderCHO, true);
+        createElementEDM(item, "rights", DC, "rights", "holder", ProviderCHO, true);
+        createElementEDM(item, "rights", DC, "rights", "uri", ProviderCHO, true);
 
-        createElementDC(item, "source", DC, "source", null, ProviderCHO, false);
+        createElementEDM(item, "source", DC, "source", null, ProviderCHO, false);
 
-        createElementDC(item, "subject", DC, "subject", Item.ANY, ProviderCHO, true);
+        createElementEDM(item, "subject", DC, "subject", Item.ANY, ProviderCHO, true);
 
-        createElementDC(item, "title", DC, "title", null, ProviderCHO, true);
+        createElementEDM(item, "title", DC, "title", null, ProviderCHO, true);
 
-        createElementDC(item, "type", DC, "type", null, ProviderCHO, true);
+        createElementEDM(item, "type", DC, "type", null, ProviderCHO, true);
 
-        createElementDC(item, "alternative", DCTERMS, "title", "alternative", ProviderCHO, true);
+        createElementEDM(item, "alternative", DCTERMS, "title", "alternative", ProviderCHO, true);
 
-        createElementDC(item, "created", DCTERMS, "date", "created", ProviderCHO, true);
+        createElementEDM(item, "created", DCTERMS, "date", "created", ProviderCHO, true);
 
-        createElementDC(item, "extent", DCTERMS, "format", "extent", ProviderCHO, true);
+        createElementEDM(item, "extent", DCTERMS, "format", "extent", ProviderCHO, true);
 
-        createElementDC(item, "hasFormat", DCTERMS, "relation", "hasformatof", ProviderCHO, true);
+        createElementEDM(item, "hasFormat", DCTERMS, "relation", "hasformatof", ProviderCHO, true);
 
-        createElementDC(item, "hasPart", DCTERMS, "relation", "haspart", ProviderCHO, true);
+        createElementEDM(item, "hasPart", DCTERMS, "relation", "haspart", ProviderCHO, true);
 
-        createElementDC(item, "hasVersion", DCTERMS, "relation", "hasversion", ProviderCHO, true);
+        createElementEDM(item, "hasVersion", DCTERMS, "relation", "hasversion", ProviderCHO, true);
 
-        createElementDC(item, "isPartOf", DCTERMS, "relation", "ispartof", ProviderCHO, true);
-        createElementDC(item, "isPartOf", DCTERMS, "relation", "ispartofseries", ProviderCHO, true);
+        createElementEDM(item, "isPartOf", DCTERMS, "relation", "ispartof", ProviderCHO, true);
+        createElementEDM(item, "isPartOf", DCTERMS, "relation", "ispartofseries", ProviderCHO, true);
 
-        createElementDC(item, "isReferencedBy", DCTERMS, "relation", "isreferencedby", ProviderCHO, true);
+        createElementEDM(item, "isReferencedBy", DCTERMS, "relation", "isreferencedby", ProviderCHO, true);
 
-        createElementDC(item, "isReplacedBy", DCTERMS, "relation", "isreplacedby", ProviderCHO, true);
+        createElementEDM(item, "isReplacedBy", DCTERMS, "relation", "isreplacedby", ProviderCHO, true);
 
-        createElementDC(item, "issued", DCTERMS, "date", "issued", ProviderCHO, true);
+        createElementEDM(item, "issued", DCTERMS, "date", "issued", ProviderCHO, true);
 
-        createElementDC(item, "isVersionOf", DCTERMS, "relation", "isversionof", ProviderCHO, true);
+        createElementEDM(item, "isVersionOf", DCTERMS, "relation", "isversionof", ProviderCHO, true);
 
-        createElementDC(item, "medium", DCTERMS, "format", "medium", ProviderCHO, true);
+        createElementEDM(item, "medium", DCTERMS, "format", "medium", ProviderCHO, true);
 
-        createElementDC(item, "provenance", DCTERMS, "description", "provenance", ProviderCHO, true);
+        createElementEDM(item, "provenance", DCTERMS, "description", "provenance", ProviderCHO, true);
 
-        createElementDC(item, "replaces", DCTERMS, "relation", "replaces", ProviderCHO, true);
+        createElementEDM(item, "replaces", DCTERMS, "relation", "replaces", ProviderCHO, true);
 
-        createElementDC(item, "requires", DCTERMS, "relation", "requires", ProviderCHO, true);
+        createElementEDM(item, "requires", DCTERMS, "relation", "requires", ProviderCHO, true);
 
-        createElementDC(item, "spatial", DCTERMS, "coverage", "spatial", ProviderCHO, true);
+        createElementEDM(item, "spatial", DCTERMS, "coverage", "spatial", ProviderCHO, true);
 
-        createElementDC(item, "tableOfContents", DCTERMS, "description", "tableofcontents", ProviderCHO, true);
+        createElementEDM(item, "tableOfContents", DCTERMS, "description", "tableofcontents", ProviderCHO, true);
 
-        createElementDC(item, "temporal", DCTERMS, "coverage", "temporal", ProviderCHO, true);
+        createElementEDM(item, "temporal", DCTERMS, "coverage", "temporal", ProviderCHO, true);
 
-        createElementDC(item, "temporal", DCTERMS, "coverage", "temporal", ProviderCHO, true);
+        createElementEDM(item, "temporal", DCTERMS, "coverage", "temporal", ProviderCHO, true);
 
         String currentLocation = null;
         try {
             currentLocation = item.getMetadata("edm", "currentLocation", null, Item.ANY)[0].value;
         } catch (Exception e) {
         }
-        if (currentLocation == null || currentLocation.isEmpty()) currentLocation = baseUrl + "/" + item.getHandle();
+        if (currentLocation == null || currentLocation.isEmpty()) currentLocation = baseUrl + "/handle/" + item.getHandle();
         ProviderCHO.addContent(new Element("currentLocation", EDM).setText(currentLocation));
 
         ProviderCHO.addContent(new Element("type", EDM).setText(processEDMType(item)));
@@ -310,15 +382,24 @@ public class EDMCrosswalk extends Crosswalk
     }
 
 
+    /**
+     * Traverse all the dc.type and compares the content with the terms of the map of types
+     * and replaces the terms with a unique main type
+     *
+     * @param item      dspace item object to get information from
+     * @return          string with the content of the edm.type containing the main types
+     */
     private String processEDMType(Item item)
     {
         String edmTypeElement = null;
+        // Items already has an edm.type element
         try {
             edmTypeElement = item.getMetadata("edm", "type", null, Item.ANY)[0].value;
         } catch (Exception e) {
         }
         if (edmTypeElement != null && !edmTypeElement.isEmpty()) return edmTypeElement;
 
+        // traverse all the dc.type elements and process them
         StringBuilder edmType = new StringBuilder();
         DCValue[] elements = item.getDC("type", null, Item.ANY);
         if (elements.length > 0) {
@@ -340,6 +421,16 @@ public class EDMCrosswalk extends Crosswalk
     }
 
 
+    /**
+     *
+     * Creates the edm:WebResource from the first original file, the url of dspace and
+     * created a the dc.rights and edm.rights
+     *
+     * @param item          dspace item object to get information from
+     * @param bitstream     dspace bitstream object with the file information
+     * @param baseUrl       string with the dspace url
+     * @return              jdom element
+     */
     private Element processWebResource(Item item, Bitstream bitstream, String baseUrl)
     {
         Element WebResource = null;
@@ -347,13 +438,15 @@ public class EDMCrosswalk extends Crosswalk
         try {
             WebResource = new Element("WebResource", EDM);
 
-            String url = baseUrl + "/bitstreams/"
+            String url = baseUrl + "/bitstream/"
                                  + item.getHandle() + "/" + bitstream.getSequenceID() + "/" + Util.encodeBitstreamName(bitstream.getName(), Constants.DEFAULT_ENCODING);
 
             WebResource.setAttribute(new Attribute("about", url, RDF));
 
-            createElementDC(item, "rights", DC, "rights", null, WebResource, true);
+            // creates dc.rights
+            createElementEDM(item, "rights", DC, "rights", null, WebResource, true);
 
+            // creates edm.rights
             String edmRights = null;
             try {
                 edmRights = item.getMetadata("edm", "rights", null, Item.ANY)[0].value;
@@ -369,12 +462,23 @@ public class EDMCrosswalk extends Crosswalk
     }
 
 
-    private List<Element> processSkosConcept(DCValue[] itemDC, Object nativeItem)
+    /**
+     *
+     * Creates the skos:Concept elements for every dc element with an authority
+     * The elements is built with the authority value and the dspace url.
+     * The authority value must be a valid url or a handle from our dspace.
+     *
+     * @param itemDC        array of dcvalues objects to get the information from
+     * @param nativeItem    dspace item object to get information from
+     * @param baseUrl       string with the dspace url
+     * @return              list of jdom elements
+     */
+    private List<Element> processSkosConcept(DCValue[] itemDC, Object nativeItem, String baseUrl)
     {
         List<Element> listElementsSkosConcept = new ArrayList<Element>();
         final String REGEX_HANDLE_PATTERN = "^\\d+/\\d+$";
         Context context = ((HarvestedItemInfo)nativeItem).context;
-        String prefixUrl = ConfigurationManager.getProperty("dspace.baseUrl") + "/handle/";
+        String prefixUrl = baseUrl + "/handle/";
 
         for (DCValue dcv : itemDC) {
             String authority;
@@ -408,6 +512,22 @@ public class EDMCrosswalk extends Crosswalk
     }
 
 
+    /**
+     *
+     * Creates the ore:Aggregation element with the information from the files.
+     * The edm:isShownAt has the url from the item page detail
+     * The edm:isShownBy and edm:object has the url from the first original file
+     * The edm:hasView elements have the url from the thumbnail files
+     * dc.rights and edm.rights are created as well
+     * edm:dataProvider and edm:provider are created as well from dspace.name property
+     *
+     * @param item              dspace item object to get information from
+     * @param origBundles       array with the original files information
+     * @param thumbBundles      array with the thumbnail files information
+     * @param bitstream         dspace bitstream object with the file information
+     * @param baseUrl           string with the dspace url
+     * @return                  jdom element
+     */
     private Element processOreAgreggation(Item item, Bundle[] origBundles, Bundle[] thumbBundles, Bitstream bitstream
                                                  , String baseUrl)
     {
@@ -417,23 +537,29 @@ public class EDMCrosswalk extends Crosswalk
         try {
             oreAggregation = new Element("Aggregation", ORE);
 
-            String url = baseUrl + "/" + item.getHandle();
+            String url = baseUrl + "/handle/" + item.getHandle();
             oreAggregation.setAttribute(new Attribute("about", url, RDF));
 
-            createElementDC(item, "aggregatedCHO", EDM, "identifier", null, oreAggregation, false);
+            createElementEDM(item, "aggregatedCHO", EDM, "identifier", null, oreAggregation, false);
 
+            // edm:dataProvider
             oreAggregation.addContent(new Element("dataProvider", EDM).setText(ConfigurationManager.getProperty("dspace.name")));
 
-            String urlObject = baseUrl + "/bitstreams/"
+            // url of the first original file
+            String urlObject = baseUrl + "/bitstream/"
                                        + item.getHandle() + "/" + bitstream.getSequenceID() + "/"
                                        + Util.encodeBitstreamName(bitstream.getName(), Constants.DEFAULT_ENCODING);
 
+            // edm:isShownAt
             oreAggregation.addContent(new Element("isShownAt", EDM).setText(url));
 
+            // edm:isShownBy
             oreAggregation.addContent(new Element("isShownBy", EDM).setText(urlObject));
 
+            // edm:object
             oreAggregation.addContent(new Element("object", EDM).setText(urlObject));
 
+            // edm:hasView
             int i = 0;
             for (Bundle bundle : origBundles) {
                 try {
@@ -441,14 +567,14 @@ public class EDMCrosswalk extends Crosswalk
                     Bitstream[] bitstreamsThumb = null;
                     if (thumbBundles.length > i && thumbBundles[i] != null) bitstreamsThumb = thumbBundles[i].getBitstreams();
                     for (Bitstream bitstream1 : bitstreamsOrig) {
-                        urlObject = baseUrl + "/bitstreams/"
+                        urlObject = baseUrl + "/bitstream/"
                                             + item.getHandle() + "/" + bitstream1.getSequenceID() + "/"
                                             + Util.encodeBitstreamName(bitstream1.getName(), Constants.DEFAULT_ENCODING);
                         String urlThumb = urlObject;
                         if (bitstreamsThumb != null) {
                             for (Bitstream bitThumb : bitstreamsThumb) {
                                 if (bitThumb.getSequenceID() == bitstream1.getSequenceID()) {
-                                    urlThumb = baseUrl + "/bitstreams/"
+                                    urlThumb = baseUrl + "/bitstream/"
                                                        + item.getHandle() + "/" + bitThumb.getSequenceID() + "/"
                                                        + Util.encodeBitstreamName(bitThumb.getName(), Constants.DEFAULT_ENCODING);
                                     break;
@@ -464,10 +590,13 @@ public class EDMCrosswalk extends Crosswalk
                 i++;
             }
 
+            // edm.provider
             oreAggregation.addContent(new Element("provider", EDM).setText(ConfigurationManager.getProperty("dspace.name")));
 
-            createElementDC(item, "rights", DC, "rights", null, oreAggregation, true);
+            // dc.rights
+            createElementEDM(item, "rights", DC, "rights", null, oreAggregation, true);
 
+            // edm.rights
             String edmRights = null;
             try {
                 edmRights = item.getMetadata("edm", "rights", null, Item.ANY)[0].value;
@@ -483,17 +612,38 @@ public class EDMCrosswalk extends Crosswalk
         return oreAggregation;
     }
 
-    private void createElementDC(Item item, String elementEDM, Namespace nameSpace, String elementDC, String qualifier, Element ProviderCHO, boolean repeat)
+
+    /**
+     *
+     * Creates a new element getting the information from another and adding it to the parent element
+     * Is optional to search more than one element.
+     *
+     * @param item              dspace item object to get information from
+     * @param elementEDM        name of the edm element to create
+     * @param nameSpace         namespace to the new element
+     * @param elementDC         name of the dc element to get the data from
+     * @param qualifier         qualifier of the dc element to get the data from
+     * @param parent            parent element to add the new element
+     * @param repeat            search more than one element
+     */
+    private void createElementEDM(Item item, String elementEDM, Namespace nameSpace, String elementDC, String qualifier, Element parent, boolean repeat)
     {
         DCValue[] elements = item.getDC(elementDC, qualifier, Item.ANY);
         if (elements.length > 0) {
             for (DCValue element : elements) {
-                ProviderCHO.addContent(new Element(elementEDM, nameSpace).setText(element.value));
+                parent.addContent(new Element(elementEDM, nameSpace).setText(element.value));
                 if (!repeat) break;
             }
         }
     }
 
+
+    /**
+     * Check if a string is a valid url
+     *
+     * @param uriStr    url to check
+     * @return          boolean with the result
+     */
     private boolean isValidURI(String uriStr)
     {
         try {
