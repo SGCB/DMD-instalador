@@ -30,8 +30,9 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
         authDCElementsSetWritten = new HashMap<String, Integer>();
     }
 
-    public void processDspaceCfg(ArrayList<MetadataField> authDCElements) throws IOException, NullPointerException, IndexOutOfBoundsException
+    public boolean processDspaceCfg(ArrayList<MetadataField> authDCElements) throws IOException, NullPointerException, IndexOutOfBoundsException
     {
+        boolean modified = false;
         try {
             addAuthDCElements(authDCElements);
             String askosiDataDir = readDspaceCfg();
@@ -67,6 +68,7 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
                 String plugin = new StringBuilder().append("\nASKOSI.directory = ").append(askosiDataDestDirFile.getAbsolutePath()).append("\nplugin.named.org.dspace.content.authority.ChoiceAuthority = \\\n").append("be.destin.dspace.AskosiPlugin = ASKOSI\n").toString();
                 out.write("\n# " + getTime() + " Appended by installerEDM to add the ASKOSI plugin\n");
                 out.write(plugin);
+                modified = true;
             }
 
             if (authDCElements.size() > 0) {
@@ -83,8 +85,11 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
                         if (!writeDspaceCfg(out, element)) {
                             installerEDMDisplay.showQuestion(currentStepGlobal, "configureDspaceCfg.element.add.fail",
                                     new String[]{element});
-                        } else if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "configureDspaceCfg.element.add",
-                                new String[]{element});
+                        } else {
+                            modified = true;
+                            if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "configureDspaceCfg.element.add",
+                                    new String[]{element});
+                        }
                     }
                 }
             } else if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "configureDspaceCfg.nothing.add");
@@ -94,6 +99,7 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
                 out.close();
             }
         }
+        return modified;
     }
 
 

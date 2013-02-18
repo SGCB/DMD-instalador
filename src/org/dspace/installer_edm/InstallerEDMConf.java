@@ -46,7 +46,7 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
             }
             try {
                 checkAllSkosAuthElements(authDCElements);
-                configureDspaceCfg(dspaceDirConfFile, new File(dspaceDirConfNewFile.getAbsolutePath() + fileSeparator + "dspace.cfg"), authDCElements);
+                boolean  modified = configureDspaceCfg(dspaceDirConfFile, new File(dspaceDirConfNewFile.getAbsolutePath() + fileSeparator + "dspace.cfg"), authDCElements);
 
                 if (authDCElements.size() > 0) {
                     String dspaceInputFormsName = DspaceDir + "config" + fileSeparator + "input-forms.xml";
@@ -71,6 +71,10 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
                 } else {
                     installerEDMDisplay.showLn();
                     installerEDMDisplay.showQuestion(currentStepGlobal, "configureAll.notauthdcelements");
+                }
+                if (modified) {
+                    installerEDMDisplay.showLn();
+                    installerEDMDisplay.showQuestion(currentStepGlobal, "configureAll.restart");
                 }
             } catch (SQLException e) {
                 showException(e);
@@ -115,11 +119,11 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
     }
 
 
-    private void configureDspaceCfg(File dspaceDirConfFile, File dspaceDirConfNewFile, ArrayList<MetadataField> authDCElements) throws IndexOutOfBoundsException, IOException, NullPointerException
+    private boolean configureDspaceCfg(File dspaceDirConfFile, File dspaceDirConfNewFile, ArrayList<MetadataField> authDCElements) throws IndexOutOfBoundsException, IOException, NullPointerException
     {
         copyDspaceFile2Work(dspaceDirConfFile, dspaceDirConfNewFile, "configureDspaceCfg.dspacecfg");
         InstallerEDMDspaceCfg installerEDMDspaceCfg = new InstallerEDMDspaceCfg(currentStepGlobal, dspaceDirConfNewFile);
-        installerEDMDspaceCfg.processDspaceCfg(authDCElements);
+        return installerEDMDspaceCfg.processDspaceCfg(authDCElements);
     }
 
 

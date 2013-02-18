@@ -136,18 +136,18 @@ El primer paso instala la aplicación Askosi en el servidor. Todos los archivos 
 packages del instalador.
 Sería necesario reiniciar el Tomcat o Dspace al realizar este paso.
 
-El segundo crea las comunidades, colecciones e ítems de las autoridades y las llena de valores buscando en las
-colecciones de ítems que no son de autoridades. Hay que validarse con un usuario de Dspace com permisos.
-Para cada elemento DC que se quiere que sea una autoridad se crea o asocia a una comunidad y colección de autoridades.
-Esos elementos se buscan en el resto de colecciones de no autoridades para identificar valores únicos.
-No sería necesario reiniciar el Tomcat o Dspace.
-
-El tercer paso copia el fichero de configuración de Dspace "dspace.cfg" y el de catalogación "input-forms.xml"
+El segundo paso copia el fichero de configuración de Dspace "dspace.cfg" y el de catalogación "input-forms.xml"
 a un directorio llamado work en el directorio donde está el instalador. Se preguntará si se quieren añadir más
 elementos como autoridad en dspace.cfg. Los modifica con las directivas o propiedades
 nuevas y los deja ahí para revisión del administrador. Éste es el que manualmente (como medida de seguridad) tendrá
 que llevarlos a Dspace.
 Sería necesario reiniciar el Tomcat o Dspace al realizar este paso.
+
+El tercer paso crea las comunidades, colecciones e ítems de las autoridades y las llena de valores buscando en las
+colecciones de ítems que no son de autoridades. Hay que validarse con un usuario de Dspace com permisos.
+Para cada elemento DC que se quiere que sea una autoridad se crea o asocia a una comunidad y colección de autoridades.
+Esos elementos se buscan en el resto de colecciones de no autoridades para identificar valores únicos.
+No sería necesario reiniciar el Tomcat o Dspace.
 
 El cuarto paso copia el archivo EDMExport.war de packages a work y lo modifica para configurarlo con la ruta al archivo
 "dspace.cfg" del dspace desplegado. Este war se tendría que copiar manualmente luego al directorio webapps de nuestro
