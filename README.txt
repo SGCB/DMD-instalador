@@ -95,70 +95,102 @@ The options are:
     Actually spanish and english is supported. For spanish: es_ES.
     For english: en.
 
+Finally the jar file of the installer InstallerEDM.jar, with execution permissions. It might be runned manually, but the
+command line would be something like (the directories are fake):
 
-Por último está el archivo jar del instalador InstallerEDM.jar, que ha de poseer permisos de ejecución. Se podría lanzar
-manualmente, pero sería algo como (los directorios son ficticios):
+$ java -cp ./lib/commons-cli-1.2.jar:./lib/commons-codec-1.7.jar:./lib/commons-io-2.4.jar:./lib/lanterna-2.1.1.jar:./lib/normalizer.jar:./lib/postgresql-8.1-408.jdbc3.jar:/home/europeana/runtime//lib/activation-1.1.jar:/home/europeana/runtime//lib/ant-1.7.0.jar:/home/europeana/runtime//lib/ant-launcher-1.7.0.jar:.. many more libraries ..:InstallerEDM.jar:.:/home/europeana/runtime/config org.dspace.installer_edm.InstallerEDM -t /usr/share/tomcat5.5 -s 0  -v -l es_ES
 
-$ java -cp ./lib/commons-cli-1.2.jar:./lib/commons-codec-1.7.jar:./lib/commons-io-2.4.jar:./lib/lanterna-2.1.1.jar:./lib/normalizer.jar:./lib/postgresql-8.1-408.jdbc3.jar:/home/europeana/runtime//lib/activation-1.1.jar:/home/europeana/runtime//lib/ant-1.7.0.jar:/home/europeana/runtime//lib/ant-launcher-1.7.0.jar:.. muchas más librerías ..:InstallerEDM.jar:.:/home/europeana/runtime/config org.dspace.installer_edm.InstallerEDM -t /usr/share/tomcat5.5 -s 0  -v -l es_ES
+evidently is impratical, so it's much better run it from the scripts
+The options for the jar file are the same than the scripts ones.
 
-lo que evidentemente es impráctico, por eso mejor lanzarlo con los scripts.
-Las opciones del jar son las mismas que la de los scripts.
+As the installer modifies the Dspace relational database to create communities, collections and items, it's
+mandatory to make a backup to be able to restore the original one.
+It's necessary to be validated as a dspace user with permission to create communities, collections and items to be able to
+create the authorities.
+It's covenient to reindex Solr to merge and commit all the changes.
 
+Askosi application makes possible to link an authority with an item through the cataloging process, the handle from the
+authority with the same dc element than the item will be stored in the authority field of the metadatavalue table from
+the dspace relational database.
+EDMExport and EDMCrosswalk apps to be able to build the SKOS class on the EDM schema check whether the authority field of the item has a
+nonempty value, if it's a valid url it's showed as it is, if it's a handle checks that it exists on the database and
+build a final url with the dspace base url and the handle.
 
-Como el instalador modifica la base de datos relacional de Dspace para crear comunidades, colecciones e ítems,
-sería conveniente realizar una copia de ella para tener la seguridad de poderrealizar una regresión correcta.
-Es necesario poseer un usuario en Dspace con permisos de creación de los comunidades, colecciones e ítems para
-poder crear los ítems de las autoridades.
-Cuando se termine, si se quiere que las comunidades, colecciones e ítems de las autoridades aparezcan en el
-buscador de Dspace, se tendrá que reindexar Solr.
+Installer has the next steps:
 
-Con la aplicación Askosi se logra que cuando cataloga pueda asociar al valor de un elemento dc de su nuevo ítem, el
-handle del ítem autoridad que tiene el mismo nombre, cualificador y valor. Este handle se guarda en el campo authority
-de la tabla metadatavalue de la base de datos relacional.
-El EDMExport y el EDMCrosswalk para generar la case de SKOS en el esquema EDM comprueba si el campo authority del ítems
-tiene un valor, si es una url válida la muestra tal cual, si es un handle comprueba que exista en nuestra base de datos
-y construye la url final del comcepto skos con la url base de dspace y el handle.
+1: Installing Askosi
+2: Configuring Dspace and Askosi
+3: Create Auth Items
+4: Configure EDMExport
+5: Configure EDMCrosswalk
+6: Configure EDMCrosswalk with xsl
+7: Fill skos:about items with values of authorities
+8: Exit
 
-El instalador consta de los siguientes pasos:
-
-1: Instalar Askosi
-2: Crear Items de Autoridad
-3: Configurar Dspace y Askosi
-4: Configurar EDMExport
-5: Configurar EDMCrosswalk
-6: Salir
-
-El primer paso instala la aplicación Askosi en el servidor. Todos los archivos necesarios los coge del directorio
-packages del instalador.
-Sería necesario reiniciar el Tomcat o Dspace al realizar este paso.
-
-El segundo crea las comunidades, colecciones e ítems de las autoridades y las llena de valores buscando en las
-colecciones de ítems que no son de autoridades. Hay que validarse con un usuario de Dspace com permisos.
-Para cada elemento DC que se quiere que sea una autoridad se crea o asocia a una comunidad y colección de autoridades.
-Esos elementos se buscan en el resto de colecciones de no autoridades para identificar valores únicos.
-No sería necesario reiniciar el Tomcat o Dspace.
-
-El tercer paso copia el fichero de configuración de Dspace "dspace.cfg" y el de catalogación "input-forms.xml"
-a un directorio llamado work en el directorio donde está el instalador. Los modifica con las directivas o propiedades
-nuevas y los deja ahí para revisión del administrador. Éste es el que manualmente (como medida de seguridad) tendrá
-que llevarlos a Dspace.
-Sería necesario reiniciar el Tomcat o Dspace al realizar este paso.
-
-El cuarto paso copia el archivo EDMExport.war de packages a work y lo modifica para configurarlo con la ruta al archivo
-"dspace.cfg" del dspace desplegado. Este war se tendría que copiar manualmente luego al directorio webapps de nuestro
-Tomcat o a otro sitio que queramos para desplegarlo.
-Sería necesario reiniciar el Tomcat si está configurado para desplegar de forma automática.
-
-El quinto paso copia el archivo EDMCrosswalk.java de packages a work y el jar de la api de oai de dspace a work.
-Se piden datos para parámetros exclusivos de EDM y se modifica el java. Se compila y se agrega al archivo jar. Éste
-se ha de copiar manualmente al directorio de librerías donde está desplegado el módulo de oai de dspace.
-También se copia el archivo oaicat.properties de dspace a work para añadirle el nuevo crosswalk. Se tendría que copiar
-manualmente luego a dspace.
-Sería necesario reiniciar el Tomcat o Dspace al realizar este paso.
+The first step installs Askosi app in the server. All the files required are taken from the packages dir of the installer.
+The Servlet container is mandatory to be restarted.
 
 
-A medida que se vayan descubriendo errores o se tenga que adaptar a nuevas versiones de Dspace se irán sacando
-parches o nuevas versiones.
+The second step copies dspace configuraction file "dspace.cfg" and the cataloguing one "input-forms.xml" to a directory
+called "work" located in the installer directory. It will ask whether more authority elements will be added to the files
+dspace.cfg.
+This file will be modified with the new properties. It's now a task for the admin to check this file.
+The admin will copy manually the files to dspace to deploy them.
+The Servlet container is mandatory to be restarted.
+
+
+The third step creates communities, collections and items for the authorities and are fullfilled with values searched
+from the items of collections which no possess authorities
+It's mandatory to be validated as a dspace user.
+For every dc element required as an authority is necessary to link it to a community and a collection. If they don't exist
+they'll have to be created.
+These dc elements have to exist in the file "dspace.cfg" and be authority controlled.
+They are searched on the collections with no authorities and fullfilled with their unique values.
+The Servlet container is not required to be restarted.
+
+
+The fourth step copies the EDMExport.war file from packages to work and modifies it to add the path of the dspace.cfg deployed.
+The final war file has to be copied manually to be deployed.
+The Servlet container is mandatory to be restarted.
+
+
+The fifth step copies the EDMCrosswalk.java file from packages to work and the dspace oai api file to work.
+A set of edm specific parameters will be asked and the java file modified:
+An url for the element edm.rights.
+For the edm.types words to be matched against the dc.types values and replaced by their type.
+The java file is compiled and add to the jar file.
+The jar file must be copied manually to the dir where the libraries of the oai module is deployed.
+The oaicat.properties will be copied from dspace to work to add the new crosswalk property.
+This file will have to be copied manually to dspace.
+The Servlet container is mandatory to be restarted.
+This step is incompatible with "Configure EDMCrosswalk with xsl" one.
+
+
+The sixth step copies the "dspace.cfg" file from dspace to work.
+The file "DIM2EDM.xsl" will be copied from packages to work.
+The oaicat.properties will be copied from dspace to work to add the new crosswalk property.
+The file "DIM2EDM.xsl" will be configured with edm specific elements:
+An url that uses dspace as root for the handles, default: http://hdl.handle.net/
+A root url to create the links to the handles: e.g.: http://example.com/bitstream/handle/
+Values for elements: edm:dataProvider, edm:provider, edm:language
+An url for edm:rights
+Values for edm:type, allowed values are: TEXT, VIDEO, IMAGE, SOUND, 3D
+The file dspace.cfg will be modified to add this dissemination crosswalk.
+The file oaicat.properties will be modified to add this dissemination crosswalk.
+These files will have to be copied manuall to dspace.
+The file DIM2EDM.xsl will have to be copied manually to the dspace crosswalk directory.
+The Servlet container is mandatory to be restarted.
+This step is incompatible with "Configure EDMCrosswalk" one.
+
+
+The seventh step traverse all the colecctions with authority items to collect the dc elements.
+It will traverse the collections with nonauthority items to collect the items with the dc elements from the former traversing.
+If there's a match the handle of the authority will be stored in the field authority of the table metadatavalue in the row belonging
+to the item.
+The Servlet container is not required to be restarted.
+
+
+
 
 
 

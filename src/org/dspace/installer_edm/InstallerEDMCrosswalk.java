@@ -240,7 +240,7 @@ public class InstallerEDMCrosswalk extends InstallerEDMBase
                     TypesMatchStr = TypesMatchStr.substring(matcherEdmType.end(2), TypesMatchStr.length() - 1);
                     matcherEdmType = EDMTYPE_PATTERN.matcher(TypesMatchStr);
                 } catch (IndexOutOfBoundsException e) {
-
+                    showException(e);
                 }
             };
 

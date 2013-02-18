@@ -113,12 +113,12 @@ poder crear los ítems de las autoridades.
 Cuando se termine, si se quiere que las comunidades, colecciones e ítems de las autoridades aparezcan en el
 buscador de Dspace, se tendrá que reindexar Solr.
 
-Con la aplicación Askosi se logra que cuando cataloga pueda asociar al valor de un elemento dc de su nuevo ítem, el
+Con la aplicación Askosi se logra que cuando cataloga se pueda asociar al valor de un elemento dc de su nuevo ítem, el
 handle del ítem autoridad que tiene el mismo nombre, cualificador y valor. Este handle se guarda en el campo authority
 de la tabla metadatavalue de la base de datos relacional.
-El EDMExport y el EDMCrosswalk para generar la case de SKOS en el esquema EDM comprueba si el campo authority del ítems
+El EDMExport y el EDMCrosswalk para generar la clase de SKOS en el esquema EDM comprueba si el campo authority del ítems
 tiene un valor, si es una url válida la muestra tal cual, si es un handle comprueba que exista en nuestra base de datos
-y construye la url final del comcepto skos con la url base de dspace y el handle.
+y construye la url final del concepto skos con la url base de dspace y el handle.
 
 El instalador consta de los siguientes pasos:
 
@@ -136,40 +136,62 @@ El primer paso instala la aplicación Askosi en el servidor. Todos los archivos 
 packages del instalador.
 Sería necesario reiniciar el Tomcat o Dspace al realizar este paso.
 
+
 El segundo paso copia el fichero de configuración de Dspace "dspace.cfg" y el de catalogación "input-forms.xml"
-a un directorio llamado work en el directorio donde está el instalador. Se preguntará si se quieren añadir más
-elementos como autoridad en dspace.cfg. Los modifica con las directivas o propiedades
-nuevas y los deja ahí para revisión del administrador. Éste es el que manualmente (como medida de seguridad) tendrá
-que llevarlos a Dspace.
+a un directorio llamado work en el directorio donde está el instalador.
+Se preguntará si se quieren añadir más elementos como autoridad en dspace.cfg.
+Lo modifica con las directivas o propiedades nuevas y los deja ahí para revisión del administrador.
+Éste es el que manualmente (como medida de seguridad) tendrá que llevarlos a Dspace.
 Sería necesario reiniciar el Tomcat o Dspace al realizar este paso.
+
 
 El tercer paso crea las comunidades, colecciones e ítems de las autoridades y las llena de valores buscando en las
-colecciones de ítems que no son de autoridades. Hay que validarse con un usuario de Dspace com permisos.
-Para cada elemento DC que se quiere que sea una autoridad se crea o asocia a una comunidad y colección de autoridades.
-Esos elementos se buscan en el resto de colecciones de no autoridades para identificar valores únicos.
+colecciones de ítems que no son de autoridades.
+Hay que validarse con un usuario de Dspace com permisos.
+Para cada elemento DC que se quiere que sea una autoridad se asocia a una comunidad y colección de autoridades. Si no
+existen éstas se crean.
+Estos elementos han de estar configurados en el archivo de configuración de dspace "dspace.cfg" y estar controlados
+por autoridades.
+Esos elementos se buscan en el resto de colecciones de no autoridades para identificar valores únicos y asignarlos al
+ítem de la colección de la autoridad.
 No sería necesario reiniciar el Tomcat o Dspace.
 
+
 El cuarto paso copia el archivo EDMExport.war de packages a work y lo modifica para configurarlo con la ruta al archivo
-"dspace.cfg" del dspace desplegado. Este war se tendría que copiar manualmente luego al directorio webapps de nuestro
-Tomcat o a otro sitio que queramos para desplegarlo.
+"dspace.cfg" del dspace desplegado.
+Este war se tendría que copiar manualmente luego al directorio webapps de nuestro Tomcat o a otro sitio que queramos para desplegarlo.
 Sería necesario reiniciar el Tomcat si está configurado para desplegar de forma automática.
 
-El quinto paso copia el archivo EDMCrosswalk.java de packages a work y el jar de la api de oai de dspace a work.
-Se piden datos para parámetros exclusivos de EDM y se modifica el java. Se compila y se agrega al archivo jar. Éste
-se ha de copiar manualmente al directorio de librerías donde está desplegado el módulo de oai de dspace.
-También se copia el archivo oaicat.properties de dspace a work para añadirle el nuevo crosswalk. Se tendría que copiar
-manualmente luego a dspace.
-Sería necesario reiniciar el Tomcat o Dspace al realizar este paso.
 
-El sexto paso copia el archivo de configuración de dspace "dspace.cfg" al directorio de trabajo. Se copiará el archivo
-DIM2EDM.xsl al directorio de trabajo. Se copiará el archivo "oaicat.properties" desde el directorio de configuración de
-dspace al directorio de trabajo.
-Se configurará el archivo DIM2EDM.xsl pidiendo valores para elementos de edm específicos.
+El quinto paso copia el archivo EDMCrosswalk.java de packages a work y el jar de la api de oai de dspace a work.
+Se piden datos para parámetros exclusivos de EDM y se modifica el java:
+Se pide una url para el elemento edm.rights.
+Se piden términos para el elemento edm.types para que cuando se cree el esquema oai con los datos del ítem, sean buscados
+y si coinciden sean reemplazados por el tipo asociado a ellos.
+Se compila y se agrega el archivo compilado al archivo jar.
+Éste jar se ha de copiar manualmente al directorio de librerías donde está desplegado el módulo de oai de dspace.
+También se copia el archivo oaicat.properties de dspace a work para añadirle el nuevo crosswalk.
+Se tendría que copiar manualmente luego a dspace.
+Sería necesario reiniciar el Tomcat o Dspace al realizar este paso.
+Este paso es incompatible con el de Configurar EDMCrosswalk mediante xsl.
+
+
+El sexto paso copia el archivo de configuración de dspace "dspace.cfg" al directorio de trabajo.
+Se copiará el archivo DIM2EDM.xsl al directorio de trabajo.
+Se copiará el archivo "oaicat.properties" desde el directorio de configuración de dspace al directorio de trabajo.
+Se configurará el archivo DIM2EDM.xsl pidiendo valores para elementos de edm específicos:
+Se pide la url base con la que se forman los handle, por defecto: http://hdl.handle.net/
+Se pide la url base con la que se confeccionarán los handles, por ejemplo: http://example.com/bitstream/handle/
+Se pide el valor para los elementos edm:dataProvider, edm:provider, edm:language
+Se pide la url para el elemento edm:rights
+Se piden los valores para el elemento edm:type, los permitidos son: TEXT, VIDEO, IMAGE, SOUND, 3D
 Se modificará el archivo dspace.cfg del directorio de trabajo para aceptar este crosswalk de diseminación.
 Se modificará el archivo del directorio de trabajo oaicat.properties para añadir el edmcrosswalk.
 Los archivos dspace.cfg y oaicat.properties se tendrán que copiar manualmente luego a dspace.
 El archivo DIM2EDM.xsl se tendrá que copiar manualmente al directorio crosswalk de dspace.
 Sería necesario reiniciar el Tomcat o Dspace al realizar este paso.
+Este paso es incompatible con el de Configurar EDMCrosswalk.
+
 
 El séptimo paso se recorrerá todas las colecciones con ítems que son autoridades para recoger los elementos dc asociados.
 Se recorrerá todas las colecciones con ítems que no son autoridades para recoger los elementos dc que se corresponden con
@@ -177,6 +199,7 @@ los recogidos de las autoridades.
 Si hay una coincidencia se almacenará el handle de la autoridad en el campo authority de la tabla metadatavalue de la
 bbdd para el element dc del ítem normal.
 No sería necesario reiniciar el Tomcat o Dspace.
+
 
 A medida que se vayan descubriendo errores o se tenga que adaptar a nuevas versiones de Dspace se irán sacando
 parches o nuevas versiones.
