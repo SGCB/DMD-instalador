@@ -1,5 +1,18 @@
 package org.dspace.installer_edm;
 
+import org.w3c.dom.*;
+import org.xml.sax.SAXException;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.*;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 import java.io.*;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -15,9 +28,7 @@ import java.util.zip.ZipFile;
  */
 public class InstallerEDMAskosi extends InstallerEDMBase
 {
-
     private File finalAskosiDataDestDirFile = null;
-
 
 
     public InstallerEDMAskosi(int currentStepGlobal)
@@ -37,6 +48,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
             if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "installPackages.db.title");
             if (!copyDatabaseDrivers()) return false;
 
+            if (!getAskosiDataDir()) return false;
             int currentStep = 0;
             Iterator<File> fileIterPackZip = org.apache.commons.io.FileUtils.iterateFiles(dirPackages, new String[] {"zip"}, false);
             while (fileIterPackZip.hasNext()) {
@@ -214,12 +226,70 @@ public class InstallerEDMAskosi extends InstallerEDMBase
         if (copyPackageZipFile(sourcePackageFile, finalAskosiWebAppDestDirFile.getAbsolutePath() + fileSeparator)) {
             installerEDMDisplay.showLn();
             installerEDMDisplay.showQuestion(currentStepGlobal, "copyAskosiWebApp.ok");
+            File webXmlFile = new File(new StringBuilder(finalAskosiWebAppDestDirFile.getAbsolutePath()).append
+                    (fileSeparator).append("askosi").append(fileSeparator).append("WEB-INF").append(fileSeparator).append("web.xml").toString());
+            if (webXmlFile.exists() && webXmlFile.canWrite()) {
+                changeWebXml(webXmlFile);
+            } else installerEDMDisplay.showQuestion(currentStepGlobal, "copyAskosiWebApp.nowebxml", new String[]{webXmlFile.getAbsolutePath()});
             return true;
         } else {
             installerEDMDisplay.showLn();
             installerEDMDisplay.showQuestion(currentStepGlobal, "copyAskosiWebApp.fail");
         }
         return false;
+    }
+
+
+    private void changeWebXml(File webXmlFile)
+    {
+        try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware(true);
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document doc = builder.parse(webXmlFile);
+            XPath xpathInputForms = XPathFactory.newInstance().newXPath();
+            NodeList results = (NodeList)xpathInputForms.evaluate("//*[contains(*,\"SKOSdirectory\")]", doc, XPathConstants.NODESET);
+            if (results.getLength()> 0) {
+                Element contextParam = (Element) results.item(0);
+                if (contextParam.getTagName().equals("context-param")) {
+                    NodeList resultsParamValue = contextParam.getElementsByTagName("param-value");
+                    if (resultsParamValue.getLength() > 0) {
+                        Element valueParam = (Element) resultsParamValue.item(0);
+                        Text text = doc.createTextNode(finalAskosiDataDestDirFile.getAbsolutePath());
+                        valueParam.replaceChild(text, valueParam.getFirstChild());
+
+                        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+                        Transformer transformer = transformerFactory.newTransformer();
+                        transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
+                        transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+                        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+                        //transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+                        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+                        DocumentType docType = doc.getDoctype();
+                        if (docType != null) {
+                            if (docType.getPublicId() != null) transformer.setOutputProperty(OutputKeys.DOCTYPE_PUBLIC, docType.getPublicId());
+                            transformer.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, docType.getSystemId());
+                        }
+                        DOMSource source = new DOMSource(doc);
+                        StreamResult result = new StreamResult(webXmlFile);
+                        transformer.transform(source, result);
+                    }
+                }
+            } else installerEDMDisplay.showQuestion(currentStepGlobal, "changeWebXml.noSKOSdirectory", new String[]{webXmlFile.getAbsolutePath()});
+        } catch (ParserConfigurationException e) {
+            showException(e);
+        } catch (SAXException e) {
+            showException(e);
+        } catch (IOException e) {
+            showException(e);
+        } catch (XPathExpressionException e) {
+            showException(e);
+        } catch (TransformerConfigurationException e) {
+            showException(e);
+        } catch (TransformerException e) {
+            showException(e);
+        }
+
     }
 
 
@@ -257,7 +327,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
     }
 
 
-    private boolean copyAskosiDataDir(File sourcePackageFile)
+    private boolean getAskosiDataDir()
     {
         finalAskosiDataDestDirFile = null;
         while (true) {
@@ -295,6 +365,12 @@ public class InstallerEDMAskosi extends InstallerEDMBase
                 }
             }
         }
+        return true;
+    }
+
+
+    private boolean copyAskosiDataDir(File sourcePackageFile)
+    {
         installerEDMDisplay.showLn();
         if (copyPackageZipFile(sourcePackageFile, finalAskosiDataDestDirFile.getAbsolutePath() + fileSeparator)) {
             setAskosiDataDir(finalAskosiDataDestDirFile.getAbsolutePath());
