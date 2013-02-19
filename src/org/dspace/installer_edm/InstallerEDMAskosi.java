@@ -14,8 +14,11 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -374,10 +377,43 @@ public class InstallerEDMAskosi extends InstallerEDMBase
         installerEDMDisplay.showLn();
         if (copyPackageZipFile(sourcePackageFile, finalAskosiDataDestDirFile.getAbsolutePath() + fileSeparator)) {
             setAskosiDataDir(finalAskosiDataDestDirFile.getAbsolutePath());
+            changeLogFilePath();
             installerEDMDisplay.showQuestion(currentStepGlobal, "copyAskosiDataDir.ok");
             return true;
         } else installerEDMDisplay.showQuestion(currentStepGlobal, "copyAskosiDataDir.fail");
         return false;
+    }
+
+
+    private void changeLogFilePath()
+    {
+        File logFile = new File(finalAskosiDataDestDirFile.getAbsolutePath() + fileSeparator + "log4j.properties");
+        if (logFile.exists() && logFile.canWrite()) {
+            InputStream is = null;
+            try {
+                Properties properties = new Properties();
+                URL url = logFile.toURI().toURL();
+                is = url.openStream();
+                properties.load(is);
+                String askosiLog = finalAskosiDataDestDirFile.getAbsolutePath() + fileSeparator + "askosi.log";
+                if (properties.containsKey("log4j.appender.A1.File") && !properties.getProperty("log4j.appender.A1.File").equals(askosiLog)) {
+                    String content = org.apache.commons.io.FileUtils.readFileToString(logFile);
+                    content = content.replaceFirst("log4j\\.appender\\.A1\\.File\\s*=\\s*.+",
+                            "log4j.appender.A1.File=" + askosiLog);
+                    org.apache.commons.io.FileUtils.writeStringToFile(logFile, content, false);
+                }
+            } catch (MalformedURLException e) {
+                showException(e);
+            } catch (IOException e) {
+                showException(e);
+            } finally {
+                if (is != null) try {
+                    is.close();
+                } catch (IOException e) {
+                    showException(e);
+                }
+            }
+        }
     }
 
 
