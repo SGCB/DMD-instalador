@@ -72,7 +72,8 @@ if %argC% == 0 (
         if exist "%my_dir%\lib" if exist "%my_dir%\packages" goto MYDIROK
         echo.
         echo. There is no lib or packages directory in %my_dir%
-        goto END
+        set my_dir=""
+        goto MYDIRNOK
     )
 :MYDIROK
 
@@ -93,7 +94,8 @@ if %argC% == 0 (
         if exist "%dir_space_runtime%\lib" if exist "%dir_space_runtime%\config" goto DSRDIROK
         echo.
         echo. There is no lib or config directory in %dir_space_runtime%
-        goto END
+        set dir_space_runtime=""
+        goto DSRDIRNOK
     )
 :DSRDIROK
 

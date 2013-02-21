@@ -161,6 +161,7 @@ until [ $dir_ok -eq 1 ]; do
         dir_ok=1
     else
         message_sub "${YELLOW}There is no lib or packages directory in $my_dir${NC}"
+        my_dir=""
     fi
 done
 
@@ -195,6 +196,7 @@ until [ $dir_ok -eq 1 ]; do
     else
         test ! -d "$dir_space_runtime/lib" && message_sub "${YELLOW}There is no lib directory in $dir_space_runtime${NC}"
         test ! -d "$dir_space_runtime/config" && message_sub "${YELLOW}There is no config directory in $dir_space_runtime${NC}"
+        dir_space_runtime=""
     fi
 done
 
