@@ -230,7 +230,7 @@ test $debug -eq 1 && arg_str="$arg_str -g"
 JARS=$(echo $my_dir/lib/*.jar | sed 's/ /\:/g')
 JARS2=$(echo $dir_space_runtime/lib/*.jar | sed 's/ /\:/g')
 
-java -cp $JARS:$JARS2:InstallerEDM.jar:.:$dir_space_runtime/config org.dspace.installer_edm.InstallerEDM -d $dir_space_runtime -t $tomcat_base -s $step $arg_str
+java -cp $JARS:$JARS2:InstallerEDM.jar:.:$dir_space_runtime/config org.dspace.installer_edm.InstallerEDM -d $dir_space_runtime -t $tomcat_base -s $step $arg_str 2>/dev/null
 
 clean_up
 exit 0
