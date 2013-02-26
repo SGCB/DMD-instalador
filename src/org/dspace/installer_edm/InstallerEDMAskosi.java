@@ -83,7 +83,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
 
     private boolean copyJarsShared(File dirPackages)
     {
-        File TomcatBaseFile = new File(TomcatBase);
+        TomcatBaseFile = new File(TomcatBase);
         if (!TomcatBaseFile.exists() || !TomcatBaseFile.canRead()) {
             installerEDMDisplay.showQuestion(currentStepGlobal, "copyJarsShared.tomcatbasedir.notexist", new String[]{TomcatBase});
             return false;
@@ -150,7 +150,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
                 }
                 dirInstallJar = null;
                 while (true) {
-                    if (TomcatBaseCommon != null) installerEDMDisplay.showQuestion(currentStepGlobal, "copyDatabaseDrivers.dir.copyjars", new String[]{TomcatBaseCommon});
+                    if (TomcatBaseCommon != null) installerEDMDisplay.showQuestion(currentStepGlobal, "copyDatabaseDrivers.dir.copyjars", new String[]{new File(TomcatBaseCommon).getAbsolutePath()});
                     else installerEDMDisplay.showQuestion(currentStepGlobal, "copyDatabaseDrivers.dirnew.copyjars");
                     String response = null;
                     try {
@@ -201,7 +201,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
             if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "copyAskosiWebApp.askosiwebappdestdir.notexist", new String[]{askosiWebAppDestDir});
             message = installerEDMDisplay.getQuestion(currentStepGlobal, "copyAskosiWebApp.askosiwebappdestdir");
         } else {
-            message = installerEDMDisplay.getQuestion(currentStepGlobal, "copyAskosiWebApp.askosiwebappdestdir.new") + askosiWebAppDestDir;
+            message = installerEDMDisplay.getQuestion(currentStepGlobal, "copyAskosiWebApp.askosiwebappdestdir.new") + askosiWebAppDestDirFile.getAbsolutePath();
         }
         File finalAskosiWebAppDestDirFile = null;
         while (true) {
@@ -300,7 +300,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
     {
         File finalAskosiPlugJspDestDirFile = null;
         while (true) {
-            installerEDMDisplay.showQuestion(currentStepGlobal, "copyAskosiPlugJspui.dir", new String[]{TomcatBase});
+            installerEDMDisplay.showQuestion(currentStepGlobal, "copyAskosiPlugJspui.dir", new String[]{TomcatBaseFile.getAbsolutePath()});
             String response = null;
             try {
                 response = br.readLine();

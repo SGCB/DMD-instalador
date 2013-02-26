@@ -40,6 +40,7 @@ public abstract class InstallerEDMBase implements Observer
 
     protected static String DspaceDir = null;
     protected static String TomcatBase = null;
+    protected static File TomcatBaseFile = null;
     protected static String AskosiDataDir;
     protected static boolean verbose = false;
     protected static boolean debug = false;
