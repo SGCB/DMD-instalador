@@ -166,7 +166,7 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                     }
                     if (response == null) break;
                     response = response.trim();
-                    if (response.length() == 0) response = "y";
+                    if (response.length() == 0) response = answerYes;
                     if (response.equalsIgnoreCase("n")) break;
                     else return fillAuthItems(elementObj, communityObj, collectionObj);
                 } while(true);

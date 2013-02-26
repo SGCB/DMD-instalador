@@ -299,7 +299,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
                         break;
                     }
                 } while (true);
-                if (response.equals("y")) {
+                if (response.equals(answerYes)) {
                     Text text = docInputForms.createTextNode(vocabulary);
                     elementVocabulary.replaceChild(text, elementVocabulary.getFirstChild());
                 }

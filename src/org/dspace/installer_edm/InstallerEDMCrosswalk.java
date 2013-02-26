@@ -105,7 +105,7 @@ public class InstallerEDMCrosswalk extends InstallerEDMBase
                         response = br.readLine();
                         if (response == null) continue;
                         response = response.trim();
-                        if (!response.isEmpty() && response.equalsIgnoreCase("y")) {
+                        if (!response.isEmpty() && response.equalsIgnoreCase(answerYes)) {
                             break;
                         } else return;
                     } while (true);
@@ -208,7 +208,7 @@ public class InstallerEDMCrosswalk extends InstallerEDMBase
                     response2 = br.readLine();
                     if (response2 == null) continue;
                     response2 = response2.trim();
-                    if (!response2.isEmpty() && response2.equalsIgnoreCase("y")) {
+                    if (!response2.isEmpty() && response2.equalsIgnoreCase(answerYes)) {
                         break;
                     } else return;
                 } while (true);

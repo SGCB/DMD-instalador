@@ -338,7 +338,7 @@ public class InstallerEDM extends InstallerEDMBase
             if (!response.isEmpty()) {
                 if (response.equalsIgnoreCase("n")) {
                     return false;
-                } else if (response.equalsIgnoreCase("y")) break;
+                } else if (response.equalsIgnoreCase(answerYes)) break;
             } else break;
         }
         return true;

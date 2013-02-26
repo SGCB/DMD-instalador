@@ -71,6 +71,8 @@ public abstract class InstallerEDMBase implements Observer
     protected static String user;
     protected static String password;
 
+    protected static String answerYes;
+
     protected static MetadataAuthorityManager metadataAuthorityManager = null;
 
 
@@ -106,6 +108,7 @@ public abstract class InstallerEDMBase implements Observer
             checkDspaceDC();
             if (language == null) language = ConfigurationManager.getProperty("default.language");
             if (language == null) language = "en";
+            answerYes = installerEDMDisplay.getQuestion(0, "answer.yes");
         } catch (SQLException e) {
             installerEDMDisplay.showLn();
             installerEDMDisplay.showQuestion(0, "step.fail");
@@ -409,7 +412,7 @@ public abstract class InstallerEDMBase implements Observer
                 response = br.readLine();
                 if (response == null) continue;
                 response = response.trim();
-                if (response.length() == 0 || response.equalsIgnoreCase("y")) {
+                if (response.length() == 0 || response.equalsIgnoreCase(answerYes)) {
                     dspaceFileNewFile.delete();
                     break;
                 }
