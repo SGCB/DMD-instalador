@@ -209,6 +209,35 @@ if [ -z "$tomcat_base" -o ! -d "$tomcat_base" ]; then
         read tomcat_base
     done
 fi
+libs_dir=1
+if [ -d "$tomcat_base/shared/lib" -a ! -w "$tomcat_base/shared/lib" ]; then
+    message_sub "${YELLOW}You don't have write permissions at: $tomcat_base/shared/lib. It's needed to install Askosi.${NC}"
+    libs_dir=0
+fi
+if [ -d "$tomcat_base/common/lib" -a ! -w "$tomcat_base/common/lib" ]; then
+    message_sub "${YELLOW}You don't have write permissions at: $tomcat_base/common/lib. It's needed to install Askosi.${NC}"
+    libs_dir=0
+fi
+if [ -d "$tomcat_base/lib" -a ! -w "$tomcat_base/lib" ]; then
+    message_sub "${YELLOW}You don't have write permissions at: $tomcat_base/lib. It's needed to install Askosi.${NC}"
+    libs_dir=0
+fi
+if [ -d "$tomcat_base/webapps" -a ! -w "$tomcat_base/webapps" ]; then
+    message_sub "${YELLOW}You don't have write permissions at: $tomcat_base/webapps. It's needed to install Askosi.${NC}"
+    libs_dir=0
+fi
+if [ $libs_dir -eq 0 ]; then
+    response=""
+    while [ -z "$response" ]; do
+        message_sub "${YELLOW}You don't have write permissions as \""$(whoami)"\" in some dir needed to install Askosi. Continue ([y]/n)?${NC}"
+        flush_stdin
+        read response
+        test -z "$response" && break
+        test "$response" = "y" && break
+        test "$response" = "n" && clean_up && exit 0
+        response=""
+    done
+fi
 
 if [ -z "$step" -o $(echo "$step" | grep -q "^[012345]$"; echo $?) -eq 1 ]; then
     step=""
