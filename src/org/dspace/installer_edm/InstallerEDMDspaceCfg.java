@@ -35,14 +35,16 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
         boolean modified = false;
         try {
             addAuthDCElements(authDCElements);
-            String askosiDataDir = readDspaceCfg();
+            String askosiDataDir = readDspaceCfg(authDCElements);
             File askosiDataDestDirFile = null;
+            boolean askosiDataDirAdd = false;
             if (askosiDataDir != null) askosiDataDestDirFile = new File(askosiDataDir);
             if (askosiDataDestDirFile != null && askosiDataDestDirFile.exists() && askosiDataDestDirFile.canRead()) {
                 AskosiDataDir = askosiDataDestDirFile.getAbsolutePath();
                 if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "configureDspaceCfg.askosidatadir",
                         new String[]{AskosiDataDir});
             } else {
+                if (askosiDataDir == null) askosiDataDirAdd = true;
                 if (AskosiDataDir != null) {
                     askosiDataDestDirFile = new File(AskosiDataDir);
                     if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "configureDspaceCfg.askosidatadir", new String[]{
@@ -64,9 +66,9 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
             }
 
             out = new OutputStreamWriter(new FileOutputStream(dspaceDirConfNewFile, true));
-            if (AskosiDataDir != null) {
+            if (AskosiDataDir != null && askosiDataDirAdd) {
                 String plugin = new StringBuilder().append("\nASKOSI.directory = ").append(askosiDataDestDirFile.getAbsolutePath()).append("\nplugin.named.org.dspace.content.authority.ChoiceAuthority = \\\n").append("be.destin.dspace.AskosiPlugin = ASKOSI\n").toString();
-                out.write("\n# " + getTime() + " Appended by installerEDM to add the ASKOSI plugin\n");
+                out.write("\n\n# " + getTime() + " Appended by installerEDM to add the ASKOSI plugin\n");
                 out.write(plugin);
                 modified = true;
             }
@@ -163,7 +165,7 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
     }
 
 
-    private String readDspaceCfg() throws FileNotFoundException, IndexOutOfBoundsException
+    private String readDspaceCfg(ArrayList<MetadataField> authDCElements) throws FileNotFoundException, IndexOutOfBoundsException
     {
         String dataDir = null;
         Scanner scanner = new Scanner(new FileInputStream(dspaceDirConfNewFile));
@@ -211,35 +213,29 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
                 Matcher matcherPlugin = patternPlugin.matcher(line);
                 if (matcherPlugin.find()) {
                     String element = (String) matcherPlugin.group(1);
-                    if (authBOHashMap.containsKey(element)) {
+                    if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "readDspaceCfg.line.found.element", new String[] {line, element});
+                    if (authDCElementsSetWritten.containsKey(element)) {
+                        int valor = authDCElementsSetWritten.get(element).intValue() + 1;
+                        authDCElementsSetWritten.put(element, Integer.valueOf(valor));
+                    } else authDCElementsSetWritten.put(element, new Integer(1));
+                } else {
+                    Matcher matcherPresentation = patternPresentation.matcher(line);
+                    if (matcherPresentation.find()) {
+                        String element = (String) matcherPresentation.group(1);
                         if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "readDspaceCfg.line.found.element", new String[] {line, element});
                         if (authDCElementsSetWritten.containsKey(element)) {
                             int valor = authDCElementsSetWritten.get(element).intValue() + 1;
                             authDCElementsSetWritten.put(element, Integer.valueOf(valor));
                         } else authDCElementsSetWritten.put(element, new Integer(1));
-                    }
-                } else {
-                    Matcher matcherPresentation = patternPresentation.matcher(line);
-                    if (matcherPresentation.find()) {
-                        String element = (String) matcherPresentation.group(1);
-                        if (authBOHashMap.containsKey(element)) {
+                    } else {
+                        Matcher matcherControlled = patternControlled.matcher(line);
+                        if (matcherControlled.find()) {
+                            String element = (String) matcherControlled.group(1);
                             if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "readDspaceCfg.line.found.element", new String[] {line, element});
                             if (authDCElementsSetWritten.containsKey(element)) {
                                 int valor = authDCElementsSetWritten.get(element).intValue() + 1;
                                 authDCElementsSetWritten.put(element, Integer.valueOf(valor));
                             } else authDCElementsSetWritten.put(element, new Integer(1));
-                        }
-                    } else {
-                        Matcher matcherControlled = patternControlled.matcher(line);
-                        if (matcherControlled.find()) {
-                            String element = (String) matcherControlled.group(1);
-                            if (authBOHashMap.containsKey(element)) {
-                                if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "readDspaceCfg.line.found.element", new String[] {line, element});
-                                if (authDCElementsSetWritten.containsKey(element)) {
-                                    int valor = authDCElementsSetWritten.get(element).intValue() + 1;
-                                    authDCElementsSetWritten.put(element, Integer.valueOf(valor));
-                                } else authDCElementsSetWritten.put(element, new Integer(1));
-                            }
                         }
                     }
                 }

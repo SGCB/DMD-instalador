@@ -74,7 +74,7 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
                 }
                 if (modified) {
                     installerEDMDisplay.showLn();
-                    installerEDMDisplay.showQuestion(currentStepGlobal, "configureAll.restart");
+                    installerEDMDisplay.showQuestion(currentStepGlobal, "configureAll.restart", new String[]{myInstallerWorkDirPath});
                 }
             } catch (SQLException e) {
                 showException(e);
