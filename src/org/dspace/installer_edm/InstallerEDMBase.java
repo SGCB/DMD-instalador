@@ -74,6 +74,8 @@ public abstract class InstallerEDMBase implements Observer
 
     protected static String answerYes;
 
+    protected static String dbName = null;
+
     protected static MetadataAuthorityManager metadataAuthorityManager = null;
 
 
@@ -96,7 +98,12 @@ public abstract class InstallerEDMBase implements Observer
     public InstallerEDMBase()
     {
         try {
-            if (context == null) context = new Context();
+            if (context == null) {
+                context = new Context();
+                if (dbName == null) dbName = ConfigurationManager.getProperty("db.name");
+                InstallerEDMDAO.setContext(context);
+                InstallerEDMDAO.setDbName(dbName);
+            }
             if (context == null || !(context instanceof Context)) throw new Exception("Impossible to create dspace context.");
             if (metadataAuthorityManager == null) metadataAuthorityManager = MetadataAuthorityManager.getManager();
             if (installerEDMDisplay == null) installerEDMDisplay = new InstallerEDMDisplayImpl();
@@ -366,7 +373,10 @@ public abstract class InstallerEDMBase implements Observer
     {
         int pos = name.indexOf(".");
         try {
-            MetadataField elementMD = MetadataField.findByElement(context, dcSchema.getSchemaID(), (pos > 0)?name.substring(0, pos - 1):name, (pos > 0)?name.substring(pos + 1):null);
+            String element = (pos > 0)?name.substring(0, pos):name;
+            String qualifier = (pos > 0)?name.substring(pos + 1):null;
+            if (debug) installerEDMDisplay.showQuestion(0, "findElementDC", new String[]{Integer.toString(dcSchema.getSchemaID()), element, qualifier});
+            MetadataField elementMD = MetadataField.findByElement(context, dcSchema.getSchemaID(), element, qualifier);
             if (elementMD == null) {
                 return null;
             } else {

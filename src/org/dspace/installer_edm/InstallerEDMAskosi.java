@@ -174,7 +174,6 @@ public class InstallerEDMAskosi extends InstallerEDMBase
                         installerEDMDisplay.showQuestion(currentStepGlobal, "copyJarsShared.dir.notwritable", new String[]{response});
                     }
                 }
-                String dbName = ConfigurationManager.getProperty("db.name");
                 for (File fileJdbc : filesJdbc) {
                     if (dbName != null && !dbName.isEmpty()) {
                         if (dbName.equalsIgnoreCase("postgres") && !fileJdbc.getName().matches("(?i)postgres.+\\.jar")) continue;

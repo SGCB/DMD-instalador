@@ -247,10 +247,13 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
 
     private String searchNonAuthItems(MetadataField metadataField, String value) throws SQLException, IOException, AuthorizeException
     {
-        ItemIterator iterAuth = Item.findByMetadataField(context, dcSchema.getName(), metadataField.getElement(), metadataField.getQualifier(), value);
-        while (iterAuth.hasNext()) {
-            Item itemMatched = iterAuth.next();
-            if (searchSkosAuthItem(itemMatched)) return HandleManager.findHandle(context, itemMatched);
+        ItemIterator iterAuth = InstallerEDMDAO.findByMetadataField(dcSchema.getName(), metadataField.getElement(), metadataField.getQualifier(), value);
+        if (iterAuth != null) {
+            while (iterAuth.hasNext()) {
+                Item itemMatched = iterAuth.next();
+                if (searchSkosAuthItem(itemMatched)) return HandleManager.findHandle(context, itemMatched);
+            }
+            iterAuth.close();
         }
         return null;
     }
