@@ -128,7 +128,7 @@ Installer has the next steps:
 8: Exit
 
 The first step installs Askosi app in the server. All the files required are taken from the packages dir of the installer.
-The Servlet container is mandatory to be restarted.
+The Servlet container is mandatory to be restarted and the installer thereafter.
 
 
 The second step copies dspace configuraction file "dspace.cfg" and the cataloguing one "input-forms.xml" to a directory
@@ -136,7 +136,7 @@ called "work" located in the installer directory. It will ask whether more autho
 dspace.cfg.
 This file will be modified with the new properties. It's now a task for the admin to check this file.
 The admin will copy manually the files to dspace to deploy them.
-The Servlet container is mandatory to be restarted.
+The Servlet container is mandatory to be restarted and the installer thereafter.
 
 
 The third step creates communities, collections and items for the authorities and are fullfilled with values searched
@@ -151,7 +151,7 @@ The Servlet container is not required to be restarted.
 
 The fourth step copies the EDMExport.war file from packages to work and modifies it to add the path of the dspace.cfg deployed.
 The final war file has to be copied manually to be deployed.
-The Servlet container is mandatory to be restarted.
+The Servlet container is mandatory to be restarted and the installer thereafter.
 
 
 The fifth step copies the EDMCrosswalk.java file from packages to work and the dspace oai api file to work.
@@ -162,7 +162,7 @@ The java file is compiled and add to the jar file.
 The jar file must be copied manually to the dir where the libraries of the oai module is deployed.
 The oaicat.properties will be copied from dspace to work to add the new crosswalk property.
 This file will have to be copied manually to dspace.
-The Servlet container is mandatory to be restarted.
+The Servlet container is mandatory to be restarted and the installer thereafter.
 This step is incompatible with "Configure EDMCrosswalk with xsl" one.
 
 
@@ -179,7 +179,7 @@ The file dspace.cfg will be modified to add this dissemination crosswalk.
 The file oaicat.properties will be modified to add this dissemination crosswalk.
 These files will have to be copied manuall to dspace.
 The file DIM2EDM.xsl will have to be copied manually to the dspace crosswalk directory.
-The Servlet container is mandatory to be restarted.
+The Servlet container is mandatory to be restarted and the installer thereafter.
 This step is incompatible with "Configure EDMCrosswalk" one.
 
 

@@ -134,7 +134,7 @@ El instalador consta de los siguientes pasos:
 
 El primer paso instala la aplicación Askosi en el servidor. Todos los archivos necesarios los coge del directorio
 packages del instalador.
-Sería necesario reiniciar el Tomcat o Dspace al realizar este paso.
+Sería necesario reiniciar el Tomcat o Dspace al realizar este paso y luego el instalador.
 
 
 El segundo paso copia el fichero de configuración de Dspace "dspace.cfg" y el de catalogación "input-forms.xml"
@@ -142,7 +142,7 @@ a un directorio llamado work en el directorio donde está el instalador.
 Se preguntará si se quieren añadir más elementos como autoridad en dspace.cfg.
 Lo modifica con las directivas o propiedades nuevas y los deja ahí para revisión del administrador.
 Éste es el que manualmente (como medida de seguridad) tendrá que llevarlos a Dspace.
-Sería necesario reiniciar el Tomcat o Dspace al realizar este paso.
+Sería necesario reiniciar el Tomcat o Dspace al realizar este paso y luego el instalador.
 
 
 El tercer paso crea las comunidades, colecciones e ítems de las autoridades y las llena de valores buscando en las
@@ -160,7 +160,7 @@ No sería necesario reiniciar el Tomcat o Dspace.
 El cuarto paso copia el archivo EDMExport.war de packages a work y lo modifica para configurarlo con la ruta al archivo
 "dspace.cfg" del dspace desplegado.
 Este war se tendría que copiar manualmente luego al directorio webapps de nuestro Tomcat o a otro sitio que queramos para desplegarlo.
-Sería necesario reiniciar el Tomcat si está configurado para desplegar de forma automática.
+Sería necesario reiniciar el Tomcat si no está configurado para desplegar de forma automática y luego el instalador.
 
 
 El quinto paso copia el archivo EDMCrosswalk.java de packages a work y el jar de la api de oai de dspace a work.
@@ -172,7 +172,7 @@ Se compila y se agrega el archivo compilado al archivo jar.
 Éste jar se ha de copiar manualmente al directorio de librerías donde está desplegado el módulo de oai de dspace.
 También se copia el archivo oaicat.properties de dspace a work para añadirle el nuevo crosswalk.
 Se tendría que copiar manualmente luego a dspace.
-Sería necesario reiniciar el Tomcat o Dspace al realizar este paso.
+Sería necesario reiniciar el Tomcat o Dspace al realizar este paso y luego el instalador.
 Este paso es incompatible con el de Configurar EDMCrosswalk mediante xsl.
 
 
@@ -189,7 +189,7 @@ Se modificará el archivo dspace.cfg del directorio de trabajo para aceptar este
 Se modificará el archivo del directorio de trabajo oaicat.properties para añadir el edmcrosswalk.
 Los archivos dspace.cfg y oaicat.properties se tendrán que copiar manualmente luego a dspace.
 El archivo DIM2EDM.xsl se tendrá que copiar manualmente al directorio crosswalk de dspace.
-Sería necesario reiniciar el Tomcat o Dspace al realizar este paso.
+Sería necesario reiniciar el Tomcat o Dspace al realizar este paso y luego el instalador.
 Este paso es incompatible con el de Configurar EDMCrosswalk.
 
 
