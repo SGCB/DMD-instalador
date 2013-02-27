@@ -1,5 +1,6 @@
 package org.dspace.installer_edm;
 
+import org.dspace.core.ConfigurationManager;
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 
@@ -173,7 +174,12 @@ public class InstallerEDMAskosi extends InstallerEDMBase
                         installerEDMDisplay.showQuestion(currentStepGlobal, "copyJarsShared.dir.notwritable", new String[]{response});
                     }
                 }
+                String dbName = ConfigurationManager.getProperty("db.name");
                 for (File fileJdbc : filesJdbc) {
+                    if (dbName != null && !dbName.isEmpty()) {
+                        if (dbName.equalsIgnoreCase("postgres") && !fileJdbc.getName().matches("(?i)postgres.+\\.jar")) continue;
+                        else if (dbName.equalsIgnoreCase("oracle") && !fileJdbc.getName().matches("(?i)ojdbc.+\\.jar")) continue;
+                    }
                     if (!copyPackageFile(fileJdbc, TomcatBaseCommon)) {
                         installerEDMDisplay.showQuestion(currentStepGlobal, "copyDatabaseDrivers.copy.fail", new String[]{fileJdbc.getAbsolutePath()});
                         return false;
@@ -476,9 +482,9 @@ public class InstallerEDMAskosi extends InstallerEDMBase
         String nameSourcePackage = sourcePackageFile.getName();
         String nameDestPackage = TomcatBaseShared + fileSeparator + nameSourcePackage;
         File desPackageFile = new File(nameDestPackage);
-        if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "copyPackageFile.copyfile", new String[]{sourcePackageFile.getAbsolutePath(), TomcatBaseShared});
+        if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "copyPackageFile.copyfile", new String[]{sourcePackageFile.getAbsolutePath(), desPackageFile.getParent()});
         if (desPackageFile.exists()) {
-            installerEDMDisplay.showQuestion(currentStepGlobal, "copyPackageFile.fileexists", new String[]{nameDestPackage});
+            installerEDMDisplay.showQuestion(currentStepGlobal, "copyPackageFile.fileexists", new String[]{desPackageFile.getAbsolutePath()});
             String response = null;
             try {
                 response = br.readLine();
