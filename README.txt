@@ -119,27 +119,30 @@ build a final url with the dspace base url and the handle.
 Installer has the next steps:
 
 1: Installing Askosi
-2: Configuring Dspace and Askosi
+2: Configuring Dspace: file dspace.cfg
 3: Create Auth Items
-4: Configure EDMExport
-5: Configure EDMCrosswalk
-6: Configure EDMCrosswalk with xsl
-7: Fill skos:about items with values of authorities
-8: Exit
+4: Configuring dspace: input-forms.xml and askosi
+5: Configure EDMExport
+6: Configure EDMCrosswalk
+7: Configure EDMCrosswalk with xsl
+8: Fill skos:about items with values of authorities
+9: Exit
 
-The first step installs Askosi app in the server. All the files required are taken from the packages dir of the installer.
+
+First step installs Askosi app in the server. All the files required are taken from the packages dir of the installer.
 The Servlet container is mandatory to be restarted and the installer thereafter.
 
 
-The second step copies dspace configuraction file "dspace.cfg" and the cataloguing one "input-forms.xml" to a directory
-called "work" located in the installer directory. It will ask whether more authority elements will be added to the files
+Second step copies dspace configuraction file "dspace.cfg" to a directory
+called "work" located in the installer directory.
+It will ask whether more authority elements will be added to the files
 dspace.cfg.
 This file will be modified with the new properties. It's now a task for the admin to check this file.
 The admin will copy manually the files to dspace to deploy them.
 The Servlet container is mandatory to be restarted and the installer thereafter.
 
 
-The third step creates communities, collections and items for the authorities and are fullfilled with values searched
+Third step creates communities, collections and items for the authorities and are fullfilled with values searched
 from the items of collections which no possess authorities
 It's mandatory to be validated as a dspace user.
 For every dc element required as an authority is necessary to link it to a community and a collection. If they don't exist
@@ -149,12 +152,19 @@ They are searched on the collections with no authorities and fullfilled with the
 The Servlet container is not required to be restarted.
 
 
-The fourth step copies the EDMExport.war file from packages to work and modifies it to add the path of the dspace.cfg deployed.
+Fourth step copies cataloguing file "input-forms.xml" to a directory
+called "work" located in the installer directory.
+his file will be modified with the new properties. It's now a task for the admin to check this file.
+The admin will copy manually the files to dspace to deploy them.
+The Servlet container is mandatory to be restarted and the installer thereafter.
+
+
+Fifth step copies the EDMExport.war file from packages to work and modifies it to add the path of the dspace.cfg deployed.
 The final war file has to be copied manually to be deployed.
 The Servlet container is mandatory to be restarted and the installer thereafter.
 
 
-The fifth step copies the EDMCrosswalk.java file from packages to work and the dspace oai api file to work.
+Sixth step copies the EDMCrosswalk.java file from packages to work and the dspace oai api file to work.
 A set of edm specific parameters will be asked and the java file modified:
 An url for the element edm.rights.
 For the edm.types words to be matched against the dc.types values and replaced by their type.
@@ -166,7 +176,7 @@ The Servlet container is mandatory to be restarted and the installer thereafter.
 This step is incompatible with "Configure EDMCrosswalk with xsl" one.
 
 
-The sixth step copies the "dspace.cfg" file from dspace to work.
+Seventh step copies the "dspace.cfg" file from dspace to work.
 The file "DIM2EDM.xsl" will be copied from packages to work.
 The oaicat.properties will be copied from dspace to work to add the new crosswalk property.
 The file "DIM2EDM.xsl" will be configured with edm specific elements:
@@ -183,7 +193,7 @@ The Servlet container is mandatory to be restarted and the installer thereafter.
 This step is incompatible with "Configure EDMCrosswalk" one.
 
 
-The seventh step traverse all the colecctions with authority items to collect the dc elements.
+Eighth step traverse all the colecctions with authority items to collect the dc elements.
 It will traverse the collections with nonauthority items to collect the items with the dc elements from the former traversing.
 If there's a match the handle of the authority will be stored in the field authority of the table metadatavalue in the row belonging
 to the item.

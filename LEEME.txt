@@ -122,14 +122,17 @@ y construye la url final del concepto skos con la url base de dspace y el handle
 
 El instalador consta de los siguientes pasos:
 
+
 1: Instalar Askosi
-2: Crear Items de Autoridad
-3: Configurar Dspace y Askosi
-4: Configurar EDMExport
-5: Configurar EDMCrosswalk
-6: Configurar EDMCrosswalk mediante xsl
-7: Rellenar skos:about de ítems con valores de autoridades
-8: Salir
+2: Configurar Dspace: archivo dspace.cfg
+3: Crear Items de Autoridad
+4: Configurar Dspace: input-forms.xml y askosi
+5: Configurar EDMExport
+6: Configurar EDMCrosswalk
+7: Configurar EDMCrosswalk mediante xsl
+8: Rellenar skos:about de ítems con valores de autoridades
+9: Salir
+
 
 
 El primer paso instala la aplicación Askosi en el servidor. Todos los archivos necesarios los coge del directorio
@@ -137,7 +140,7 @@ packages del instalador.
 Sería necesario reiniciar el Tomcat o Dspace al realizar este paso y luego el instalador.
 
 
-El segundo paso copia el fichero de configuración de Dspace "dspace.cfg" y el de catalogación "input-forms.xml"
+El segundo paso copia el fichero de configuración de Dspace "dspace.cfg"
 a un directorio llamado work en el directorio donde está el instalador.
 Se preguntará si se quieren añadir más elementos como autoridad en dspace.cfg.
 Lo modifica con las directivas o propiedades nuevas y los deja ahí para revisión del administrador.
@@ -157,13 +160,20 @@ Esos elementos se buscan en el resto de colecciones de no autoridades para ident
 No sería necesario reiniciar el Tomcat o Dspace.
 
 
-El cuarto paso copia el archivo EDMExport.war de packages a work y lo modifica para configurarlo con la ruta al archivo
+El cuarto paso copia el fichero de catalogación "input-forms.xml"
+a un directorio llamado work en el directorio donde está el instalador.
+Lo modifica con las directivas o propiedades nuevas y los deja ahí para revisión del administrador.
+Éste es el que manualmente (como medida de seguridad) tendrá que llevarlos a Dspace.
+Sería necesario reiniciar el Tomcat o Dspace al realizar este paso y luego el instalador.
+
+
+El quinto paso copia el archivo EDMExport.war de packages a work y lo modifica para configurarlo con la ruta al archivo
 "dspace.cfg" del dspace desplegado.
 Este war se tendría que copiar manualmente luego al directorio webapps de nuestro Tomcat o a otro sitio que queramos para desplegarlo.
 Sería necesario reiniciar el Tomcat si no está configurado para desplegar de forma automática y luego el instalador.
 
 
-El quinto paso copia el archivo EDMCrosswalk.java de packages a work y el jar de la api de oai de dspace a work.
+El sexto paso copia el archivo EDMCrosswalk.java de packages a work y el jar de la api de oai de dspace a work.
 Se piden datos para parámetros exclusivos de EDM y se modifica el java:
 Se pide una url para el elemento edm.rights.
 Se piden términos para el elemento edm.types para que cuando se cree el esquema oai con los datos del ítem, sean buscados
@@ -176,7 +186,7 @@ Sería necesario reiniciar el Tomcat o Dspace al realizar este paso y luego el i
 Este paso es incompatible con el de Configurar EDMCrosswalk mediante xsl.
 
 
-El sexto paso copia el archivo de configuración de dspace "dspace.cfg" al directorio de trabajo.
+El séptimo paso copia el archivo de configuración de dspace "dspace.cfg" al directorio de trabajo.
 Se copiará el archivo DIM2EDM.xsl al directorio de trabajo.
 Se copiará el archivo "oaicat.properties" desde el directorio de configuración de dspace al directorio de trabajo.
 Se configurará el archivo DIM2EDM.xsl pidiendo valores para elementos de edm específicos:
@@ -193,7 +203,7 @@ Sería necesario reiniciar el Tomcat o Dspace al realizar este paso y luego el i
 Este paso es incompatible con el de Configurar EDMCrosswalk.
 
 
-El séptimo paso se recorrerá todas las colecciones con ítems que son autoridades para recoger los elementos dc asociados.
+El octavo paso se recorrerá todas las colecciones con ítems que son autoridades para recoger los elementos dc asociados.
 Se recorrerá todas las colecciones con ítems que no son autoridades para recoger los elementos dc que se corresponden con
 los recogidos de las autoridades.
 Si hay una coincidencia se almacenará el handle de la autoridad en el campo authority de la tabla metadatavalue de la

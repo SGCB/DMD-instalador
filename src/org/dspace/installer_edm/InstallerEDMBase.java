@@ -64,7 +64,7 @@ public abstract class InstallerEDMBase implements Observer
     protected MetadataSchema dcSchema = null;
 
     protected static ArrayList<MetadataField> metadataFields;
-    protected Set<String> elementsNotAuthSet = null;
+    protected static Set<String> elementsNotAuthSet = null;
 
     protected int currentStepGlobal;
 
@@ -117,6 +117,7 @@ public abstract class InstallerEDMBase implements Observer
             if (language == null) language = ConfigurationManager.getProperty("default.language");
             if (language == null) language = "en";
             answerYes = installerEDMDisplay.getQuestion(0, "answer.yes");
+            if (elementsNotAuthSet == null) initElementsNotAuthSet();
         } catch (SQLException e) {
             installerEDMDisplay.showLn();
             installerEDMDisplay.showQuestion(0, "step.fail");

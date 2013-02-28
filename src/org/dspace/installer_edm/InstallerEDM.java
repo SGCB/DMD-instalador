@@ -204,6 +204,20 @@ public class InstallerEDM extends InstallerEDMBase
                 }
             }
 
+            if (step == Integer.parseInt(installerEDMDisplay.getQuestion(0, "step.conf_dspace"))) {
+                installerEDMDisplay.showLn();
+                installerEDMDisplay.showTitle(step);
+                installerEDMDisplay.showLn();
+                installerEDMDisplay.showQuestion(step, "summary");
+                installerEDMDisplay.showLn();
+                if (!proceed()) {
+                    installEDM(0);
+                    return;
+                }
+                installerEDMConf = new InstallerEDMConf(Integer.parseInt(installerEDMDisplay.getQuestion(0, "step.conf_dspace")));
+                installerEDMConf.configureAll("dspace.cfg");
+            }
+
             if (step == Integer.parseInt(installerEDMDisplay.getQuestion(0, "step.auth_item"))) {
                 installerEDMDisplay.showLn();
                 installerEDMDisplay.showTitle(step);
@@ -222,7 +236,7 @@ public class InstallerEDM extends InstallerEDMBase
                 }
             }
 
-            if (step == Integer.parseInt(installerEDMDisplay.getQuestion(0, "step.conf_dspace_askosi"))) {
+            if (step == Integer.parseInt(installerEDMDisplay.getQuestion(0, "step.input_forms"))) {
                 installerEDMDisplay.showLn();
                 installerEDMDisplay.showTitle(step);
                 installerEDMDisplay.showLn();
@@ -232,8 +246,8 @@ public class InstallerEDM extends InstallerEDMBase
                     installEDM(0);
                     return;
                 }
-                installerEDMConf = new InstallerEDMConf(Integer.parseInt(installerEDMDisplay.getQuestion(0, "step.conf_dspace_askosi")));
-                installerEDMConf.configureAll();
+                installerEDMConf = new InstallerEDMConf(Integer.parseInt(installerEDMDisplay.getQuestion(0, "step.input_forms")));
+                installerEDMConf.configureAll("");
             }
 
             if (step == Integer.parseInt(installerEDMDisplay.getQuestion(0, "step.edmexport"))) {

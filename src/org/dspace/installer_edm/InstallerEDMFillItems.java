@@ -28,7 +28,6 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
     public InstallerEDMFillItems(int currentStepGlobal)
     {
         super(currentStepGlobal);
-        initElementsNotAuthSet();
         initAuthBOHashMap();
         if (authDCElements == null) authDCElements = new ArrayList<MetadataField>();
         if (cacheAuthValues == null) cacheAuthValues = new Hashtable<MetadataField, CacheAuthValues>();
@@ -51,16 +50,23 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
             if (authDCElements.size() > 0) {
                 installerEDMDisplay.showLn();
                 List<MetadataField> metadataFieldList = new ArrayList<MetadataField>();
-                int statusElementsDC = showMenuDCElements(metadataFieldList);
-                if (statusElementsDC > 0) {
-                    List<Collection> collectionList = new ArrayList<Collection>();
-                    int statusCollection = showMenuCollections(collectionList);
-                    if (statusCollection > 0) {
-                        if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "configure.traverseNonauthItems");
-                        traverseNonAuthItems(metadataFieldList, collectionList);
-                        installerEDMDisplay.showQuestion(currentStepGlobal, "configure.numItemsModified", new String[]{Integer.toString(numItemsModified)});
+                int statusElementsDC;
+                do {
+                    statusElementsDC = showMenuDCElements(metadataFieldList);
+                    if (statusElementsDC > 0) {
+                        List<Collection> collectionList = new ArrayList<Collection>();
+                        int statusCollection;
+                        do {
+                            statusCollection = showMenuCollections(collectionList);
+                            if (statusCollection > 0) {
+                                if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "configure.traverseNonauthItems");
+                                traverseNonAuthItems(metadataFieldList, collectionList);
+                                installerEDMDisplay.showQuestion(currentStepGlobal, "configure.numItemsModified", new String[]{Integer.toString(numItemsModified)});
+                            }
+                        } while (statusCollection == 0);
+                        if (statusCollection < 0) statusElementsDC = 0;
                     }
-                }
+                } while (statusElementsDC == 0);
             }
         } catch (SQLException e) {
             showException(e);
@@ -88,7 +94,7 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
             if (response.equalsIgnoreCase("a")) {
                 return 1;
             } else if (response.equalsIgnoreCase("x")) {
-                return 0;
+                return -1;
             } else {
                 String[] handles = response.split(",");
                 for (String handle : handles) {
@@ -100,7 +106,7 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
                         else collectionList.add((Collection) collection);
                     }
                 }
-                return 2;
+                return collectionList.size();
             }
         }
         return 0;
@@ -128,16 +134,22 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
             } else if (response.equalsIgnoreCase("a")) {
                 return 1;
             } else if (response.equalsIgnoreCase("x")) {
-                return 0;
+                return -1;
             } else {
                 String[] dcElements = response.split(",");
                 for (String dcElement : dcElements) {
                     MetadataField elementObj = findElementDC(dcElement);
                     if (elementObj == null) installerEDMDisplay.showQuestion(currentStepGlobal,
                             "showMenuDCElements.dcelement.notexist", new String[]{dcElement});
-                    else metadataFieldList.add(elementObj);
+                    else {
+                        String element = elementObj.getElement() + ((elementObj.getQualifier() != null)?"." + elementObj.getQualifier():"");
+                        if (elementsNotAuthSet.contains(element)) {
+                            installerEDMDisplay.showQuestion(currentStepGlobal, "showMenuDCElements.dcelement.notallowed", new String[]{element});
+                            installerEDMDisplay.showLn();
+                        } else metadataFieldList.add(elementObj);
+                    }
                 }
-                return 2;
+                return metadataFieldList.size();
             }
         }
         return 0;

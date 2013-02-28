@@ -26,11 +26,10 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
     public InstallerEDMConf(int currentStepGlobal)
     {
         super(currentStepGlobal);
-        initElementsNotAuthSet();
     }
 
 
-    public boolean configureAll()
+    public boolean configureAll(String typeConfiguration)
     {
         String dspaceDirConfName = DspaceDir + "config" + fileSeparator + "dspace.cfg";
         File dspaceDirConfFile = new File(dspaceDirConfName);
@@ -46,35 +45,38 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
             }
             try {
                 checkAllSkosAuthElements(authDCElements);
-                boolean  modified = configureDspaceCfg(dspaceDirConfFile, new File(dspaceDirConfNewFile.getAbsolutePath() + fileSeparator + "dspace.cfg"), authDCElements);
 
-                if (authDCElements.size() > 0) {
-                    String dspaceInputFormsName = DspaceDir + "config" + fileSeparator + "input-forms.xml";
-                    File dspaceInputFormsFile = new File(dspaceInputFormsName);
-
-                    if (dspaceInputFormsFile.exists() && dspaceInputFormsFile.canRead()) {
-                        if (configureInputFormsDspace(dspaceInputFormsFile, new File(dspaceDirConfNewFile.getAbsolutePath() + fileSeparator + "input-forms.xml"), authDCElements)) {
-
-                            if (AskosiDataDir != null) {
-                                File askosiDataDirFile = new File(AskosiDataDir);
-                                if (askosiDataDirFile.exists() && askosiDataDirFile.isDirectory() && askosiDataDirFile.canWrite()) {
-                                    configureAskosiVocabularies(askosiDataDirFile);
-                                    installerEDMDisplay.showLn();
-                                    installerEDMDisplay.showQuestion(currentStepGlobal, "configureAll.ok");
-                                    return true;
-                                } else {
-                                    installerEDMDisplay.showQuestion(currentStepGlobal, "configureAll.AskosiDataDir.notexist", new String[]{AskosiDataDir});
-                                }
-                            } else installerEDMDisplay.showQuestion(currentStepGlobal, "configureAll.AskosiDataDir.notexist");
-                        }
-                    } else installerEDMDisplay.showQuestion(currentStepGlobal, "configureAll.inputforms.notexist", new String[]{dspaceInputFormsName});
+                if (typeConfiguration.equals("dspace.cfg")) {
+                    if (configureDspaceCfg(dspaceDirConfFile, new File(dspaceDirConfNewFile.getAbsolutePath() + fileSeparator + "dspace.cfg"), authDCElements)) {
+                        installerEDMDisplay.showLn();
+                        installerEDMDisplay.showQuestion(currentStepGlobal, "configureAll.restart", new String[]{myInstallerWorkDirPath});
+                    }
                 } else {
-                    installerEDMDisplay.showLn();
-                    installerEDMDisplay.showQuestion(currentStepGlobal, "configureAll.notauthdcelements");
-                }
-                if (modified) {
-                    installerEDMDisplay.showLn();
-                    installerEDMDisplay.showQuestion(currentStepGlobal, "configureAll.restart", new String[]{myInstallerWorkDirPath});
+
+                    if (authDCElements.size() > 0) {
+                        String dspaceInputFormsName = DspaceDir + "config" + fileSeparator + "input-forms.xml";
+                        File dspaceInputFormsFile = new File(dspaceInputFormsName);
+
+                        if (dspaceInputFormsFile.exists() && dspaceInputFormsFile.canRead()) {
+                            if (configureInputFormsDspace(dspaceInputFormsFile, new File(dspaceDirConfNewFile.getAbsolutePath() + fileSeparator + "input-forms.xml"), authDCElements)) {
+
+                                if (AskosiDataDir != null) {
+                                    File askosiDataDirFile = new File(AskosiDataDir);
+                                    if (askosiDataDirFile.exists() && askosiDataDirFile.isDirectory() && askosiDataDirFile.canWrite()) {
+                                        configureAskosiVocabularies(askosiDataDirFile);
+                                        installerEDMDisplay.showLn();
+                                        installerEDMDisplay.showQuestion(currentStepGlobal, "configureAll.ok");
+                                        return true;
+                                    } else {
+                                        installerEDMDisplay.showQuestion(currentStepGlobal, "configureAll.AskosiDataDir.notexist", new String[]{AskosiDataDir});
+                                    }
+                                } else installerEDMDisplay.showQuestion(currentStepGlobal, "configureAll.AskosiDataDir.notexist");
+                            }
+                        } else installerEDMDisplay.showQuestion(currentStepGlobal, "configureAll.inputforms.notexist", new String[]{dspaceInputFormsName});
+                    } else {
+                        installerEDMDisplay.showLn();
+                        installerEDMDisplay.showQuestion(currentStepGlobal, "configureAll.notauthdcelements");
+                    }
                 }
             } catch (SQLException e) {
                 showException(e);

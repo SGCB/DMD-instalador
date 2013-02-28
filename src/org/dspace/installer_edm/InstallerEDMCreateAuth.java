@@ -34,7 +34,6 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
     public InstallerEDMCreateAuth(int currentStepGlobal)
     {
         super(currentStepGlobal);
-        initElementsNotAuthSet();
         initAuthBOHashMap();
     }
 
@@ -131,6 +130,10 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                         element = elementObj.getElement() + ((elementObj.getQualifier() != null)?"." + elementObj.getQualifier():"");
                         if (!metadataAuthorityManager.isAuthorityControlled(dcSchema.getName(), elementObj.getElement(), elementObj.getQualifier())) {
                             installerEDMDisplay.showQuestion(currentStepGlobal, "createElementAuth.element.nonauthcontrolled", new String[]{element});
+                            installerEDMDisplay.showLn();
+                            element = null;
+                        } else if (elementsNotAuthSet.contains(element)) {
+                            installerEDMDisplay.showQuestion(currentStepGlobal, "createElementAuth.element.notallowed", new String[]{element});
                             installerEDMDisplay.showLn();
                             element = null;
                         } else {
