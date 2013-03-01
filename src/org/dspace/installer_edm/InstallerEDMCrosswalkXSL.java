@@ -145,7 +145,7 @@ public class InstallerEDMCrosswalkXSL extends InstallerEDMBase
     public void writeOaiCat() throws IOException
     {
         Writer out = null;
-        String edm = "##" +  getTime() + " Appended by installerEDM\nCrosswalks.edm=org.dspace.app.oai.PluginCrosswalk\n";
+        String edm = "\n\n##" +  getTime() + " Appended by installerEDM\nCrosswalks.edm=org.dspace.app.oai.PluginCrosswalk\n";
         try {
             out = new OutputStreamWriter(new FileOutputStream(oaicatNewFile, true));
             out.write(edm);
@@ -163,7 +163,7 @@ public class InstallerEDMCrosswalkXSL extends InstallerEDMBase
     public void writeDspaceCfg() throws IOException
     {
         Writer out = null;
-        StringBuilder edmSB = new StringBuilder("##\n").append("## Configure XSLT-driven submission crosswalk for Partial EDM\n").append("## ").append(getTime()).append(" Appended by installerEDM\n").append("##\n");
+        StringBuilder edmSB = new StringBuilder("\n\n##\n").append("## Configure XSLT-driven submission crosswalk for Partial EDM\n").append("## ").append(getTime()).append(" Appended by installerEDM\n").append("##\n");
         edmSB.append("crosswalk.dissemination.edm.stylesheet = crosswalks/DIM2EDM.xsl\n");
         edmSB.append("crosswalk.dissemination.edm.namespace.dcterms=http://purl.org/dc/terms/\n");
         edmSB.append("crosswalk.dissemination.edm.namespace.edm=http://www.europeana.eu/schemas/edm/\n");
