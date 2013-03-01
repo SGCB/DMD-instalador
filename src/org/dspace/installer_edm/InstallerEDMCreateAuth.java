@@ -191,12 +191,14 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
             int numItemsModified = 0;
             String element = elementObj.getElement() + ((elementObj.getQualifier() != null)?"." + elementObj.getQualifier():"");
             Collection[] listCollections = Collection.findAll(context);
+
             for (Collection collection : listCollections) {
                 if (collection.getID() == collectionObj.getID()) continue;
                 Community[] listCommunities = collection.getCommunities();
                 if (communityObj.getID() == listCommunities[0].getID()) continue;
                 if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "fillAuthItems.getitems", new String[]{collection.getName()});
                 ItemIterator iter = collection.getAllItems();
+
                 while (iter.hasNext()) {
                     Item item = iter.next();
                     if (searchSkosAuthItem(item)) continue;

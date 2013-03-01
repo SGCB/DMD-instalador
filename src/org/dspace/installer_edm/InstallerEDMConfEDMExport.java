@@ -1,5 +1,6 @@
 package org.dspace.installer_edm;
 
+import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 
@@ -35,6 +36,7 @@ public class InstallerEDMConfEDMExport extends InstallerEDMBase
     private File eDMExportWarWorkFile;
     private JarFile eDMExportWarJarFile;
     private Document eDMExportDocument;
+    private File dspaceApi = null;
 
     private static final String xpathDspaceConfigTemplate = "//*[contains(*,\"dspace-config\")]";
 
@@ -109,6 +111,7 @@ public class InstallerEDMConfEDMExport extends InstallerEDMBase
                                 } while (true);
                                 Text text = eDMExportDocument.createTextNode(dspaceCfgFile.getAbsolutePath());
                                 valueParam.replaceChild(text, valueParam.getFirstChild());
+                                findDspaceApi();
                                 writeNewJar();
                                 eDMExportWarJarFile = new JarFile(eDMExportWarWorkFile);
                                 installerEDMDisplay.showLn();
@@ -137,6 +140,20 @@ public class InstallerEDMConfEDMExport extends InstallerEDMBase
     }
 
 
+    private void findDspaceApi()
+    {
+        File dspaceLib = new File(DspaceDir + "lib");
+        if (dspaceLib.isDirectory() && dspaceLib.canRead()) {
+            FileFilter fileFilter = new RegexFileFilter("^dspace-api-\\d+.+\\.jar$");
+            File[] files = dspaceLib.listFiles(fileFilter);
+            if (files.length > 0) {
+                dspaceApi = files[0];
+                if (debug) installerEDMDisplay.showQuestion(currentStepGlobal, "replaceDspaceApi.dspaceApi", new String[]{dspaceApi.getAbsolutePath()});
+            } else installerEDMDisplay.showQuestion(currentStepGlobal, "replaceDspaceApi.notmatch", new String[]{dspaceLib.getAbsolutePath(), "dspace-api-\\d+.+\\.jar"});
+        } else installerEDMDisplay.showQuestion(currentStepGlobal, "replaceDspaceApi.notdir", new String[]{DspaceDir + "lib"});
+    }
+
+
     private void writeNewJar() throws IOException, TransformerException
     {
         final int BUFFER_SIZE = 1024;
@@ -147,14 +164,34 @@ public class InstallerEDMConfEDMExport extends InstallerEDMBase
 
         try {
             Enumeration<JarEntry> entries = eDMExportWarJarFile.entries();
+            boolean newApiCopied = false;
+            if (dspaceApi == null) newApiCopied = true;
             while (entries.hasMoreElements()) {
                 installerEDMDisplay.showProgress('.');
                 JarEntry entry = entries.nextElement();
+                InputStream intputStream;
                 if (!entry.getName().equals("WEB-INF/web.xml")) {
-                    JarEntry entryOld = new JarEntry(entry);
-                    entryOld.setCompressedSize(-1);
-                    jarOutputStream.putNextEntry(entryOld);
-                    InputStream intputStream = eDMExportWarJarFile.getInputStream(entry);
+                    if (!newApiCopied && entry.getName().matches("^WEB-INF/lib/dspace-api-\\d+.+\\.jar$")) {
+                        JarEntry newJarEntry = new JarEntry("WEB-INF/lib/" + dspaceApi.getName());
+                        newJarEntry.setCompressedSize(-1);
+                        jarOutputStream.putNextEntry(newJarEntry);
+                        intputStream = new FileInputStream(dspaceApi);
+                        newApiCopied = true;
+                        if (debug) {
+                            installerEDMDisplay.showLn();
+                            installerEDMDisplay.showQuestion(currentStepGlobal, "writeNewJar.replace", new String[]{entry.getName(), "WEB-INF/lib/" + dspaceApi.getName(), dspaceApi.getAbsolutePath()});
+                            installerEDMDisplay.showLn();
+                        }
+                    } else {
+                        JarEntry entryOld = new JarEntry(entry);
+                        entryOld.setCompressedSize(-1);
+                        jarOutputStream.putNextEntry(entryOld);
+                        intputStream = eDMExportWarJarFile.getInputStream(entry);
+                    }
+                    if (intputStream == null) {
+                        if (debug) installerEDMDisplay.showQuestion(currentStepGlobal, "writeNewJar.notIS", new String[]{entry.getName()});
+                        continue;
+                    }
                     int count;
                     byte data[] = new byte[BUFFER_SIZE];
                     while ((count = intputStream.read(data, 0, BUFFER_SIZE)) != -1) {
