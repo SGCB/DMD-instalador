@@ -66,7 +66,7 @@ public class InstallerEDMCrosswalk extends InstallerEDMBase
 
     private boolean checkOaiApiJar() throws IOException
     {
-        if (oaiApiJarFile == null || !oaiApiJarFile.exists() || !oaiApiJarFile.isFile() || !oaiApiJarFile.canWrite()) {
+        if (oaiApiJarFile == null || !oaiApiJarFile.exists() || !oaiApiJarFile.isFile() || !oaiApiJarFile.canRead()) {
             installerEDMDisplay.showQuestion(currentStepGlobal, "checkOaiApiJar.notexists", new String[]{((oaiApiJarName == null)?"dspace-oai-api":oaiApiJarName)});
             installerEDMDisplay.showQuestion(currentStepGlobal, "checkOaiApiJar.newjar");
             String response = null;
