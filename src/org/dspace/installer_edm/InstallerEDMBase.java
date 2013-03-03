@@ -14,10 +14,7 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -77,6 +74,7 @@ public abstract class InstallerEDMBase implements Observer
     protected static String dbName = null;
 
     protected static MetadataAuthorityManager metadataAuthorityManager = null;
+    protected static Set<String> elementsAuthDspaceCfg = null;
 
 
     protected static HashMap<String, InstallerEDMAuthBO> authBOHashMap;
@@ -114,6 +112,7 @@ public abstract class InstallerEDMBase implements Observer
             if (myInstallerWorkDirPath == null) myInstallerWorkDirPath = myInstallerDirPath + fileSeparator + "work";
             File myInstallerWorkDirFile = new File(myInstallerWorkDirPath);
             if (!myInstallerWorkDirFile.exists()) myInstallerWorkDirFile.mkdir();
+            if (elementsAuthDspaceCfg == null) loadAuthDspaceCfg();
             checkDspaceDC();
             if (language == null) language = ConfigurationManager.getProperty("default.language");
             if (language == null) language = "en";
@@ -402,6 +401,24 @@ public abstract class InstallerEDMBase implements Observer
         System.out.println("");
     }
 
+    protected void listAllStrings(List<String> list)
+    {
+        int i = 1;
+        for (String element : list) {
+            int padding = 80 - element.length();
+            if (i % 2 == 1) {
+                System.out.printf("%s%" + padding + "s", element, " ");
+            } else {
+                System.out.printf("%s", element);
+                System.out.printf("%n");
+            }
+            i++;
+        }
+        System.out.flush();
+        System.out.println("");
+        System.out.println("");
+    }
+
 
     protected void copyDspaceFile2Work(File dspaceFileFile, File dspaceFileNewFile, String prefixMessage) throws IOException
     {
@@ -422,6 +439,53 @@ public abstract class InstallerEDMBase implements Observer
             } while (true);
         }
         org.apache.commons.io.FileUtils.copyFile(dspaceFileFile, dspaceFileNewFile);
+    }
+
+
+    protected void loadAuthDspaceCfg()
+    {
+        elementsAuthDspaceCfg = new HashSet<String>();
+        Properties properties = new Properties();
+        InputStream is = null;
+        try {
+            String name = ConfigurationManager.getProperty("dspace.dir") + "/config/dspace.cfg";
+            File file = new File(name);
+            if (file.exists() && file.canRead()) {
+                is = file.toURI().toURL().openStream();
+                properties.load(is);
+                for (Enumeration pe = properties.propertyNames(); pe.hasMoreElements(); ) {
+                    String key = (String)pe.nextElement();
+                    if (key.startsWith("authority.controlled.")) {
+                        String field = key.substring("authority.controlled.".length());
+                        int dot = field.indexOf(46);
+                        if (dot < 0) continue;
+                        String schema = field.substring(0, dot);
+                        String element = field.substring(dot + 1);
+                        String qualifier = null;
+                        dot = element.indexOf(46);
+                        if (dot >= 0) {
+                            qualifier = element.substring(dot + 1);
+                            element = element.substring(0, dot);
+                        }
+                        StringBuilder fkeySB = new StringBuilder(element);
+                        if (qualifier != null) fkeySB.append(".").append(qualifier);
+                        String fkey = fkeySB.toString();
+                        if (ConfigurationManager.getBooleanProperty(key, true))
+                            elementsAuthDspaceCfg.add(fkey);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            showException(e);
+        } finally {
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    showException(e);
+                }
+            }
+        }
     }
 
 

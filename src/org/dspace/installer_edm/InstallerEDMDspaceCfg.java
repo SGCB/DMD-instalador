@@ -259,6 +259,8 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
         String choice = new StringBuilder().append("\nchoices.plugin.").append(dcSchema.getName()).append(".").append(element).append(" = ASKOSI\n").append("choices.presentation.").append(dcSchema.getName()).append(".").append(element).append(" = lookup\n").append("authority.controlled.").append(dcSchema.getName()).append(".").append(element).append(" = true")
                 .toString();
         try {
+            String element2 = new StringBuilder("\n\n# ").append(getTime()).append(" Appended by installerEDM to add the ").append(dcSchema.getName()).append(".").append(element).append("\n").toString();
+            out.write(element2);
             out.write(choice);
         } catch (IOException e) {
             showException(e);

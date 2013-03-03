@@ -45,6 +45,10 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
             }
             try {
                 checkAllSkosAuthElements(authDCElements);
+                installerEDMDisplay.showLn();
+                installerEDMDisplay.showQuestion(currentStepGlobal, "configureAll.listAuth");
+                listAllDCElements(authDCElements);
+                installerEDMDisplay.showLn();
 
                 if (typeConfiguration.equals("dspace.cfg")) {
                     if (configureDspaceCfg(dspaceDirConfFile, new File(dspaceDirConfNewFile.getAbsolutePath() + fileSeparator + "dspace.cfg"), authDCElements)) {
@@ -60,8 +64,26 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
                         if (dspaceInputFormsFile.exists() && dspaceInputFormsFile.canRead()) {
                             if (configureInputFormsDspace(dspaceInputFormsFile, new File(dspaceDirConfNewFile.getAbsolutePath() + fileSeparator + "input-forms.xml"), authDCElements)) {
 
+                                installerEDMDisplay.showLn();
+                                installerEDMDisplay.showQuestion(currentStepGlobal,
+                                        "configureAll.askosiVocabularies");
+                                File askosiDataDirFile = null;
+                                if (AskosiDataDir == null) {
+                                    String response = null;
+                                    do {
+                                        installerEDMDisplay.showQuestion(currentStepGlobal, "configureAll.AskosiDataDir");
+                                        response = br.readLine();
+                                        if (response == null || response.length() == 0) continue;
+                                        response = response.trim();
+                                        askosiDataDirFile = new File(response);
+                                        if (askosiDataDirFile.exists()) {
+                                            AskosiDataDir = askosiDataDirFile.getAbsolutePath();
+                                            break;
+                                        }
+                                    } while (true);
+                                }
                                 if (AskosiDataDir != null) {
-                                    File askosiDataDirFile = new File(AskosiDataDir);
+                                    if (askosiDataDirFile == null) askosiDataDirFile = new File(AskosiDataDir);
                                     if (askosiDataDirFile.exists() && askosiDataDirFile.isDirectory() && askosiDataDirFile.canWrite()) {
                                         configureAskosiVocabularies(askosiDataDirFile);
                                         installerEDMDisplay.showLn();

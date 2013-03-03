@@ -1,22 +1,19 @@
 package org.dspace.installer_edm;
 
-import org.dspace.authenticate.AuthenticationManager;
+import com.sun.jndi.toolkit.dir.ContextEnumerator;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.AuthorizeManager;
 import org.dspace.content.*;
-import org.dspace.content.authority.MetadataAuthorityManager;
+import org.dspace.content.Collection;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
-import org.dspace.core.Context;
-import org.dspace.eperson.EPerson;
 import org.dspace.handle.HandleManager;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Observable;
-import java.util.Observer;
+import java.util.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -78,7 +75,13 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                 if (response.equalsIgnoreCase("a")) {
                     installerEDMDisplay.showQuestion(currentStepGlobal, "createAuth.listauth");
                     listAllDCElements(authDCElements);
-                    if (authDCElements.size() == 0) installerEDMDisplay.showQuestion(currentStepGlobal, "createAuth.notauthdcelements");
+                    if (authDCElements.size() == 0) {
+                        installerEDMDisplay.showQuestion(currentStepGlobal, "createAuth.notauthdcelements");
+                        installerEDMDisplay.showLn();
+                    }
+                } else if (response.equalsIgnoreCase("d")) {
+                    installerEDMDisplay.showQuestion(currentStepGlobal, "createAuth.listauth.dspace");
+                    listAllStrings(new ArrayList<String>(elementsAuthDspaceCfg));
                 } else if (response.equalsIgnoreCase("l")) {
                     installerEDMDisplay.showQuestion(currentStepGlobal, "createAuth.listdc");
                     listAllDCElements(metadataFields);
@@ -128,7 +131,7 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                     if (elementObj == null) installerEDMDisplay.showQuestion(currentStepGlobal, "createElementAuth.element.notexist", new String[]{response});
                     else {
                         element = elementObj.getElement() + ((elementObj.getQualifier() != null)?"." + elementObj.getQualifier():"");
-                        if (!metadataAuthorityManager.isAuthorityControlled(dcSchema.getName(), elementObj.getElement(), elementObj.getQualifier())) {
+                        if (!metadataAuthorityManager.isAuthorityControlled(dcSchema.getName(), elementObj.getElement(), elementObj.getQualifier()) && !elementsAuthDspaceCfg.contains(element)) {
                             installerEDMDisplay.showQuestion(currentStepGlobal, "createElementAuth.element.nonauthcontrolled", new String[]{element});
                             installerEDMDisplay.showLn();
                             element = null;
@@ -165,7 +168,7 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
             if (step == 4 && element != null && community != null && collection != null) {
                 if (!authDCElements.contains(elementObj)) authDCElements.add(elementObj);
                 do {
-                    installerEDMDisplay.showQuestion(currentStepGlobal, "createElementAuth.create", new String[] {community, collection});
+                    installerEDMDisplay.showQuestion(currentStepGlobal, "createElementAuth.create", new String[] {community, collection, language});
                     response = null;
                     try {
                         response = br.readLine();

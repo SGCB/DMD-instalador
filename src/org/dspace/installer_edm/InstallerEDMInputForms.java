@@ -127,7 +127,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
         XPath xpathInputForms = XPathFactory.newInstance().newXPath();
         NodeList resultsInputForms = (NodeList)xpathInputForms.evaluate(xpathInputFormsTemplate, docInputForms, XPathConstants.NODESET);
         if (resultsInputForms.getLength() == 0) {
-            System.out.println("No " + xpathInputFormsTemplate);
+            if (debug) System.out.println("No " + xpathInputFormsTemplate);
             return false;
         } else inputFormsElement = (Element) resultsInputForms.item(0);
 
@@ -135,7 +135,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
         XPath xpathFormMap = XPathFactory.newInstance().newXPath();
         NodeList resultsFormMap = (NodeList)xpathFormMap.evaluate(xpathFormMapTemplate, docInputForms, XPathConstants.NODESET);
         if (resultsFormMap.getLength() == 0) {
-            System.out.println("No " + xpathFormMapTemplate);
+            if (debug) System.out.println("No " + xpathFormMapTemplate);
             formMapElement = docInputForms.createElement("form-map");
             inputFormsElement.appendChild(formMapElement);
         } else formMapElement = (Element) resultsFormMap.item(0);
@@ -144,7 +144,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
         XPath xpathFormDefinitions = XPathFactory.newInstance().newXPath();
         NodeList resultsFormDefinitions = (NodeList)xpathFormDefinitions.evaluate(xpathFormDefinitionsTemplate, docInputForms, XPathConstants.NODESET);
         if (resultsFormDefinitions.getLength() == 0) {
-            System.out.println("No " + xpathFormDefinitionsTemplate);
+            if (debug) System.out.println("No " + xpathFormDefinitionsTemplate);
             Comment simpleComment = docInputForms.createComment(getTime() + " Appended by installerEDM to add the form definitions");
             formDefinitionsElement = docInputForms.createElement("form-definitions");
             inputFormsElement.appendChild(simpleComment);
@@ -160,7 +160,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
             String xpathFormMapNameExpression = String.format(xpathFormMapNameTemplate, new Object[] { handle });
             NodeList resultsFormMapName = (NodeList)xpathFormMapName.evaluate(xpathFormMapNameExpression, docInputForms, XPathConstants.NODESET);
             if (resultsFormMapName.getLength() == 0) {
-                System.out.println("No " + xpathFormMapNameExpression);
+                if (debug) System.out.println("No " + xpathFormMapNameExpression);
                 Comment simpleComment = docInputForms.createComment(getTime() + " Appended by installerEDM to add the form map " + handle + ":" + name);
                 Element elem = addFormMap(handle, name);
                 formMapElement.appendChild(simpleComment);
@@ -183,7 +183,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
             String xpathFormNameExpression = String.format(xpathFormNameTemplate, new Object[] { name });
             NodeList resultsFormName = (NodeList)xpathFormMap.evaluate(xpathFormNameExpression, docInputForms, XPathConstants.NODESET);
             if (resultsFormName.getLength() == 0) {
-                System.out.println("No " + xpathFormNameExpression);
+                if (debug) System.out.println("No " + xpathFormNameExpression);
                 Comment simpleComment = docInputForms.createComment(getTime() + " Appended by installerEDM to add the form " + name);
                 formNameElement = addFormName(name);
                 formDefinitionsElement.appendChild(simpleComment);
