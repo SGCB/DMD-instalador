@@ -113,7 +113,8 @@ public class InstallerEDMAskosiVocabularies extends InstallerEDMBase
         File vocabularyCfgFile = new File(vocabularyCfg);
         Properties properties = null;
         StringBuilder sql = new StringBuilder();
-        sql.append("SELECT hi.handle AS about, lower(substring(m.text_lang from 1 for 2)) AS lang, m.text_value AS label FROM metadatavalue m, item i, collection2item c, handle h, handle hi WHERE h.handle='");
+        String sqlSubstring = (dbName.equalsIgnoreCase("oracle"))?"substr(m.ext_lang, 1, 2)":"substring(m.text_lang from 1 for 2)";
+        sql.append("SELECT hi.handle AS about, lower(").append(sqlSubstring).append(" AS lang, m.text_value AS label FROM metadatavalue m, item i, collection2item c, handle h, handle hi WHERE h.handle='");
         sql.append(handle);
         sql.append("' AND c.collection_id=h.resource_id AND i.item_id=c.item_id AND m.item_id=i.item_id AND hi.resource_type_id=2 AND hi.resource_id=i.item_id AND m.metadata_field_id=(SELECT f.metadata_field_id FROM metadatafieldregistry f WHERE f.metadata_schema_id=1 AND f.element='");
         sql.append(entry.getValue().getMetadataField().getElement());
@@ -124,7 +125,8 @@ public class InstallerEDMAskosiVocabularies extends InstallerEDMBase
             sql.append(entry.getValue().getMetadataField().getQualifier());
             sql.append("'");
         }
-        sql.append(") ORDER BY m.text_value");
+        String sqlOrder = (dbName.equalsIgnoreCase("oracle"))?"to_char(m.text_value)":"m.text_value";
+        sql.append(") ORDER BY ").append(sqlOrder);
         String query = sql.toString();
         if (vocabularyCfgFile.exists()) {
             properties = new Properties();

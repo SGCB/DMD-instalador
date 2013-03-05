@@ -168,6 +168,21 @@ public class InstallerEDMInputForms extends InstallerEDMBase
                 modified = true;
             }
 
+            installerEDMDisplay.showLn();
+            installerEDMDisplay.showQuestion(currentStepGlobal, "readInputFormsDspace.configure.element.form", new String[] {entry.getKey(), name});
+            String response = null;
+            boolean configureForm = false;
+            do {
+                response = br.readLine();
+                if (response == null) continue;
+                response = response.trim();
+                if (!response.isEmpty() && response.equalsIgnoreCase(answerYes)) {
+                    configureForm = true;
+                }
+                break;
+            } while (true);
+            if (!configureForm) continue;
+            installerEDMDisplay.showLn();
             installerEDMDisplay.showQuestion(currentStepGlobal, "readInputFormsDspace.element.page", new String[] {entry.getKey(), name});
             String pageResp = null;
             do {
@@ -295,9 +310,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
                     response = br.readLine();
                     if (response == null) continue;
                     response = response.trim();
-                    if (!response.isEmpty()) {
-                        break;
-                    }
+                    break;
                 } while (true);
                 if (response.equals(answerYes)) {
                     Text text = docInputForms.createTextNode(vocabulary);
