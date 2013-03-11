@@ -37,6 +37,7 @@ public class InstallerEDMConfEDMExport extends InstallerEDMBase
     private JarFile eDMExportWarJarFile;
     private Document eDMExportDocument;
     private File dspaceApi = null;
+    private File luceneCoreLib = null;
 
     private static final String xpathDspaceConfigTemplate = "//*[contains(*,\"dspace-config\")]";
 
@@ -112,6 +113,7 @@ public class InstallerEDMConfEDMExport extends InstallerEDMBase
                                 Text text = eDMExportDocument.createTextNode(dspaceCfgFile.getAbsolutePath());
                                 valueParam.replaceChild(text, valueParam.getFirstChild());
                                 findDspaceApi();
+                                findLuceneLib();
                                 writeNewJar();
                                 eDMExportWarJarFile = new JarFile(eDMExportWarWorkFile);
                                 installerEDMDisplay.showLn();
@@ -154,6 +156,20 @@ public class InstallerEDMConfEDMExport extends InstallerEDMBase
     }
 
 
+    private void findLuceneLib()
+    {
+        File dspaceLib = new File(DspaceDir + "lib");
+        if (dspaceLib.isDirectory() && dspaceLib.canRead()) {
+            FileFilter fileFilter = new RegexFileFilter("^lucene-core-\\d+.+\\.jar$");
+            File[] files = dspaceLib.listFiles(fileFilter);
+            if (files.length > 0) {
+                luceneCoreLib = files[0];
+                if (debug) installerEDMDisplay.showQuestion(currentStepGlobal, "replaceLuceneCoreLib.luceneCoreLib", new String[]{luceneCoreLib.getAbsolutePath()});
+            } else installerEDMDisplay.showQuestion(currentStepGlobal, "replaceLuceneCoreLib.notmatch", new String[]{dspaceLib.getAbsolutePath(), "lucene-core-\\d+.+\\.jar"});
+        } else installerEDMDisplay.showQuestion(currentStepGlobal, "replaceLuceneCoreLib.notdir", new String[]{DspaceDir + "lib"});
+    }
+
+
     private void writeNewJar() throws IOException, TransformerException
     {
         final int BUFFER_SIZE = 1024;
@@ -165,7 +181,9 @@ public class InstallerEDMConfEDMExport extends InstallerEDMBase
         try {
             Enumeration<JarEntry> entries = eDMExportWarJarFile.entries();
             boolean newApiCopied = false;
+            boolean newLuceneCopied = false;
             if (dspaceApi == null) newApiCopied = true;
+            if (luceneCoreLib == null) newLuceneCopied = true;
             while (entries.hasMoreElements()) {
                 installerEDMDisplay.showProgress('.');
                 JarEntry entry = entries.nextElement();
@@ -180,6 +198,17 @@ public class InstallerEDMConfEDMExport extends InstallerEDMBase
                         if (debug) {
                             installerEDMDisplay.showLn();
                             installerEDMDisplay.showQuestion(currentStepGlobal, "writeNewJar.replace", new String[]{entry.getName(), "WEB-INF/lib/" + dspaceApi.getName(), dspaceApi.getAbsolutePath()});
+                            installerEDMDisplay.showLn();
+                        }
+                    } else if (!newLuceneCopied && entry.getName().matches("^WEB-INF/lib/lucene-core-\\d+.+\\.jar$")) {
+                        JarEntry newJarEntry = new JarEntry("WEB-INF/lib/" + luceneCoreLib.getName());
+                        newJarEntry.setCompressedSize(-1);
+                        jarOutputStream.putNextEntry(newJarEntry);
+                        intputStream = new FileInputStream(luceneCoreLib);
+                        newLuceneCopied = true;
+                        if (debug) {
+                            installerEDMDisplay.showLn();
+                            installerEDMDisplay.showQuestion(currentStepGlobal, "writeNewJar.replace", new String[]{entry.getName(), "WEB-INF/lib/" + luceneCoreLib.getName(), luceneCoreLib.getAbsolutePath()});
                             installerEDMDisplay.showLn();
                         }
                     } else {
