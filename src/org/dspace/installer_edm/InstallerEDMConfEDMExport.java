@@ -189,21 +189,39 @@ public class InstallerEDMConfEDMExport extends InstallerEDMBase
             Pattern luceneLibPattern = Pattern.compile("^WEB-INF/lib/(lucene-.+?)-\\d+.+\\.jar$");
             boolean newApiCopied = false;
             if (dspaceApi == null) newApiCopied = true;
+            boolean replace = false;
             while (entries.hasMoreElements()) {
+                replace = false;
                 installerEDMDisplay.showProgress('.');
                 JarEntry entry = entries.nextElement();
                 InputStream intputStream = null;
                 if (!entry.getName().equals("WEB-INF/web.xml")) {
                     if (!newApiCopied && entry.getName().matches("^WEB-INF/lib/dspace-api-\\d+.+\\.jar$")) {
-                        JarEntry newJarEntry = new JarEntry("WEB-INF/lib/" + dspaceApi.getName());
-                        newJarEntry.setCompressedSize(-1);
-                        jarOutputStream.putNextEntry(newJarEntry);
-                        intputStream = new FileInputStream(dspaceApi);
-                        newApiCopied = true;
-                        if (debug) {
+                        String response = null;
+                        do {
                             installerEDMDisplay.showLn();
-                            installerEDMDisplay.showQuestion(currentStepGlobal, "writeNewJar.replace", new String[]{entry.getName(), "WEB-INF/lib/" + dspaceApi.getName(), dspaceApi.getAbsolutePath()});
-                            installerEDMDisplay.showLn();
+                            installerEDMDisplay.showQuestion(currentStepGlobal, "writeNewJar.replace.question", new String[]{entry.getName(), "WEB-INF/lib/" + dspaceApi.getName(), dspaceApi.getAbsolutePath()});
+                            response = br.readLine();
+                            if (response == null) continue;
+                            response = response.trim();
+                            if (response.isEmpty() || response.equalsIgnoreCase(answerYes)) {
+                                replace = true;
+                                break;
+                            } else if (response.equalsIgnoreCase("n")) {
+                                break;
+                            }
+                        } while (true);
+                        if (replace) {
+                            JarEntry newJarEntry = new JarEntry("WEB-INF/lib/" + dspaceApi.getName());
+                            newJarEntry.setCompressedSize(-1);
+                            jarOutputStream.putNextEntry(newJarEntry);
+                            intputStream = new FileInputStream(dspaceApi);
+                            newApiCopied = true;
+                            if (debug) {
+                                installerEDMDisplay.showLn();
+                                installerEDMDisplay.showQuestion(currentStepGlobal, "writeNewJar.replace", new String[]{entry.getName(), "WEB-INF/lib/" + dspaceApi.getName(), dspaceApi.getAbsolutePath()});
+                                installerEDMDisplay.showLn();
+                            }
                         }
                     } else {
                         Matcher luceneLibMatcher = luceneLibPattern.matcher(entry.getName());
@@ -218,17 +236,33 @@ public class InstallerEDMConfEDMExport extends InstallerEDMBase
                                 }
                             }
                             if (luceneLibFile != null) {
-                                JarEntry newJarEntry = new JarEntry("WEB-INF/lib/" + luceneLibFile.getName());
-                                newJarEntry.setCompressedSize(-1);
-                                jarOutputStream.putNextEntry(newJarEntry);
-                                intputStream = new FileInputStream(luceneLibFile);
-                                if (debug) {
+                                String response = null;
+                                do {
                                     installerEDMDisplay.showLn();
-                                    installerEDMDisplay.showQuestion(currentStepGlobal, "writeNewJar.replace", new String[]{entry.getName(), "WEB-INF/lib/" + luceneLibFile.getName(), luceneLibFile.getAbsolutePath()});
-                                    installerEDMDisplay.showLn();
+                                    installerEDMDisplay.showQuestion(currentStepGlobal, "writeNewJar.replace.question", new String[]{entry.getName(), "WEB-INF/lib/" + luceneLibFile.getName(), luceneLibFile.getAbsolutePath()});
+                                    response = br.readLine();
+                                    if (response == null) continue;
+                                    response = response.trim();
+                                    if (response.isEmpty() || response.equalsIgnoreCase(answerYes)) {
+                                        replace = true;
+                                        break;
+                                    } else if (response.equalsIgnoreCase("n")) {
+                                        break;
+                                    }
+                                } while (true);
+                                if (replace) {
+                                    JarEntry newJarEntry = new JarEntry("WEB-INF/lib/" + luceneLibFile.getName());
+                                    newJarEntry.setCompressedSize(-1);
+                                    jarOutputStream.putNextEntry(newJarEntry);
+                                    intputStream = new FileInputStream(luceneLibFile);
+                                    if (debug) {
+                                        installerEDMDisplay.showLn();
+                                        installerEDMDisplay.showQuestion(currentStepGlobal, "writeNewJar.replace", new String[]{entry.getName(), "WEB-INF/lib/" + luceneLibFile.getName(), luceneLibFile.getAbsolutePath()});
+                                        installerEDMDisplay.showLn();
+                                    }
                                 }
                             }
-                        } else {
+                        } else if (!replace) {
                             JarEntry entryOld = new JarEntry(entry);
                             entryOld.setCompressedSize(-1);
                             jarOutputStream.putNextEntry(entryOld);
