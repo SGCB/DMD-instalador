@@ -13,22 +13,61 @@ import org.dspace.storage.rdbms.TableRowIterator;
 import java.io.IOException;
 import java.sql.SQLException;
 
+/**
+ * @class InstallerEDMDAO
+ * Clase para sustituir aplgnas llamadas de la api de dspace que no funcionan bien o para implementar nuevas
+ *
+ */
+
 public class InstallerEDMDAO
 {
+    /**
+     * Contexto de dspace {@link Context}
+     */
     private static Context context = null;
+
+    /**
+     * Nombre de la base de datos
+     */
     private static String dbName = null;
 
+
+    /**
+     * Asignar contexto nuevo
+     *
+     * @param context Contexto de dspace {@link Context}
+     */
     public static void setContext(Context context)
     {
         InstallerEDMDAO.context = context;
     }
 
+    /**
+     * Asignar nuevo nombre de la base de datos
+     *
+     * @param dbName Nombre de la base de datos
+     */
     public static void setDbName(String dbName)
     {
         InstallerEDMDAO.dbName = dbName;
     }
 
 
+    /**
+     * Busca en la base de datos de dspace ítems con un elemento dc determinado y con un valor suministrado
+     * Si es oracle llama al método especial, si es Postgres llama al de la api de dspace
+     * Debido a que en ORACLE el campo text_value es de tipo CLOB, no se puede comparar directamente con una cadena
+     * hay que hacer una conversión antes con la función to_char
+     *
+     * @param schema esquema de elementos
+     * @param element nombre del elemento dc
+     * @param qualifier cualificador del elemento dc
+     * @param value valor del elemento
+     * @return objeto ItemIterator de dspace {@link ItemIterator}
+     * @throws SQLException
+     * @throws AuthorizeException
+     * @throws IOException
+     */
     public static ItemIterator findByMetadataField(String schema, String element, String qualifier, String value)
             throws SQLException, AuthorizeException, IOException
     {
@@ -57,6 +96,18 @@ public class InstallerEDMDAO
     }
 
 
+    /**
+     * Busca en la base de datos ORACLE de dspace ítems con un elemento dc determinado y con un valor suministrado
+     *
+     * @param schema esquema de elementos
+     * @param element nombre del elemento dc
+     * @param qualifier cualificador del elemento dc
+     * @param value valor del elemento
+     * @return objeto ItemIterator de dspace {@link ItemIterator}
+     * @throws SQLException
+     * @throws AuthorizeException
+     * @throws IOException
+     */
     private static ItemIterator _findMetadataField(String schema, String element, String qualifier, String value)
             throws SQLException, AuthorizeException, IOException
     {

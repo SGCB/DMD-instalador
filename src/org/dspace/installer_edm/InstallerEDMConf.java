@@ -13,29 +13,49 @@ import java.sql.SQLException;
 import java.util.*;
 
 /**
- * Created with IntelliJ IDEA.
- * User: salvazm-adm
- * Date: 29/10/12
- * Time: 11:54
- * To change this template use File | Settings | File Templates.
+ * @class InstallerEDMConf
+ *
+ * Clase para lanzar la configuración de los archivos de dspace para poder usar askosi
+ * Extiende la clase {@link InstallerEDMBase}
+ *
  */
 public class InstallerEDMConf extends InstallerEDMBase implements Observer
 {
 
-
+    /**
+     * Constructor
+     *
+     * @param currentStepGlobal paso actual
+     */
     public InstallerEDMConf(int currentStepGlobal)
     {
         super(currentStepGlobal);
     }
 
 
+    /**
+     * Configurar el archivo de dspace de dspace.cfg para activar el plugin de askosi para jspui y decir qué
+     * elementos serán controlados mediaten vocabularios de askosi.
+     *
+     * Configurar el archivo de dspace input-forms.xml para poder recoger datos de los repositorios de askosi
+     * en los elementos reseñados cuando se cataloga.
+     * Configurar los vocabularios en el directorio de datos de askosi para los elementos dc que son autoridades.
+     * Se crean consultas a la base de datos de dspace para buscar los ítems en las comunidades relacionadas con
+     * los elementos dc de autoridades.
+     *
+     * @param typeConfiguration tipo de configuración: dspace.cfg o distinto para input-forms
+     * @return si ha ido bien
+     */
     public boolean configureAll(String typeConfiguration)
     {
+        // recoger dspcae.cfg de dspace
         String dspaceDirConfName = DspaceDir + "config" + fileSeparator + "dspace.cfg";
         File dspaceDirConfFile = new File(dspaceDirConfName);
         File dspaceDirConfNewFile = new File(myInstallerWorkDirPath);
 
         if (dspaceDirConfFile.exists() && dspaceDirConfFile.canRead() && dspaceDirConfNewFile.canWrite()) {
+
+            // recoger los elementos dc que son autoridades creadas en el paso de su creación o lo inicia vacío
             ArrayList<MetadataField> authDCElements;
             if (installerEDM.getInstallerEDMCreateAuth() != null) {
                 authDCElements = installerEDM.getInstallerEDMCreateAuth().getAuthDCElements();
@@ -44,12 +64,15 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
                 initAuthBOHashMap();
             }
             try {
+                // busca en todas las colecciones los elementos dc que son de autoridades
                 checkAllSkosAuthElements(authDCElements);
                 installerEDMDisplay.showLn();
                 installerEDMDisplay.showQuestion(currentStepGlobal, "configureAll.listAuth");
+                // lista todos los elementos dc que pueden ser autoridades
                 listAllDCElements(authDCElements);
                 installerEDMDisplay.showLn();
 
+                // configurar dspace.cfg
                 if (typeConfiguration.equals("dspace.cfg")) {
                     if (configureDspaceCfg(dspaceDirConfFile, new File(dspaceDirConfNewFile.getAbsolutePath() + fileSeparator + "dspace.cfg"), authDCElements)) {
                         installerEDMDisplay.showLn();
@@ -57,17 +80,24 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
                     }
                 } else {
 
+                    // si hay elementos dc de autoridades
                     if (authDCElements.size() > 0) {
+
+                        // recoge input-forms.xml
                         String dspaceInputFormsName = DspaceDir + "config" + fileSeparator + "input-forms.xml";
                         File dspaceInputFormsFile = new File(dspaceInputFormsName);
 
                         if (dspaceInputFormsFile.exists() && dspaceInputFormsFile.canRead()) {
+
+                            // configura input-forms.xml
                             if (configureInputFormsDspace(dspaceInputFormsFile, new File(dspaceDirConfNewFile.getAbsolutePath() + fileSeparator + "input-forms.xml"), authDCElements)) {
 
                                 installerEDMDisplay.showLn();
                                 installerEDMDisplay.showQuestion(currentStepGlobal,
                                         "configureAll.askosiVocabularies");
                                 File askosiDataDirFile = null;
+
+                                // no hay directorio de datos de askois, se pide uno
                                 if (AskosiDataDir == null) {
                                     String response = null;
                                     do {
@@ -85,6 +115,8 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
                                 if (AskosiDataDir != null) {
                                     if (askosiDataDirFile == null) askosiDataDirFile = new File(AskosiDataDir);
                                     if (askosiDataDirFile.exists() && askosiDataDirFile.isDirectory() && askosiDataDirFile.canWrite()) {
+
+                                        // se configuran los vocabularios de los elementos dc de autoridades
                                         configureAskosiVocabularies(askosiDataDirFile);
                                         installerEDMDisplay.showLn();
                                         installerEDMDisplay.showQuestion(currentStepGlobal, "configureAll.ok");
@@ -120,12 +152,34 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
     }
 
 
+    /**
+     * Configura las consultas para los vocabularios de las autoridades
+     * Crea un objeto {@link InstallerEDMAskosiVocabularies}
+     *
+     * @param askosiDataDirFile directorio de datos de askosi
+     * @throws IOException
+     */
     private void configureAskosiVocabularies(File askosiDataDirFile) throws IOException
     {
         InstallerEDMAskosiVocabularies installerEDMAskosiVocabularies = new InstallerEDMAskosiVocabularies(currentStepGlobal, askosiDataDirFile);
         installerEDMAskosiVocabularies.processAskosiVocabularies();
     }
 
+    /**
+     * Configura el input-forms.xml para la catalogación mediante vocabularios de askosi
+     * Crea un objeto {@link InstallerEDMInputForms}
+     *
+     * @param dspaceInputFormsFile archivo input-forms.xml de dspace
+     * @param dspaceInputFormsNewFile archivo input-forms.xml del directorio de trabajo
+     * @param authDCElements lista de elementos dc de autoridades
+     * @return éxito de la operación
+     * @throws IOException
+     * @throws XPathExpressionException
+     * @throws ParserConfigurationException
+     * @throws SAXException
+     * @throws TransformerException
+     * @throws SQLException
+     */
     private boolean configureInputFormsDspace(File dspaceInputFormsFile, File dspaceInputFormsNewFile, ArrayList<MetadataField> authDCElements) throws IOException, XPathExpressionException, ParserConfigurationException, SAXException, TransformerException, SQLException
     {
         if (authBOHashMap.size() == 0) {
@@ -143,6 +197,18 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
     }
 
 
+    /**
+     * Configura dspace.cfg para añadir el plugin de askosi y los elementos dc que serán controlados por vocabularios de askosi
+     * Crea un objeto {@link InstallerEDMDspaceCfg}
+     *
+     * @param dspaceDirConfFile archivo dspace.cfg de dspace
+     * @param dspaceDirConfNewFile archivo dspace.cfg del directorio de trabajo
+     * @param authDCElements lista de elementos dc de autoridades
+     * @return éxito de la operación
+     * @throws IndexOutOfBoundsException
+     * @throws IOException
+     * @throws NullPointerException
+     */
     private boolean configureDspaceCfg(File dspaceDirConfFile, File dspaceDirConfNewFile, ArrayList<MetadataField> authDCElements) throws IndexOutOfBoundsException, IOException, NullPointerException
     {
         copyDspaceFile2Work(dspaceDirConfFile, dspaceDirConfNewFile, "configureDspaceCfg.dspacecfg");
@@ -151,7 +217,12 @@ public class InstallerEDMConf extends InstallerEDMBase implements Observer
     }
 
 
-
+    /**
+     * Cerrar aplicación tras recibir señal
+     *
+     * @param o observable
+     * @param arg señal
+     */
     @Override
     public void update(Observable o, Object arg)
     {

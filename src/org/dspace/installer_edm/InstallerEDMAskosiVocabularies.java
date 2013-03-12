@@ -10,24 +10,58 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
- * Created with IntelliJ IDEA.
- * User: salzaru
- * Date: 28/01/13
- * Time: 17:01
- * To change this template use File | Settings | File Templates.
+ * @class InstallerEDMAskosiVocabularies
+ *
+ * Clase para crear y configurar los vocabularios de Askosi en el directorio de datos de Askosi.
+ * Para cada elemento de autoridad se crar dos archivos, un ode conexión a la base de datos de dspace
+ * y el otro con la consulta a la colección donde está la autoridad para recogerlas todas.
+ * Extiende de {@link InstallerEDMBase}
  */
 public class InstallerEDMAskosiVocabularies extends InstallerEDMBase
 {
+    /**
+     * Directorio de datos de Askosi
+     */
     private File askosiDataDirFile;
+
+    /**
+     * Url de la conexión con la base de datos de dspace
+     */
     private String dbUrl;
+
+    /**
+     * Driver a usar en la conexión con la base de datos
+     */
     private String dbDriver;
+
+    /**
+     * Usuario para la conexión con la bbdd
+     */
     private String dbUserName;
+
+    /**
+     * Clave del usuario para la conexión con la bbdd
+     */
     private String dbPasword;
 
+    /**
+     * Propiedades a crear en el archivo de la conexión a la base de datos
+     */
     private static final String [] propertiesVocabularyPoolCfg = new String[] {"validation", "url", "driver", "username", "password"};
+
+    /**
+     * Propiedades a crear en el archivo de la consulta a la base de datos
+     */
     private static final String [] propertiesVocabularyCfg = new String[] {"type", "pool", "labels"};
 
 
+    /**
+     * Constructor, paso actual y directorio de datos de Askosi
+     * Se recogen los datos de la conexión del archivo de configuración de dspace
+     *
+     * @param currentStepGlobal paso actual
+     * @param askosiDataDirFile directorio de datos de Askosi
+     */
     public InstallerEDMAskosiVocabularies(int currentStepGlobal, File askosiDataDirFile)
     {
         super(currentStepGlobal);
@@ -38,6 +72,12 @@ public class InstallerEDMAskosiVocabularies extends InstallerEDMBase
         this.askosiDataDirFile = askosiDataDirFile;
     }
 
+    /**
+     * Crea los archivos para cada una de las autoridades
+     * Los archivos se crean con el nombre de la colección más un punto más el nombre del elemento de la autoridad más la extensión adecuada
+     *
+     * @throws IOException
+     */
     public void processAskosiVocabularies() throws IOException
     {
         for (Map.Entry<String, InstallerEDMAuthBO> entry : authBOHashMap.entrySet()) {
@@ -54,11 +94,18 @@ public class InstallerEDMAskosiVocabularies extends InstallerEDMBase
     }
 
 
+    /**
+     * Crea el archivo de conexión a la base de datos
+     *
+     * @param vocabularyPoolCfg nombre del archivo
+     * @throws IOException
+     */
     private void processVocabularyPoolCfg(String vocabularyPoolCfg) throws IOException
     {
         boolean modify = false;
         String textToSave = null;
         File vocabularyPoolCfgFile = new File(vocabularyPoolCfg);
+        // se crea o mofifica el archivo
         if (vocabularyPoolCfgFile.exists()) {
             Properties properties = new Properties();
             URL url = vocabularyPoolCfgFile.toURI().toURL();
@@ -107,11 +154,24 @@ public class InstallerEDMAskosiVocabularies extends InstallerEDMBase
         }
     }
 
+    /**
+     * Crea el archivo con la consulta a la base de datos de dspace
+     * Se consulta la colección asociada al elemento de la autoridad para recoger todos las autoridades con ese elemento
+     * Se recoge el handle como about; text_lang como lang; text_value como label
+     *
+     * @param entry POJO de la autoridad {@link InstallerEDMAuthBO}
+     * @param vocabulary nombre del vocabulario: se crea con el nombre de la colección más un punto más el nombre del elemento de la autoridad
+     * @param handle handle de la autoridad
+     * @param vocabularyCfg nombre del archivo
+     * @throws IOException
+     */
     private void processVocabularyCfg(Map.Entry<String, InstallerEDMAuthBO> entry, String vocabulary, String handle, String vocabularyCfg) throws IOException
     {
         boolean modify = false;
         File vocabularyCfgFile = new File(vocabularyCfg);
         Properties properties = null;
+
+        // consulta sql
         StringBuilder sql = new StringBuilder();
         String sqlSubstring = (dbName.equalsIgnoreCase("oracle"))?"substr(m.ext_lang, 1, 2)":"substring(m.text_lang from 1 for 2)";
         sql.append("SELECT hi.handle AS about, lower(").append(sqlSubstring).append(" AS lang, m.text_value AS label FROM metadatavalue m, item i, collection2item c, handle h, handle hi WHERE h.handle='");
@@ -128,6 +188,7 @@ public class InstallerEDMAskosiVocabularies extends InstallerEDMBase
         String sqlOrder = (dbName.equalsIgnoreCase("oracle"))?"to_char(m.text_value)":"m.text_value";
         sql.append(") ORDER BY ").append(sqlOrder);
         String query = sql.toString();
+        // se crea o mofifica el archivo
         if (vocabularyCfgFile.exists()) {
             properties = new Properties();
             URL url = vocabularyCfgFile.toURI().toURL();

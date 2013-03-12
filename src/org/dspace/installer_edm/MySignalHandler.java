@@ -6,14 +6,19 @@ import sun.misc.SignalHandler;
 import java.util.Observable;
 
 /**
- * Created with IntelliJ IDEA.
- * User: salvazm-adm
- * Date: 25/10/12
- * Time: 9:39
- * To change this template use File | Settings | File Templates.
+ * @class MySignalHandler
+ *
+ * Clase para capturar las interrupciones o señales por teclado
+ *
  */
 class MySignalHandler extends Observable implements SignalHandler
 {
+    /**
+     * handleSignal se captura la señal y se procesa
+     *
+     * @param signalName nombre de la señal capturada
+     * @throws IllegalArgumentException
+     */
     public void handleSignal( final String signalName ) throws IllegalArgumentException
     {
         try {
@@ -27,6 +32,12 @@ class MySignalHandler extends Observable implements SignalHandler
         }
     }
 
+    /**
+     * Procesamiento de la señal.
+     * Se notifica a la clase en ejecución actual.
+     *
+     * @param signal objeto Signal con la señal
+     */
     public void handle( final Signal signal )
     {
         setChanged();

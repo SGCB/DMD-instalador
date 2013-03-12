@@ -8,25 +8,55 @@ import java.util.Enumeration;
 import java.util.Properties;
 
 /**
- * Created with IntelliJ IDEA.
- * User: salvazm-adm
- * Date: 15/01/13
- * Time: 9:44
- * To change this template use File | Settings | File Templates.
+ * @class InstallerEDMDisplayImpl
+ *
+ * Implementación de la visualización por pantalla de los mensajes.
+ * En este caso se visualiza mediante consola.
+ * Implementa la interfaz {@link InstallerEDMDisplay}
+ *
  */
 public class InstallerEDMDisplayImpl implements InstallerEDMDisplay
 {
+    /**
+     * indica si se va a usar la librería com.googlecode.lanterna.TerminalFacade para mostrar por pantalla,
+     * Actualmente no implementado.
+     */
     private boolean isTerminal = false;
+
+    /**
+     * Objeto para com.googlecode.lanterna.TerminalFacade
+     */
     private Terminal terminal;
+
+    /**
+     * nombre canónico donde buscar lo mensajes
+     */
     private static final String nameFileDisplayMessages = "org.dspace.installer_edm.messages";
+
+    /**
+     * propiedades con los mensajes leídos del archivo
+     */
     private Properties properties = new Properties();
+
+    /**
+     * objeto de {@link LoadFileMessages} que carga los archivos de mensajes
+     */
     private LoadFileMessages loadFileMessages;
 
+
+    /**
+     * Constructor que carga el archivo con idioma por defecto
+     */
     public InstallerEDMDisplayImpl()
     {
         this(null);
     }
 
+    /**
+     * Constructor que carga los mensajes para un idioma y establece el terminal si lo hubiere
+     *
+     * @param language idioma de los mensajes
+     */
     public InstallerEDMDisplayImpl(String language)
     {
         loadFileDisplayMessages(language);
@@ -35,6 +65,11 @@ public class InstallerEDMDisplayImpl implements InstallerEDMDisplay
         }
     }
 
+    /**
+     * muestra el título de un paso. En el archivo la propiedad está como: stage=
+     *
+     * @param stage paso actual
+     */
     @Override
     public void showTitle(int stage) {
         String key = Integer.toString(stage);
@@ -43,6 +78,12 @@ public class InstallerEDMDisplayImpl implements InstallerEDMDisplay
         }
     }
 
+    /**
+     * muestra el menú de un paso. En el archivo la propiedad está como: stage.menu=
+     * cada elemento del menú está separa por un |
+     *
+     * @param stage paso actual
+     */
     @Override
     public void showMenu(int stage)
     {
@@ -56,7 +97,13 @@ public class InstallerEDMDisplayImpl implements InstallerEDMDisplay
         }
     }
 
-
+    /**
+     * recoge el mensaje de un paso con código. En el archivo la propiedad está como: stage.code=
+     *
+     * @param stage paso actual
+     * @param code código del mensaje
+     * @return mensaje
+     */
     @Override
     public String getQuestion(int stage, String code)
     {
@@ -67,6 +114,14 @@ public class InstallerEDMDisplayImpl implements InstallerEDMDisplay
         return "";
     }
 
+    /**
+     * recoge el mensaje de un paso con código y con argumentos. En el archivo la propiedad está como: stage.code= y se sustituye el patrón #?# por cada uno de los argumentos
+     *
+     * @param stage paso actual
+     * @param code código del mensaje
+     * @param args argumentos
+     * @return mensaje
+     */
     @Override
     public String getQuestion(int stage, String code, String[] args)
     {
@@ -83,6 +138,13 @@ public class InstallerEDMDisplayImpl implements InstallerEDMDisplay
         return text;
     }
 
+    /**
+     * muestra el mensaje de un paso con código y con argumentos. En el archivo la propiedad está como: stage.code= y se sustituye el patrón #?# por cada uno de los argumentos
+     *
+     * @param stage paso actual
+     * @param code código del mensaje
+     * @param args argumentos
+     */
     @Override
     public void showQuestion(int stage, String code, String[] args)
     {
@@ -93,6 +155,12 @@ public class InstallerEDMDisplayImpl implements InstallerEDMDisplay
         }
     }
 
+    /**
+     * muestra el mensaje de un paso con código. En el archivo la propiedad está como: stage.code=
+     *
+     * @param stage paso actual
+     * @param code código del mensaje
+     */
     @Override
     public void showQuestion(int stage, String code)
     {
@@ -102,19 +170,31 @@ public class InstallerEDMDisplayImpl implements InstallerEDMDisplay
         }
     }
 
-
+    /**
+     * muestra el mensaje pasado como argumento
+     *
+     * @param message mensaje a mostrar
+     */
     @Override
     public void showMessage(String message)
     {
         if (!isTerminal) System.out.println(message);
     }
 
+    /**
+     * muestra un salto de línea
+     */
     @Override
     public void showLn()
     {
         if (!isTerminal) System.out.println();
     }
 
+    /**
+     * muestra progreso de una acción
+     *
+     * @param prog carácter a mostrar por cada iteración
+     */
     @Override
     public void showProgress(char prog)
     {
@@ -122,6 +202,9 @@ public class InstallerEDMDisplayImpl implements InstallerEDMDisplay
     }
 
 
+    /**
+     * asigna el terminal y lo inicializa
+     */
     public void setTerminal()
     {
         terminal = TerminalFacade.createTerminal(Charset.forName("UTF8"));
@@ -130,21 +213,39 @@ public class InstallerEDMDisplayImpl implements InstallerEDMDisplay
         terminal.clearScreen();
     }
 
+    /**
+     * sale del terminal
+     */
     public void exitTerminal()
     {
         if (isTerminal) terminal.exitPrivateMode();
     }
 
+    /**
+     * asigna comprobación de terminal
+     *
+     * @param isTerminal indica si hay terminal
+     */
     public void setIsTerminal(boolean isTerminal)
     {
         this.isTerminal = isTerminal;
     }
 
+    /**
+     * Devuelve el terminal
+     *
+     * @return objeto terminal
+     */
     public boolean getIsTerminal()
     {
         return this.isTerminal;
     }
 
+    /**
+     * Recarga un archivo de mensajes para un idioma
+     *
+     * @param language idioma del archivo
+     */
     @Override
     public void reloadFileDisplayMessages(String language)
     {
@@ -152,6 +253,11 @@ public class InstallerEDMDisplayImpl implements InstallerEDMDisplay
         loadFileDisplayMessages(language);
     }
 
+    /**
+     * Carga un archivo de mensajes para un idioma
+     *
+     * @param language idioma del archivo
+     */
     private void loadFileDisplayMessages(String language)
     {
         loadFileMessages = new LoadFileMessages(nameFileDisplayMessages, language);

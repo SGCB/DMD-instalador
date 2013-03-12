@@ -10,19 +10,38 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Created with IntelliJ IDEA.
- * User: salzaru
- * Date: 28/01/13
- * Time: 13:25
- * To change this template use File | Settings | File Templates.
+ * @class InstallerEDMDspaceCfg
+ *
+ * Clase para configurar dspace para usar Askosi.
+ * Se configura el archivo dspace.cfg para habilitar el plugin de Askosi para jspui
+ * e indicarle qué elementos dc se controlan mediante vocabularios de Askosi.
+ *
+ *
  */
 public class InstallerEDMDspaceCfg extends InstallerEDMBase
 {
 
+    /**
+     * Elementos dc agregados a dspace.cfg para controlarse como vocabularios
+     */
     private HashMap<String, Integer> authDCElementsSetWritten;
+
+    /**
+     * Flujo de datos de salida para escribir en dspaceDirConfNewFile
+     */
     private Writer out = null;
+
+    /**
+     * Archivo dspace.cfg en el directori ode trabajo del instalador
+     */
     private File dspaceDirConfNewFile;
 
+    /**
+     * Constructor
+     *
+     * @param currentStepGlobal paso actual
+     * @param dspaceDirConfNewFile Archivo dspace.cfg en el directori ode trabajo del instalador
+     */
     public InstallerEDMDspaceCfg(int currentStepGlobal, File dspaceDirConfNewFile)
     {
         super(currentStepGlobal);
@@ -30,12 +49,26 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
         authDCElementsSetWritten = new HashMap<String, Integer>();
     }
 
+    /**
+     * Lee dspace.cfg y si falta la habilitación de Askosi, la configura modificando el archivo
+     * Añade los elementos dc que son autoridades, se han elegido para controlarse con vocabularios y todavía no están en dspace.cfg
+     * Si no está definido un directorio de datos de Askosi lo solicita.
+     *
+     * @param authDCElements lista de elementos dc que son autoridades
+     * @return si se ha modificado dspace.cfg
+     * @throws IOException
+     * @throws NullPointerException
+     * @throws IndexOutOfBoundsException
+     */
     public boolean processDspaceCfg(ArrayList<MetadataField> authDCElements) throws IOException, NullPointerException, IndexOutOfBoundsException
     {
         boolean modified = false;
         try {
+            // menú de petición de elementos dc a añadir
             addAuthDCElements(authDCElements);
-            String askosiDataDir = readDspaceCfg(authDCElements);
+            // lectura del archivo dspace.cfg para comprobar qué hay configurado de askosi
+            String askosiDataDir = readDspaceCfg();
+            // comprobación del directorio de datos de Askosi
             File askosiDataDestDirFile = null;
             boolean askosiDataDirAdd = false;
             if (askosiDataDir != null) askosiDataDestDirFile = new File(askosiDataDir);
@@ -66,6 +99,7 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
             }
 
             out = new OutputStreamWriter(new FileOutputStream(dspaceDirConfNewFile, true));
+            // añadir directiva de Askosi
             if (AskosiDataDir != null && askosiDataDirAdd) {
                 String plugin = new StringBuilder().append("\nASKOSI.directory = ").append(askosiDataDestDirFile.getAbsolutePath()).append("\nplugin.named.org.dspace.content.authority.ChoiceAuthority = \\\n").append("be.destin.dspace.AskosiPlugin = ASKOSI\n").toString();
                 out.write("\n\n# " + getTime() + " Appended by installerEDM to add the ASKOSI plugin\n");
@@ -73,6 +107,7 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
                 modified = true;
             }
 
+            // añadir los elementos dc de autoridad que todavía no están en dspace.cfg
             if (authDCElements.size() > 0) {
 
                 for (MetadataField metadataField : authDCElements) {
@@ -105,6 +140,11 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
     }
 
 
+    /**
+     * Menú para elegir los elementos dc a controlar como vocabulario de autoridades
+     *
+     * @param authDCElements lista de elementos dc que son autoridad
+     */
     private void addAuthDCElements(ArrayList<MetadataField> authDCElements)
     {
         while (true) {
@@ -136,6 +176,11 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
     }
 
 
+    /**
+     * Menú para añadir elemento dc a la lista de elementos dc que son autoridades
+     *
+     * @param authDCElements lista de elementos dc que son autoridad
+     */
     private void addAuthDCElement(ArrayList<MetadataField> authDCElements)
     {
         while (true) {
@@ -171,7 +216,15 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
     }
 
 
-    private String readDspaceCfg(ArrayList<MetadataField> authDCElements) throws FileNotFoundException, IndexOutOfBoundsException
+    /**
+     * Lee el archivo dspace.cfg para recoger el directori ode datos de Askosi y
+     * los elementos dc ya configurados como vocabularios
+     *
+     * @return ruta del directorio de datos de Askosi
+     * @throws FileNotFoundException
+     * @throws IndexOutOfBoundsException
+     */
+    private String readDspaceCfg() throws FileNotFoundException, IndexOutOfBoundsException
     {
         String dataDir = null;
         Scanner scanner = new Scanner(new FileInputStream(dspaceDirConfNewFile));
@@ -254,6 +307,13 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
     }
 
 
+    /**
+     * Añade nuevos elementos dc en dspace.cfg
+     *
+     * @param out flujo de datos para escribir en dspace.cfg
+     * @param element elemento dc a añadir
+     * @return éxito de la operación
+     */
     private boolean writeDspaceCfg(Writer out, String element)
     {
         String choice = new StringBuilder().append("\nchoices.plugin.").append(dcSchema.getName()).append(".").append(element).append(" = ASKOSI\n").append("choices.presentation.").append(dcSchema.getName()).append(".").append(element).append(" = lookup\n").append("authority.controlled.").append(dcSchema.getName()).append(".").append(element).append(" = true")

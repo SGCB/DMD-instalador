@@ -11,19 +11,35 @@ import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 
 /**
- * Created with IntelliJ IDEA.
- * User: salvazm-adm
- * Date: 16/01/13
- * Time: 10:09
- * To change this template use File | Settings | File Templates.
+ * @class LoadFileMessages
+ *
+ * Clase que lee y carga en UTF8 en memoria los archivos messages con los mensajes localizados que muestra el instalador
+ *
  */
 public class LoadFileMessages extends ResourceBundle
 {
+    /**
+     * Archivo de mensajes a leer
+     */
     String fileName;
+
+    /**
+     * El juego de caracteres en UTF8
+     */
     protected static final Control UTF8_CONTROL = new UTF8Control();
+
+    /**
+     * Localiza los archivos
+     */
     private Locale locale;
 
 
+    /**
+     * Constructor para identificar el locale con el idioma y para cargar el archivo
+     *
+     * @param fileName nombre del archivo messages
+     * @param language idioma del messages
+     */
     public LoadFileMessages(String fileName, String language)
     {
         if (language != null && !language.isEmpty()) {
@@ -42,18 +58,33 @@ public class LoadFileMessages extends ResourceBundle
         }
     }
 
+    /**
+     * Cargar nuevo archivo
+     *
+     * @param fileName nombre del archivo messages
+     */
     public LoadFileMessages(String fileName)
     {
         this(fileName, null);
     }
 
-
+    /**
+     * Método sobrecargado
+     *
+     * @param key
+     * @return object
+     */
     @Override
     protected Object handleGetObject(String key)
     {
         return parent.getObject(key);
     }
 
+    /**
+     * Método sobrecargado
+     *
+     * @return object
+     */
     @Override
     public Enumeration<String> getKeys()
     {
@@ -61,6 +92,12 @@ public class LoadFileMessages extends ResourceBundle
     }
 
 
+    /**
+     * @class UTF8Control
+     *
+     * Clase que carga el archivo messages como propiedades en UTF8
+     *
+     */
     protected static class UTF8Control extends Control
     {
         public ResourceBundle newBundle

@@ -28,31 +28,93 @@ import java.util.HashSet;
 import java.util.Map;
 
 /**
- * Created with IntelliJ IDEA.
- * User: salzaru
- * Date: 28/01/13
- * Time: 10:56
- * To change this template use File | Settings | File Templates.
+ * @class InstallerEDMInputForms
+ *
+ * Clase para copiar el archivo input-forms.xml de dspace al directorio de trabajo del instalador para que cuando se catalogue
+ * se puedan buscar valores de los repositorios de Askosi para los elementos dc asociados a autoridades.
+ *
+ * Se modificar para añadir los nuevos formularios de los nuevos vocabularios, uno por cada elemento dc de autoridad.
+ * Se pide en qué formularios existentes se añade el vocabulario y en qué página del proceso de catalogación.
+ *
  */
 public class InstallerEDMInputForms extends InstallerEDMBase
 {
 
+    /**
+     * Consulta xpath para buscar el elemento raíz del archivo input-forms.xml
+     */
     private static final String xpathInputFormsTemplate = "//input-forms";
+
+    /**
+     * Consulta xpath para buscar el mapeo de formularios con handles de colecciones
+     */
     private static final String xpathFormMapTemplate = "//form-map";
+
+    /**
+     * Consulta xpath para buscar el mapeo de un formulario a una colección determinada
+     */
     private static final String xpathFormMapNameTemplate = "//form-map/name-map[@collection-handle='%s']";
+
+    /**
+     * Consulta xpath para buscar el mapeo de una colección con un formulario determinado
+     */
     private static final String xpathFormMapNamesTemplate = "//form-map/name-map[@form-name='%s']";
+
+    /**
+     * Consulta xpath para buscar el elemento raíz de las configuraciones de los formularios
+     */
     private static final String xpathFormDefinitionsTemplate = "//form-definitions";
+
+    /**
+     * Consulta xpath para buscar una lista de las configuraciones de los formularios
+     */
     private static final String xpathFormDefinitionsFormsTemplate = "//form-definitions/form";
+
+    /**
+     * Consulta xpath para buscar la configuración de un formulario determinado
+     */
     private static final String xpathFormNameTemplate = "//form[@name='%s']";
+
+    /**
+     * Consulta xpath para buscar la configuración de un formulario determinado en una página determinada
+     */
     private static final String xpathFormNamePageTemplate = "//form[@name='%s']/page[@number='%s']";
 
+    /**
+     * ruta del archivo input-forms.xml en el directorio de trabajo del instalador
+     */
     private String dspaceInputFormsNewFile;
+
+    /**
+     * Flujo de entrada de datps del archivo input-forms.xml
+     */
     private InputSource inputFormsIS;
+
+    /**
+     * documento jdom para el archivo xml
+     */
     private Document docInputForms;
+
+    /**
+     * flujo de escritura de datos para el xml
+     */
     private Writer out = null;
+
+    /**
+     * hash con asociación handle de la colección y lista de formularios (cada uno perteneciente a un elemento dc de autoridad)
+     */
     private HashMap<String, ArrayList<String>> formsColections;
 
 
+    /**
+     * Constructor
+     *
+     * @param currentStepGlobal paso actual
+     * @param dspaceInputFormsNewFile ruta del archivo input-forms.xml en el directorio de trabajo del instalador
+     * @throws IOException
+     * @throws SAXException
+     * @throws ParserConfigurationException
+     */
     public InstallerEDMInputForms(int currentStepGlobal, String dspaceInputFormsNewFile) throws IOException, SAXException, ParserConfigurationException
     {
         super(currentStepGlobal);
@@ -65,12 +127,28 @@ public class InstallerEDMInputForms extends InstallerEDMBase
     }
 
 
+    /**
+     * lee el archivo input-forms.xml para recoger asociación de colecciones y formularios,
+     * peticiona si se quieren añadir o modificar vocabularios y modifica el archivo
+     * para escribirlo en disco
+     *
+     * @return si se ha modificado el archivo input-forms.xml
+     * @throws ParserConfigurationException
+     * @throws SAXException
+     * @throws XPathExpressionException
+     * @throws IOException
+     * @throws TransformerException
+     * @throws SQLException
+     */
     public boolean processInputForms() throws ParserConfigurationException, SAXException, XPathExpressionException, IOException, TransformerException, SQLException
     {
         boolean modify = false;
         try {
+            // lee xml para recoger asociación de colecciones y formularios
             readForms();
+            // pide nuevos vocabularios a añadir o modificar
             modify = readInputFormsDspace();
+            // escribe el documento jdom a disco
             if (modify) {
                 out = new OutputStreamWriter(new FileOutputStream(dspaceInputFormsNewFile, false));
                 TransformerFactory transformerFactory = TransformerFactory.newInstance();
@@ -97,16 +175,26 @@ public class InstallerEDMInputForms extends InstallerEDMBase
     }
 
 
+    /**
+     * Busca todos los formularios (desde las definiciones y buscando luego el handle de la colección en el mapeo) en el
+     * documento xml para añadirlos al hash de asociaciones de colecciones con formularios
+     *
+     * @throws XPathExpressionException
+     */
     private void readForms() throws XPathExpressionException
     {
+        // lanza consulta xpath para buscar todos los formularios
         XPath xpathInputForms = XPathFactory.newInstance().newXPath();
         NodeList resultsInputForms = (NodeList)xpathInputForms.evaluate(xpathFormDefinitionsFormsTemplate, docInputForms, XPathConstants.NODESET);
         for (int i=0; i < resultsInputForms.getLength(); i++) {
             Element elem = (Element) resultsInputForms.item(i);
+            // lee el nombre del formulario
             String name = elem.getAttribute("name").trim();
+            // lanza consulta de buscar el formulario con un nombre en el mapeo de handle de colección con formulario
             XPath xpathInputFormsNames = XPathFactory.newInstance().newXPath();
             String xpathFormMapNameExpression = String.format(xpathFormMapNamesTemplate, new Object[] { name });
             NodeList resultsInputFormsNames = (NodeList)xpathInputFormsNames.evaluate(xpathFormMapNameExpression, docInputForms, XPathConstants.NODESET);
+            // se añade en el hash de colecciones-formularios el binomio
             for (int j=0; j < resultsInputFormsNames.getLength(); j++) {
                 Element elementColl = (Element) resultsInputFormsNames.item(j);
                 String handle = elementColl.getAttribute("collection-handle").trim();
@@ -119,10 +207,35 @@ public class InstallerEDMInputForms extends InstallerEDMBase
     }
 
 
+    /**
+     * Lanza consultas al documento jdom para comprobar que la estructura es correcta.
+     *
+     * Crea un formulario por cada elemento dc de autoridad nuevo:
+     *  Recorre los elementos dc que son autoridades para añadir los formularios-handle de colección.
+     *  Si no encuentra un handle de colección en el mapeo, lo añade con el nombre de la colección.
+     *  Pregunta si se configura el elemento dc de autoridad en el formulario.
+     *  Pregunta a qué pagina del formulario irá el vocabulario.
+     *  Crea formulario en las definiciones si no existe si no busca la página en el formulario o la crea.
+     *  Crea el elemento dc en el formulario.
+     *
+     * Pregunta a qué colecciones se asociarán cada uno de los formularios (vocabularios) creados.
+     * Recoge los formularios asociados con los handle de las colecciones suministradas y añade los vocabularios
+     * preguntando a qué página dentro del formulario se insertará
+     *
+     * @return si se ha modificado el documento jdom del archivo input-forms.xml
+     * @throws IndexOutOfBoundsException
+     * @throws IOException
+     * @throws NullPointerException
+     * @throws XPathExpressionException
+     * @throws ParserConfigurationException
+     * @throws SAXException
+     * @throws SQLException
+     */
     private boolean readInputFormsDspace() throws IndexOutOfBoundsException, IOException, NullPointerException, XPathExpressionException, ParserConfigurationException, SAXException, SQLException
     {
         boolean modified = false;
 
+        // busca elemento raíz del documento
         Element inputFormsElement;
         XPath xpathInputForms = XPathFactory.newInstance().newXPath();
         NodeList resultsInputForms = (NodeList)xpathInputForms.evaluate(xpathInputFormsTemplate, docInputForms, XPathConstants.NODESET);
@@ -131,6 +244,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
             return false;
         } else inputFormsElement = (Element) resultsInputForms.item(0);
 
+        // buscar elemento de mapeos de colecciones con formularios
         Element formMapElement;
         XPath xpathFormMap = XPathFactory.newInstance().newXPath();
         NodeList resultsFormMap = (NodeList)xpathFormMap.evaluate(xpathFormMapTemplate, docInputForms, XPathConstants.NODESET);
@@ -140,6 +254,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
             inputFormsElement.appendChild(formMapElement);
         } else formMapElement = (Element) resultsFormMap.item(0);
 
+        // busca elemento raíz de las definiciones de los formularios
         Element formDefinitionsElement;
         XPath xpathFormDefinitions = XPathFactory.newInstance().newXPath();
         NodeList resultsFormDefinitions = (NodeList)xpathFormDefinitions.evaluate(xpathFormDefinitionsTemplate, docInputForms, XPathConstants.NODESET);
@@ -152,8 +267,10 @@ public class InstallerEDMInputForms extends InstallerEDMBase
             modified = true;
         } else formDefinitionsElement = (Element) resultsFormDefinitions.item(0);
 
+        // recorre los elementos dc que son autoridades
         for (Map.Entry<String, InstallerEDMAuthBO> entry : authBOHashMap.entrySet()) {
 
+            // busca formulario en el mapeo con el handle, si no lo encuentra lo añade
             XPath xpathFormMapName = XPathFactory.newInstance().newXPath();
             String handle = entry.getValue().getCollection().getHandle();
             String name = removeAccents(entry.getValue().getCollection().getName().toLowerCase());
@@ -168,6 +285,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
                 modified = true;
             }
 
+            // preguntar si se configura el elemento dc de autoridad en el formulario
             installerEDMDisplay.showLn();
             installerEDMDisplay.showQuestion(currentStepGlobal, "readInputFormsDspace.configure.element.form", new String[] {entry.getKey(), name});
             String response = null;
@@ -182,6 +300,8 @@ public class InstallerEDMInputForms extends InstallerEDMBase
                 break;
             } while (true);
             if (!configureForm) continue;
+
+            // preguntar a qué pagina del formulario irá el vocabulario
             installerEDMDisplay.showLn();
             installerEDMDisplay.showQuestion(currentStepGlobal, "readInputFormsDspace.element.page", new String[] {entry.getKey(), name});
             String pageResp = null;
@@ -193,10 +313,13 @@ public class InstallerEDMInputForms extends InstallerEDMBase
                     break;
                 }
             } while (true);
+
+            // buscar formulario en las definiciones
             Element formNameElement;
             Element formNamePageElement;
             String xpathFormNameExpression = String.format(xpathFormNameTemplate, new Object[] { name });
             NodeList resultsFormName = (NodeList)xpathFormMap.evaluate(xpathFormNameExpression, docInputForms, XPathConstants.NODESET);
+            // crearlo si no existe junto con la página
             if (resultsFormName.getLength() == 0) {
                 if (debug) System.out.println("No " + xpathFormNameExpression);
                 Comment simpleComment = docInputForms.createComment(getTime() + " Appended by installerEDM to add the form " + name);
@@ -211,6 +334,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
                 formNamePageElement.appendChild(elemFormNamePageField);
                 modified = true;
             } else {
+                // buscar página en el formulario o la crea, añade el elemento dc en el formulario
                 formNameElement = (Element) resultsFormName.item(0);
                 XPath xpathFormNamePage = XPathFactory.newInstance().newXPath();
                 String xpathFormNamePageExpression = String.format(xpathFormNamePageTemplate, new Object[] { name, pageResp });
@@ -232,6 +356,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
                 }
             }
 
+            // pregunta a qué colecciones el nuevo formulario debe ser asociado
             installerEDMDisplay.showQuestion(currentStepGlobal, "readInputFormsDspace.element.form", new String[] {entry.getKey(), name});
             String formResp = null;
             HashSet<String> forms = null;
@@ -241,6 +366,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
                 formResp = formResp.trim();
                 if (!formResp.isEmpty()) {
                     forms = new HashSet<String>();
+                    // recoge los formularios asociados con los handle de las colecciones suministradas
                     String status = checkCollHandles(formResp, forms);
                     if (status == null) break;
                     else {
@@ -255,13 +381,28 @@ public class InstallerEDMInputForms extends InstallerEDMBase
     }
 
 
+    /**
+     * Añade a cada uno de los formularios suministrados el vocabulario del elemento dc correspondiente.
+     * Pregunta a qué página dentro del formulario se insertará el vocabulario, que tendrá como nombre
+     * el nombre de la colección + "." + elemento dc
+     *
+     * @param entry entrada del elemento dc con el objeto de autoridad {@link InstallerEDMAuthBO}
+     * @param forms conjunto de formularios a los que añadir el vocabulario
+     * @param name nombre del formulario del volcabulario
+     * @throws XPathExpressionException
+     * @throws IOException
+     */
     private void addElements2Forms(Map.Entry<String, InstallerEDMAuthBO> entry, HashSet<String> forms, String name) throws XPathExpressionException, IOException
     {
+        // recorre los formularios
         for (String form : forms) {
+            // busca formulario en las definiciones
             XPath xpathFormName = XPathFactory.newInstance().newXPath();
             String xpathFormNameExpression = String.format(xpathFormNameTemplate, new Object[] { form });
             NodeList resultsFormName = (NodeList)xpathFormName.evaluate(xpathFormNameExpression, docInputForms, XPathConstants.NODESET);
+            // existe
             if (resultsFormName.getLength() > 0) {
+                // pregunta a qué paǵina se añadirá el vocabulario
                 installerEDMDisplay.showQuestion(currentStepGlobal, "readInputFormsDspace.element.page", new String[] {entry.getKey(), form});
                 String pageResp = null;
                 do {
@@ -272,16 +413,21 @@ public class InstallerEDMInputForms extends InstallerEDMBase
                         break;
                     }
                 } while (true);
+                // busca la página
                 XPath xpathFormNamePage = XPathFactory.newInstance().newXPath();
                 String xpathFormNamePageExpression = String.format(xpathFormNamePageTemplate, new Object[] { form, pageResp });
                 NodeList resultsFormNamePage = (NodeList)xpathFormNamePage.evaluate(xpathFormNamePageExpression, docInputForms, XPathConstants.NODESET);
                 if (resultsFormNamePage.getLength() > 0) {
+                    // añade vocabulario o lo actualiza
                     Element formNamePageElement = (Element) resultsFormNamePage.item(0);
+                    // busca el elemento dc en la página
                     Element element = searchFormNamePageField(formNamePageElement, entry.getValue());
                     String vocabulary = name + "." + entry.getKey();
+                    // lo crea
                     if (element == null) {
                         element = createElementVocabulary(entry.getValue(), vocabulary);
                         formNamePageElement.appendChild(element);
+                    // lo mofifica
                     } else {
                         updateElementVocabulary(entry, form, element, vocabulary);
                     }
@@ -292,15 +438,28 @@ public class InstallerEDMInputForms extends InstallerEDMBase
     }
 
 
+    /**
+     * Actualiza el vocabulario en un formulario para un elemento dc con los datos actuales
+     * El elemento input-type tiene el valor onebox
+     *
+     * @param entry entrada del elemento dc con el objeto de autoridad {@link InstallerEDMAuthBO}
+     * @param form nombre del formulario a modificar
+     * @param field elemento jdom con el elemento dc dentro del formulario y la página
+     * @param vocabulary nombre del vocabulario
+     * @throws IOException
+     */
     private void updateElementVocabulary(Map.Entry<String, InstallerEDMAuthBO> entry, String form, Element field, String vocabulary) throws IOException
     {
+        // busca vocabularios
         NodeList vocabularyList = field.getElementsByTagName("vocabulary");
+        // crea uno si no existe
         if (vocabularyList.getLength() == 0) {
             Element elementVocabulary = docInputForms.createElement("vocabulary");
             Text text = docInputForms.createTextNode(vocabulary);
             elementVocabulary.appendChild(text);
             field.appendChild(elementVocabulary);
         } else {
+            // se recorre los que hay y pregunta si se quiere actualizar con los datos actuales
             Element elementVocabulary = (Element) vocabularyList.item(0);
             String currentVocabulary = elementVocabulary.getFirstChild().getNodeValue();
             if (!currentVocabulary.equals(vocabulary)) {
@@ -318,6 +477,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
                 }
             }
         }
+        // cambiar o crear el elemento input-type con valor onebox
         NodeList inputTypeList = field.getElementsByTagName("input-type");
         if (inputTypeList.getLength() == 0) {
             Element elementInputType = docInputForms.createElement("input-type");
@@ -330,6 +490,14 @@ public class InstallerEDMInputForms extends InstallerEDMBase
         }
     }
 
+    /**
+     * Crea un element jdom para el vocabulario listo para añadir a un formulario
+     *
+     * @param entry entrada del elemento dc con el objeto de autoridad {@link InstallerEDMAuthBO}
+     * @param vocabulary nombre del vocabulario
+     * @return elemento jdom creado para el vocabulario
+     * @throws IOException
+     */
     private Element createElementVocabulary(InstallerEDMAuthBO entry, String vocabulary) throws IOException
     {
         Element field = addFieldForm(entry, "onebox");
@@ -341,6 +509,14 @@ public class InstallerEDMInputForms extends InstallerEDMBase
     }
 
 
+    /**
+     * Comprueba que los handle de las colecciones estén en dspace
+     *
+     * @param formResp cadena con los handle de las colecciones
+     * @param forms hash con los handles de las colecciones de la lista
+     * @return cadena con los handle incorrectos
+     * @throws SQLException
+     */
     private String checkCollHandles(String formResp, HashSet<String> forms) throws SQLException
     {
         String status = null;
@@ -367,27 +543,41 @@ public class InstallerEDMInputForms extends InstallerEDMBase
     }
 
 
+    /**
+     * Busca en la página de un formulario el elemento dc requerido
+     *
+     * @param formNamePageElement elemento jdom con la página en el formulario
+     * @param value elemento dc de la autoridad {@link InstallerEDMAuthBO}
+     * @return elemento jdom del element dc en el formulario
+     */
     private Element searchFormNamePageField(Element formNamePageElement, InstallerEDMAuthBO value)
     {
+        String nameElement = value.getMetadataField().getElement().toLowerCase().toLowerCase();
+        String qualifierElement = value.getMetadataField().getQualifier();
+
+        // recorrer todos los nodos de la página
         NodeList resultsFormNamePageFields = (NodeList) formNamePageElement.getChildNodes();
         for (int i=0; i < resultsFormNamePageFields.getLength(); i++) {
             if (resultsFormNamePageFields.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
             int mask = 0;
             Element elementField = (Element) resultsFormNamePageFields.item(i);
+            // nodo field
             if (elementField.getNodeName().equals("field")) {
+                // nodo dc-element con nuestro elemento dc
                 NodeList dces = elementField.getElementsByTagName("dc-element");
                 for (int j=0; j < dces.getLength(); j++) {
-                    if (dces.item(j).getFirstChild().getNodeValue().toLowerCase().equals(value.getMetadataField().getElement().toLowerCase())) {
+                    if (dces.item(j).getFirstChild().getNodeValue().toLowerCase().equals(nameElement)) {
                         mask++;
                         break;
                     }
                 }
                 if (mask == 0) return null;
-                if (value.getMetadataField().getQualifier() == null) mask++;
+                if (qualifierElement == null) mask++;
                 else {
+                    // con nuestro qualifier
                     NodeList dcqs = elementField.getElementsByTagName("dc-qualifier");
                     for (int j=0; j < dcqs.getLength(); j++) {
-                        if (dcqs.item(j).getFirstChild().getNodeValue().toLowerCase().equals(value.getMetadataField().getQualifier().toLowerCase())) {
+                        if (dcqs.item(j).getFirstChild().getNodeValue().toLowerCase().equals(qualifierElement.toLowerCase())) {
                             mask++;
                             break;
                         }
@@ -400,6 +590,13 @@ public class InstallerEDMInputForms extends InstallerEDMBase
     }
 
 
+    /**
+     * Crea un elemento jdom con el mapeo del handle de la colección y el nombre de formulario
+     *
+     * @param handle cadena con el handle
+     * @param name cadena con el nombre del formulario
+     * @return elemento jdom con el mapeo de handle-formulario
+     */
     private Element addFormMap(String handle, String name)
     {
         Element elem = docInputForms.createElement("name-map");
@@ -412,6 +609,12 @@ public class InstallerEDMInputForms extends InstallerEDMBase
         return elem;
     }
 
+    /**
+     * Crea un elemento jdom para una definición de formulario
+     *
+     * @param name cadena con el nombre del formulario
+     * @return elemento jdom con el formulario
+     */
     private Element addFormName(String name)
     {
         Element elem = docInputForms.createElement("form");
@@ -421,6 +624,12 @@ public class InstallerEDMInputForms extends InstallerEDMBase
         return elem;
     }
 
+    /**
+     * Crea un elemento jdom para una página de formulario
+     *
+     * @param page cadena con la página para el formulario
+     * @return elemento jdom con la página para el formulario
+     */
     private Element addFormNamePage(String page)
     {
         Element elem = docInputForms.createElement("page");
@@ -430,19 +639,32 @@ public class InstallerEDMInputForms extends InstallerEDMBase
         return elem;
     }
 
+    /**
+     * Crea un elemento jdom para un elemento dc para una página de formulario, es repetible y requerido
+     *
+     * @param value elemento dc de la autoridad {@link InstallerEDMAuthBO}
+     * @param inputType tipo de input-type (lo normal es onebox)
+     * @return elemento jdom con el elemento dc para el formulario
+     * @throws IOException
+     */
     private Element addFieldForm(InstallerEDMAuthBO value, String inputType) throws IOException
     {
+        // crear nodo field
         Element elem = docInputForms.createElement("field");
+
+        // crear nodo dc-schema
         Element elemDCSchema = docInputForms.createElement("dc-schema");
         Text text = docInputForms.createTextNode("dc");
         elemDCSchema.appendChild(text);
         elem.appendChild(elemDCSchema);
 
+        // crear nodo dc-element
         Element elemDCElement = docInputForms.createElement("dc-element");
         text = docInputForms.createTextNode(value.getMetadataField().getElement().toLowerCase());
         elemDCElement.appendChild(text);
         elem.appendChild(elemDCElement);
 
+        // crear nodo dc-qualifier
         if (value.getMetadataField().getQualifier() != null) {
             Element elemDCQualifier = docInputForms.createElement("dc-qualifier");
             text = docInputForms.createTextNode(value.getMetadataField().getQualifier().toLowerCase());
@@ -450,19 +672,23 @@ public class InstallerEDMInputForms extends InstallerEDMBase
             elem.appendChild(elemDCQualifier);
         }
 
+        // crear nodo repeatable
         Element elemRepeatable = docInputForms.createElement("repeatable");
         text = docInputForms.createTextNode("true");
         elemRepeatable.appendChild(text);
         elem.appendChild(elemRepeatable);
 
+        // crear nodo input-type
         Element elemInputType = docInputForms.createElement("input-type");
         text = docInputForms.createTextNode(inputType);
         elemInputType.appendChild(text);
         elem.appendChild(elemInputType);
 
+        // crear nodo required
         Element elemRequired = docInputForms.createElement("required");
         elem.appendChild(elemRequired);
 
+        // crear etiqueta
         installerEDMDisplay.showQuestion(currentStepGlobal, "addFieldForm.label", new String[]{value.getMetadataField().getElement() + "." + value.getMetadataField().getQualifier()});
         String label = null;
         do {
@@ -478,6 +704,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
         elemLabel.appendChild(text);
         elem.appendChild(elemLabel);
 
+        // crear descripción
         installerEDMDisplay.showQuestion(currentStepGlobal, "addFieldForm.hint", new String[]{value.getMetadataField().getElement() + "." + value.getMetadataField().getQualifier()});
         String hint = null;
         do {

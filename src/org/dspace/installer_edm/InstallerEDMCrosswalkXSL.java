@@ -24,49 +24,129 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Created with IntelliJ IDEA.
- * User: salzaru
- * Date: 11/02/13
- * Time: 13:07
- * To change this template use File | Settings | File Templates.
+ * @class InstallerEDMCrosswalkXSL
+ *
+ * Clase para modificar los archivos necesarios de dspace para configurar el plugin de oai mediante plantilla
+ * xsl para mostrar los registros en formato EDM.
+ *
+ * Se modifica la plantilla con los datos que se piden para ajustarla la instalación de Dspace actual.
+ * Se cambiar los elementos:
+ * ore:Aggregation/edm:dataProvider
+ * ore:Aggregation/edm:provider
+ * ore:Aggregation/edm:rights
+ * edm:ProvidedCHO/edm:type
+ * edm:ProvidedCHO/edm:language
+ *
+ *
+ * Se modifica oaicat.properties y se añade: Crosswalks.edm=org.dspace.app.oai.PluginCrosswalk
+ * Se modifica dspace.cfg y se añade:
+ * crosswalk.dissemination.edm.stylesheet = crosswalks/DIM2EDM.xsl
+ * crosswalk.dissemination.edm.namespace.dcterms=http://purl.org/dc/terms/
+ * crosswalk.dissemination.edm.namespace.edm=http://www.europeana.eu/schemas/edm/
+ * crosswalk.dissemination.edm.namespace.enrichment=http://www.europeana.eu/schemas/edm/enrichment/
+ * crosswalk.dissemination.edm.namespace.owl=http://www.w3.org/2002/07/owl#
+ * crosswalk.dissemination.edm.namespace.wgs84=http://www.w3.org/2003/01/geo/wgs84_pos#
+ * crosswalk.dissemination.edm.namespace.skos=http://www.w3.org/2004/02/skos/core#
+ * crosswalk.dissemination.edm.namespace.oai=http://www.openarchives.org/OAI/2.0/
+ * crosswalk.dissemination.edm.namespace.ore=http://www.openarchives.org/ore/terms/
+ * crosswalk.dissemination.edm.namespace.rdf=http://www.w3.org/1999/02/22-rdf-syntax-ns#
+ * crosswalk.dissemination.edm.namespace.dc=http://purl.org/dc/elements/1.1/
+ * crosswalk.dissemination.edm.schemaLocation=http://www.w3.org/1999/02/22-rdf-syntax-ns# EDM.xsd
+ * crosswalk.dissemination.edm.preferList = true
+ *
+ *
  */
 public class InstallerEDMCrosswalkXSL extends InstallerEDMBase
 {
+    /**
+     * Archivo con la plantilla modificada
+     */
     private File dim2EdmNewFile;
+
+    /**
+     * Archivo dspace.cfg modificado
+     */
     private File dspaceDirConfNewFile;
+
+    /**
+     *
+     */
     private File dspaceConfNewFile;
+
+    /**
+     * Archivo oaicat.properties modificado
+     */
     private File oaicatNewFile;
+
+    /**
+     * Documento JDom con la plantila xsl a cambiar
+     */
     private Document docDim2EdmXsl;
 
+    /**
+     * Namespaces a usar en xsl
+     */
     private static final String XSL_PATH = "http://www.w3.org/1999/XSL/Transform";
     private static final String EDM_PATH = "http://www.europeana.eu/schemas/edm/";
     private static final String ORE_PATH = "http://www.openarchives.org/ore/terms/";
     private static final String RDF_PATH = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
 
+    /**
+     * Consultas xpath para buscar en la plantilla los elementos a cambiar
+     *
+     * uri con la que viene la dirección de los handle
+     */
     // //*[namespace-uri() = 'http://www.w3.org/1999/XSL/Transform' and local-name() = 'variable'][@name='handle']
     private static final String xpathDim2EdmXslVariableHandleTemplate = "//xsl:variable[@name='handle']";
 
+    /**
+     * la uri con la que se formarán los enlaces a los ítems
+     */
     // //*[namespace-uri() = 'http://www.w3.org/1999/XSL/Transform' and local-name() = 'variable'][@name='ident_uri_orig']
     private static final String xpathDim2EdmXslVariableIdentUriOrigTemplate = "//xsl:variable[@name='ident_uri_orig']";
 
+    /**
+     * nombre del suministrador de datos
+     */
     // //*[namespace-uri() = 'http://www.openarchives.org/ore/terms/' and local-name() = 'Aggregation']/*[namespace-uri() = 'http://www.europeana.eu/schemas/edm/' and local-name() = 'dataProvider']
     private static final String xpathDim2EdmXslAggregationDataProviderTemplate = "//ore:Aggregation/edm:dataProvider";
 
+    /**
+     * nombre del suministrador
+     */
     // //*[namespace-uri() = 'http://www.openarchives.org/ore/terms/' and local-name() = 'Aggregation']/*[namespace-uri() = 'http://www.europeana.eu/schemas/edm/' and local-name() = 'provider']
     private static final String xpathDim2EdmXslAggregationProviderTemplate = "//ore:Aggregation/edm:provider";
 
+    /**
+     * uri del acuerdo de derechos
+     */
     // //*[namespace-uri() = 'http://www.openarchives.org/ore/terms/' and local-name() = 'Aggregation']/*[namespace-uri() = 'http://www.europeana.eu/schemas/edm/' and local-name() = 'rights']
     private static final String xpathDim2EdmXslRightsTemplate = "//ore:Aggregation/edm:rights";
 
+    /**
+     * tipos de ítems
+     */
     // //*[namespace-uri() = 'http://www.europeana.eu/schemas/edm/' and local-name() = 'ProvidedCHO']/*[namespace-uri() = 'http://www.europeana.eu/schemas/edm/' and local-name() = 'type']
     private static final String xpathDim2EdmXslProviderCHOTypeTemplate = "//edm:ProvidedCHO/edm:type";
 
+    /**
+     * idioma para los ítems
+     */
     // //*[namespace-uri() = 'http://www.europeana.eu/schemas/edm/' and local-name() = 'ProvidedCHO']/*[namespace-uri() = 'http://www.europeana.eu/schemas/edm/' and local-name() = 'language']
     private static final String xpathDim2EdmXslProviderCHOLanguageTemplate = "//edm:ProvidedCHO/edm:language";
 
+    /**
+     * contexto de los namespace para poder usar consultas de xpath con namespace
+     */
     private NamespaceContext ctx;
 
 
+    /**
+     * Constructor, se pasa en paso actual
+     * Se incia el contexto de los namespace para xsl, edm y ore
+     *
+     * @param currentStepGlobal paso actual
+     */
     public InstallerEDMCrosswalkXSL(int currentStepGlobal)
     {
         super(currentStepGlobal);
@@ -100,6 +180,9 @@ public class InstallerEDMCrosswalkXSL extends InstallerEDMBase
     }
 
 
+    /**
+     * Se copian de dspace al directorio de trabajo del instalador los archivos dspace.cfg y oaicat.properties
+     */
     public void configure()
     {
         String dspaceConfName = DspaceDir + "config" + fileSeparator + "dspace.cfg";
@@ -113,16 +196,24 @@ public class InstallerEDMCrosswalkXSL extends InstallerEDMBase
                 copyDspaceFile2Work(dspaceConfFile, dspaceConfNewFile, "configure.dspacecfg");
                 oaicatNewFile = new File(dspaceDirConfNewFile.getAbsolutePath() + fileSeparator + "oaicat.properties");
                 copyDspaceFile2Work(dspaceOaiCatFile, oaicatNewFile, "configure.oaicat");
+
+                // comprobar si ya hay en dspace.cfg un plugin para edm
                 if (!checkOldEDMCrosswalk()) {
                     File dim2EdmFile = new File(myInstallerDirPath + fileSeparator + "packages" + fileSeparator + "DIM2EDM.xsl");
                     dim2EdmNewFile = new File(myInstallerWorkDirPath + fileSeparator + dim2EdmFile.getName());
                     copyDspaceFile2Work(dim2EdmFile, dim2EdmNewFile, "configure.dim2edm");
+
+                    // comprobar si ya hay en oaicat.properties un plugin para edm
                     if (!checkOldOaiProperties()) {
                         InputSource inputSourceDim2EdmXsl = new InputSource(dim2EdmNewFile.getAbsolutePath());
                         docDim2EdmXsl = getDocumentFromInputSource(inputSourceDim2EdmXsl);
+                        // pedir los valores de los elementos cambiar
                         configureDim2EdmXsl();
+                        // escribir la nueva plantilla
                         writeDim2EdmXsl();
+                        // escribir dspace.cfg
                         writeDspaceCfg();
+                        // escribir oaicat.properties
                         writeOaiCat();
                         installerEDMDisplay.showLn();
                         installerEDMDisplay.showQuestion(currentStepGlobal, "configure.ok");
@@ -141,7 +232,11 @@ public class InstallerEDMCrosswalkXSL extends InstallerEDMBase
         } else installerEDMDisplay.showQuestion(currentStepGlobal, "configure.dspacedirconf.notexist", new String [] {dspaceConfName, dspaceOaiCatName, dspaceDirConfNewFile.getAbsolutePath()});
     }
 
-
+    /**
+     * Escribir oicat.properties
+     *
+     * @throws IOException
+     */
     public void writeOaiCat() throws IOException
     {
         Writer out = null;
@@ -160,6 +255,11 @@ public class InstallerEDMCrosswalkXSL extends InstallerEDMBase
     }
 
 
+    /**
+     * Escribir dspace.cfg
+     *
+     * @throws IOException
+     */
     public void writeDspaceCfg() throws IOException
     {
         Writer out = null;
@@ -192,6 +292,12 @@ public class InstallerEDMCrosswalkXSL extends InstallerEDMBase
     }
 
 
+    /**
+     * Escribir la plantilla xsl con el documento jdom cambiado
+     *
+     * @throws IOException
+     * @throws TransformerException
+     */
     public void writeDim2EdmXsl() throws IOException, TransformerException
     {
         Writer out = null;
@@ -219,6 +325,9 @@ public class InstallerEDMCrosswalkXSL extends InstallerEDMBase
     }
 
 
+    /**
+     * Configurar los elementos de la plantilla xsl
+     */
     private void configureDim2EdmXsl()
     {
         configureDim2EdmXslVariableHandle();
@@ -231,6 +340,9 @@ public class InstallerEDMCrosswalkXSL extends InstallerEDMBase
     }
 
 
+    /**
+     * Pide y cambia la uri con la que viene la dirección de los handle
+     */
     private void configureDim2EdmXslVariableHandle()
     {
         try {
@@ -272,6 +384,9 @@ public class InstallerEDMCrosswalkXSL extends InstallerEDMBase
         }
     }
 
+    /**
+     * Pide y cambia la uri con la que se formarán los enlaces a los ítems
+     */
     private void configureDim2EdmXslVariableIdentUriOrig()
     {
         try {
@@ -303,6 +418,9 @@ public class InstallerEDMCrosswalkXSL extends InstallerEDMBase
         }
     }
 
+    /**
+     * Pide y cambia el nombre del suministrador de datos
+     */
     private void configureDim2EdmXslAggregationDataProvider()
     {
         try {
@@ -332,6 +450,9 @@ public class InstallerEDMCrosswalkXSL extends InstallerEDMBase
         }
     }
 
+    /**
+     * Pide y cambia el nombre del suministrador
+     */
     private void configureDim2EdmXslAggregationProvider()
     {
         try {
@@ -361,6 +482,9 @@ public class InstallerEDMCrosswalkXSL extends InstallerEDMBase
         }
     }
 
+    /**
+     * Pide y cambia la uri del acuerdo de derechos
+     */
     private void configureDim2EdmXslRights()
     {
         try {
@@ -395,7 +519,9 @@ public class InstallerEDMCrosswalkXSL extends InstallerEDMBase
         }
     }
 
-
+    /**
+     * Pide y cambia los tipos de ítems
+     */
     private void configureDim2EdmXslProviderCHOType()
     {
         try {
@@ -425,7 +551,9 @@ public class InstallerEDMCrosswalkXSL extends InstallerEDMBase
         }
     }
 
-
+    /**
+     * Pide y cambia el idioma para los ítems
+     */
     private void configureDim2EdmXslProviderCHOLanguage()
     {
         try {
@@ -455,7 +583,13 @@ public class InstallerEDMCrosswalkXSL extends InstallerEDMBase
         }
     }
 
-
+    /**
+     * Busca una consulta xpath en el documento
+     *
+     * @param expression consulta xpath
+     * @return lista de nodos con el resultado
+     * @throws XPathExpressionException
+     */
     private NodeList searchXpath(String expression) throws XPathExpressionException
     {
         XPath xpath = XPathFactory.newInstance().newXPath();
@@ -464,7 +598,14 @@ public class InstallerEDMCrosswalkXSL extends InstallerEDMBase
         return results;
     }
 
-
+    /**
+     * Comprueba en el archivo dspace.cfg si existe una propiedad Crosswalks.edm con valor crosswalk.dissemination.edm.stylesheet
+     * que indica que ya hay una plantilla de xsl para edm o con valor org.dspace.app.oai.PluginCrosswalk que nos indica que ya
+     * hay un plugin de java para edm
+     *
+     * @return si ya existe la plantilla xsl o el plugin de java
+     * @throws IOException
+     */
     private boolean checkOldOaiProperties() throws IOException
     {
         InputStream is = null;
@@ -491,6 +632,13 @@ public class InstallerEDMCrosswalkXSL extends InstallerEDMBase
         return false;
     }
 
+    /**
+     * Comprueba en el archivo dspace.cfg si existe una propiedad crosswalk.dissemination.edm.stylesheet
+     * que indica que ya hay una plantilla de xsl para edm
+     *
+     * @return si ya existe la plantilla xsl
+     * @throws IOException
+     */
     private boolean checkOldEDMCrosswalk() throws IOException
     {
         InputStream is = null;

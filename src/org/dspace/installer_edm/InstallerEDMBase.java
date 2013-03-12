@@ -25,74 +25,189 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
- * Created with IntelliJ IDEA.
- * User: salvazm-adm
- * Date: 26/10/12
- * Time: 11:30
- * To change this template use File | Settings | File Templates.
+ * @class InstallerEDMBase
+ *
+ * Clase base con variables estáticas y métodos que se usan en todas las clases que ejecutan pasos
+ *
  */
 public abstract class InstallerEDMBase implements Observer
 {
+    /**
+     * clase que lanza el instalador
+     */
     protected static InstallerEDM installerEDM;
 
+    /**
+     * ruta del directorio de dspace
+     */
     protected static String DspaceDir = null;
+
+    /**
+     * ruta del directorio base de tomcat
+     */
     protected static String TomcatBase = null;
+
+    /**
+     * directorio base de tomcat
+     */
     protected static File TomcatBaseFile = null;
+
+    /**
+     * ruta del directorio datos de askosi
+     */
     protected static String AskosiDataDir;
+
+    /**
+     * verbosidad
+     */
     protected static boolean verbose = false;
+
+    /**
+     * debug para mostrar más mensajes
+     */
     protected static boolean debug = false;
+
+    /**
+     * contexto de dspace
+     */
     protected static Context context = null;
 
+    /**
+     * idioma paa los mensajes y los elementos dc
+     */
     protected static String language = null;
 
+    /**
+     * conjunto de pasos del instalador
+     */
     protected static Set<Integer> stepsSet = new HashSet<Integer>();
 
+    /**
+     * clase para mostrar los mensajes
+     */
     protected static InstallerEDMDisplay installerEDMDisplay = null;
 
-
+    /**
+     * ruta del directorio del instalador
+     */
     protected static String myInstallerDirPath = null;
+
+    /**
+     * ruta del directorio de trabajo del instalador
+     */
     protected static String myInstallerWorkDirPath = null;
+
+    /**
+     * separador del sistema de ficheros del sistema
+     */
     protected static String fileSeparator = System.getProperty("file.separator");
 
+    /**
+     * flujo de datos de entrada para las preguntas
+     */
     protected static InputStreamReader isr = null;
+
+    /**
+     * buffer para el flujo de entrada
+     */
     protected static BufferedReader br = null;
 
+    /**
+     * uri del esquema DC
+     */
     protected final String DCSCHEMA = "http://dublincore.org/documents/dcmi-terms/";
+
+    /**
+     * objeto esquema de dspace {@link MetadataSchema}
+     */
     protected MetadataSchema dcSchema = null;
 
+    /**
+     * array con los metadatos de elementos dc
+     */
     protected static ArrayList<MetadataField> metadataFields;
+
+    /**
+     * conjunto de elementos dc que no son autoridades
+     */
     protected static Set<String> elementsNotAuthSet = new HashSet<String>();
 
+    /**
+     * paso actual
+     */
     protected int currentStepGlobal;
 
+    /**
+     * objeto usuario de dspace {@link EPerson}
+     */
     protected static EPerson eperson;
+
+    /**
+     * nombre del usuario
+     */
     protected static String user;
+
+    /**
+     * clave del usuario
+     */
     protected static String password;
 
+    /**
+     * palabra de respuesta afirmativa
+     */
     protected static String answerYes;
 
+    /**
+     * nombre de la base de datos
+     */
     protected static String dbName = null;
 
+    /**
+     * administrador de autoridades de dspace {@link MetadataAuthorityManager}
+     */
     protected static MetadataAuthorityManager metadataAuthorityManager = null;
+
+    /**
+     * conjunto de elementos con autoridad de dspace.cfg
+     */
     protected static Set<String> elementsAuthDspaceCfg = null;
 
 
+    /**
+     * tabla hash de elementos dc como clave y el POJO de la autoridad {@link InstallerEDMAuthBO} de valor
+     */
     protected static HashMap<String, InstallerEDMAuthBO> authBOHashMap;
 
+    /**
+     * elementos dc que no pueden ser autoridad
+     */
     protected static final String[] elementsNotAuth = {"identifier.uri", "date.accessioned", "date.available", "date.issued", "description.provenance", "type"};
 
+    /**
+     * archivos en el directorio packages para validar por firma md5
+     */
     protected static final String[] packages = {"ASKOSI.jar", "askosiWebapp.zip", "classes.zip", "commons-dbcp.jar", "commons-pool.jar", "EDMCrosswalk.java", "EDMExport.war", "exampleAskosiData.zip", "jaxb-xalan-1.5.jar", "jsr311-api-1.1.1.jar", "jstl-1.2.jar", "log4j.jar", "openrdf-alibaba-2.0-beta6.jar", "openrdf-sesame-2.3.2-onejar.jar", "DIM2EDM.xsl"};
 
+    /**
+     * firma md5 de los archivos en packages
+     */
     protected static final String[] packagesMD5 = {"f800262e9587383fa0dbd8f748cc831e", "ab932907d73a8031cb266d20d341a6e2", "0bffffb990ea99eb02a989d346454d8e", "2666cfeb7be74b1c2d8a1665ae21192c", "01f9bed60e2f88372132d34040ee81bb", "9c387f3e3d333bf89d5c2e54e6c7a60a", "6561a6f17fbac130937b78351ddc7116", "2be860d3a2529cb8789d6c27cfae5a92", "261968cebe30ffe8adcc201ad0bfa395", "c9803468299ec255c047a280ddec510f", "51e15f798e69358cb893e38c50596b9b", "599b8ba07d1d04f0ea34414e861d7ad1", "1f699edb215bcee75cb6f0616fa56993", "3054aa9109f78903852d38991b5a4ea8", "4848484a04285097cba450dcd329880c"};
 
 
-
+    /**
+     * Constructor con parámetro el paso actual, llama al constructor sin parámetros
+     *
+     * @param currentStepGlobal paso actual
+     */
     public InstallerEDMBase(int currentStepGlobal)
     {
         this();
         this.currentStepGlobal = currentStepGlobal;
     }
 
+    /**
+     * Constructor, inicia el contexto de dspace e inicializa las variables estáticas
+     */
     public InstallerEDMBase()
     {
         try {
@@ -127,46 +242,91 @@ public abstract class InstallerEDMBase implements Observer
     }
 
 
+    /**
+     * Asigna el idioma
+     *
+     * @param language idioma
+     */
     public void setLanguage(String language)
     {
         this.language = language;
     }
 
+    /**
+     * Asigna el objeto que inicia el instalador
+     *
+     * @param installerEDM {@link InstallerEDM}
+     */
     public void setInstallerEDMBase(InstallerEDM installerEDM)
     {
         this.installerEDM = installerEDM;
     }
 
+    /**
+     * Asigna la ruta de dspace
+     *
+     * @param DspaceDir ruta de dspace
+     */
     public void setDspaceDir(String DspaceDir)
     {
         this.DspaceDir = DspaceDir;
     }
 
+    /**
+     * Asigna la ruta de tomcat
+     *
+     * @param TomcatBase ruta de tomcat
+     */
     public void setTomcatBase(String TomcatBase)
     {
         this.TomcatBase = TomcatBase;
     }
 
+    /**
+     * Asigna la ruta de datos de askosi
+     *
+     * @param askosiDataDir ruta de datos de askosi
+     */
     public void setAskosiDataDir(String askosiDataDir)
     {
         this.AskosiDataDir = askosiDataDir;
     }
 
+    /**
+     * Asigna la verbosidad
+     *
+     * @param verbose verbosidad
+     */
     public void setVerbose(boolean verbose)
     {
         this.verbose = verbose;
     }
 
+    /**
+     * Asigna debug
+     *
+     * @param debug
+     */
     public void setDebug(boolean debug)
     {
         this.debug = debug;
     }
 
+    /**
+     * recoge el esquena DC
+     *
+     * @throws SQLException
+     */
     private void checkDspaceDC() throws SQLException
     {
         if (dcSchema == null) dcSchema = MetadataSchema.findByNamespace(context, DCSCHEMA);
     }
 
+    /**
+     * Recoge todos los elementos DC
+     *
+     * @throws SQLException
+     */
     protected void checkDspaceMetadataDC() throws SQLException
     {
         MetadataField[] metadataFieldsArr = MetadataField.findAllInSchema(context, dcSchema.getSchemaID());
@@ -177,21 +337,42 @@ public abstract class InstallerEDMBase implements Observer
         metadataFields = new ArrayList<MetadataField>(Arrays.asList(metadataFieldsArr));
     }
 
+    /**
+     * devuelve la lista de POJOs de autoridades
+     *
+     * @return lista de POJOs de autoridades
+     */
     public HashMap<String, InstallerEDMAuthBO> getAuthBOHashMap()
     {
         return authBOHashMap;
     }
 
+    /**
+     * devuelve el esquema dc
+     *
+     * @return esquema dc {@link MetadataSchema}
+     */
     public MetadataSchema getDcSchema()
     {
         return dcSchema;
     }
 
+    /**
+     * devuelve el objeto de visualizar mensajes
+     *
+     * @return objeto de visualizar mensajes {@link InstallerEDMDisplayImpl}
+     */
     public static InstallerEDMDisplayImpl getInstallerEDMDisplay()
     {
         return (InstallerEDMDisplayImpl) installerEDMDisplay;
     }
 
+    /**
+     * Salida del instalador por señal recibida
+     *
+     * @param o observador de señales
+     * @param arg señal
+     */
     @Override
     public void update(Observable o, Object arg)
     {
@@ -199,12 +380,24 @@ public abstract class InstallerEDMBase implements Observer
         System.exit(0);
     }
 
+    /**
+     * quitar acentos a una cadena
+     *
+     * @param text cadena original
+     * @return cadena sin acentos
+     */
     public String removeAccents(String text)
     {
         if (text != null) text = text.replaceAll(" +", "_");
         return text == null ? null : Normalizer.normalize(text, Form.NFD).replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
     }//removeAccents
 
+    /**
+     * validar un cadena como uri
+     *
+     * @param uriStr cadena original
+     * @return validez de la uri
+     */
     protected boolean isValidURI(String uriStr)
     {
         try {
@@ -220,6 +413,11 @@ public abstract class InstallerEDMBase implements Observer
         }
     }
 
+    /**
+     * hora actual en formato yyyy-MM-dd HH:mm:ss
+     *
+     * @return cadena con la hora actual
+     */
     protected String getTime()
     {
         Calendar cal = Calendar.getInstance();
@@ -229,6 +427,9 @@ public abstract class InstallerEDMBase implements Observer
     }
 
 
+    /**
+     * Inicializar authBOHashMap
+     */
     protected void initAuthBOHashMap()
     {
         if (authBOHashMap == null) authBOHashMap = new HashMap<String, InstallerEDMAuthBO>();
@@ -236,6 +437,11 @@ public abstract class InstallerEDMBase implements Observer
     }
 
 
+    /**
+     * autenticación de un usuario en dspace
+     *
+     * @return validez del usuario
+     */
     protected boolean loginUser()
     {
         installerEDMDisplay.showQuestion(0, "authentication");
@@ -282,6 +488,12 @@ public abstract class InstallerEDMBase implements Observer
     }
 
 
+    /**
+     * busca en un ítem si su tipo es de una autoridad SKOS_AUTH
+     *
+     * @param item objeto item de dspace {@link Item}
+     * @return si es una autoridad
+     */
     protected boolean searchSkosAuthTypeItem(Item item)
     {
         DCValue[] listDCTypeValues = item.getMetadata(dcSchema.getName(), "type", null, language);
@@ -295,6 +507,12 @@ public abstract class InstallerEDMBase implements Observer
         return false;
     }
 
+    /**
+     * busca en un ítem si su campo autoridad tiene el handle del ítem y por lo tanto es una autoridad
+     *
+     * @param item objeto item de dspace {@link Item}
+     * @return si es una autoridad
+     */
     protected boolean searchSkosAuthItem(Item item)
     {
         if (searchSkosAuthTypeItem(item)) return true;
@@ -310,6 +528,12 @@ public abstract class InstallerEDMBase implements Observer
         return false;
     }
 
+    /**
+     * busca en todas las colecciones los elementos dc que son de autoridades
+     *
+     * @param authDCElements lista de elementos dc
+     * @throws SQLException
+     */
     protected void checkAllSkosAuthElements(ArrayList<MetadataField> authDCElements) throws SQLException
     {
         org.dspace.content.Collection[] listCollections = org.dspace.content.Collection.findAll(context);
@@ -329,6 +553,12 @@ public abstract class InstallerEDMBase implements Observer
     }
 
 
+    /**
+     * busca en un ítem si tiene ciertos elementos dc de autoridades, crea un POJO de autoridad {@link InstallerEDMAuthBO} y lo añade a authBOHashMap
+     *
+     * @param authDCElements lista de elementos dc
+     * @param item objeto item de dspace {@link Item}
+     */
     protected void checkSkosAuthItem(ArrayList<MetadataField> authDCElements, Item item)
     {
         DCValue[] listDCValues = item.getMetadata(dcSchema.getName() + ".*.*");
@@ -359,6 +589,12 @@ public abstract class InstallerEDMBase implements Observer
     }
 
 
+    /**
+     * busca el elemento dc con cierto nombre y calificador
+     *
+     * @param name nombre y calificador
+     * @return elemento dc {@link MetadataField}
+     */
     protected MetadataField findElementDC(String name)
     {
         int pos = name.indexOf(".");
@@ -381,6 +617,11 @@ public abstract class InstallerEDMBase implements Observer
     }
 
 
+    /**
+     * saca formateado en dos columnas por pantalla los elementos dc de una lista
+     *
+     * @param arrFields lista de elementos dc
+     */
     protected void listAllDCElements(ArrayList<MetadataField> arrFields)
     {
         int i = 1;
@@ -401,6 +642,11 @@ public abstract class InstallerEDMBase implements Observer
         System.out.println("");
     }
 
+    /**
+     * saca formateado en dos columnas por pantalla las cadenas de una lista
+     *
+     * @param list lista de cadenas
+     */
     protected void listAllStrings(List<String> list)
     {
         int i = 1;
@@ -420,6 +666,14 @@ public abstract class InstallerEDMBase implements Observer
     }
 
 
+    /**
+     * copia un fichero a otro
+     *
+     * @param dspaceFileFile fichero original
+     * @param dspaceFileNewFile fichero destino
+     * @param prefixMessage prefijo para el código de los mensajes
+     * @throws IOException
+     */
     protected void copyDspaceFile2Work(File dspaceFileFile, File dspaceFileNewFile, String prefixMessage) throws IOException
     {
         installerEDMDisplay.showLn();
@@ -442,6 +696,9 @@ public abstract class InstallerEDMBase implements Observer
     }
 
 
+    /**
+     * carga de dspace.cfg los elementos dc que están controlados como autoridades, i.e., tienen la propiedad authority.controlled
+     */
     protected void loadAuthDspaceCfg()
     {
         elementsAuthDspaceCfg = new HashSet<String>();
@@ -489,6 +746,15 @@ public abstract class InstallerEDMBase implements Observer
     }
 
 
+    /**
+     * Obtiene un documento jdom de una fuente de entrada de datos, e.g.: un fichero
+     *
+     * @param IS fuente de entrada de datos
+     * @return documento jdom
+     * @throws ParserConfigurationException
+     * @throws IOException
+     * @throws SAXException
+     */
     protected Document getDocumentFromInputSource(InputSource IS) throws ParserConfigurationException, IOException, SAXException
     {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -498,6 +764,11 @@ public abstract class InstallerEDMBase implements Observer
     }
 
 
+    /**
+     * muestra la excepción y su mensaje si verbose y la pila si debug
+     *
+     * @param e excepción
+     */
     protected void showException(Exception e)
     {
         if (verbose) installerEDMDisplay.showMessage(e.getMessage());

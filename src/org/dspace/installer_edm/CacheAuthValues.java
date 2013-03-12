@@ -3,31 +3,65 @@ package org.dspace.installer_edm;
 import java.util.*;
 
 /**
- * Created with IntelliJ IDEA.
- * User: salzaru
- * Date: 11/02/13
- * Time: 9:01
- * To change this template use File | Settings | File Templates.
+ * @class CacheAuthValues
+ *
+ * Clase para cachear lso valores de las autoridades mediante tablas hash y listas
+ * para consultar menos a la base de datos cuando se buscan si existen valores de autoridades
+ *
  */
 public class CacheAuthValues
 {
+    /**
+     * Array con la lista de los niveles de autoridades. Cada nivel indica las concidencias en la autoridad.
+     * Se desechan cuando se llena la caché los de menos nivel.
+     */
     private ArrayList<LinkedList<CacheAuthValue>> levelList;
+
+    /**
+     * Tabla hash con clave el valor de la autoridad y el POJO con sus valores
+     */
     private HashMap<String, CacheAuthValue> hashtable;
+
+    /**
+     * número de autoridades cacheadas actualmente
+     */
     private int numAuth = 0;
+
+    /**
+     * nivel mínimo o mínimo número de coincidencias actual
+     */
     private int minLevel = 0;
+
+    /**
+     * número máximo de autoridades a cachear
+     */
     private static final int NUM_MAX = 100;
 
+    /**
+     * Constructor, se incializa con 101 como capacidad para la tabla hash
+     */
     public CacheAuthValues()
     {
         this(101);
     }
 
+    /**
+     * Constructor, crea la tabla hash el array de listas
+     *
+     * @param capacity capacidad para la tabla hash
+     */
     public CacheAuthValues(int capacity)
     {
         hashtable = new HashMap<String, CacheAuthValue>(capacity);
         levelList = new ArrayList<LinkedList<CacheAuthValue>>();
     }
 
+    /**
+     * Devuelve y elimina el POJO de la autoridad con nivel mínimo.
+     * Busca el nivel mínimo actual tras la operación
+     *
+     * @return POJO de la autoridad
+     */
     public CacheAuthValue pollCacheAuthValue()
     {
         CacheAuthValue cacheAuthValue = null;
@@ -40,11 +74,22 @@ public class CacheAuthValues
         return cacheAuthValue;
     }
 
+    /**
+     * Devuelve el número de autoridades en la caché
+     *
+     * @return número de autoridades en la caché
+     */
     public int getNumAuth()
     {
         return numAuth;
     }
 
+    /**
+     * Busca el primer nivel no vacío con autoridades
+     *
+     * @param currentLevel nivel actual
+     * @return primer nivel no vacío con autoridades
+     */
     private int searchNewMinLevel(int currentLevel)
     {
         for (int i = currentLevel; i < levelList.size(); i++)
@@ -52,6 +97,14 @@ public class CacheAuthValues
         return 0;
     }
 
+    /**
+     * Añade una nueva autoridad a la caché. Primero busca si ya existe en la tabla hash.
+     * Si existe lo mueve un nivel más alto,
+     * si no, lo añade a la tabla hash y al nivel 0 del array.
+     *
+     * @param value valor de la autoridad
+     * @param handle handle de la autoridad
+     */
     public void addCacheAuthValue(String value, String handle)
     {
         CacheAuthValue cacheAuthValue = searchCacheAuthValueFromValue(value);
@@ -71,7 +124,14 @@ public class CacheAuthValues
         }
     }
 
-
+    /**
+     * Se mueve el POJO de la autoridad un nivel más alto en el array
+     * Se busca su nivel actual y se elimina de él. Si no existe nivel para el nuevo, se crea.
+     * Por último se añade el POJO al nuevo nivel.
+     *
+     * @param cacheAuthValue POJO de la autoridad {@link CacheAuthValue}
+     * @return null
+     */
     private CacheAuthValue moveCacheAuthValueDown(CacheAuthValue cacheAuthValue)
     {
         ListIterator<LinkedList<CacheAuthValue>> iterator = levelList.listIterator();
@@ -92,19 +152,38 @@ public class CacheAuthValues
         return null;
     }
 
-
+    /**
+     * Busca un POJO en su nivel
+     *
+     * @param cacheAuthValue POJO de la autoridad {@link CacheAuthValue}
+     * @return si existe en ese nivel
+     */
     public boolean searchCacheAuthValueInLevelList(CacheAuthValue cacheAuthValue)
     {
-        LinkedList<CacheAuthValue> cacheAuthValueList = searchLevel(cacheAuthValue.getValue(), cacheAuthValue.getNumMatches());
+        LinkedList<CacheAuthValue> cacheAuthValueList = searchLevel(cacheAuthValue.getNumMatches());
         if (cacheAuthValueList != null) return searchCacheAuthValueInList(cacheAuthValueList, cacheAuthValue);
         return false;
     }
 
-    private LinkedList<CacheAuthValue> searchLevel(String value, int level)
+    /**
+     * Busca la lista de POJOs para el nivel suministrado
+     *
+     * @param level nivel a buscar
+     * @return la lista con ese nivel o null
+     */
+    private LinkedList<CacheAuthValue> searchLevel(int level)
     {
         return searchLevel(level, levelList.listIterator());
     }
 
+    /**
+     * Busca la lista de POJOs para el nivel suministrado
+     *
+     *
+     * @param level nivel a buscar
+     * @param iterator puntero para recorrer los niveles
+     * @return la lista con ese nivel o null
+     */
     private LinkedList<CacheAuthValue> searchLevel(int level, ListIterator<LinkedList<CacheAuthValue>> iterator)
     {
         while (iterator.hasNext()) {
@@ -116,6 +195,13 @@ public class CacheAuthValues
         return null;
     }
 
+    /**
+     * Buscar un POJO de autoridad en la lista de su nivel
+     *
+     * @param list lista con su nivel de POJOs
+     * @param cacheAuthValue POJO con la autoridad {@link CacheAuthValue}
+     * @return si existe en ese nivel
+     */
     private boolean searchCacheAuthValueInList(LinkedList<CacheAuthValue> list, CacheAuthValue cacheAuthValue)
     {
         for (CacheAuthValue cacheAuthValueAux : list) {
@@ -124,7 +210,12 @@ public class CacheAuthValues
         return false;
     }
 
-
+    /**
+     * Buscar un POJO de autoridad en la tabla hash mediante su valor
+     *
+     * @param value valor de la autoridad
+     * @return POJO de autoridad {@link CacheAuthValue} o null
+     */
     public CacheAuthValue searchCacheAuthValueFromValue(String value)
     {
         if (!hashtable.isEmpty() && hashtable.containsKey(value)) {
@@ -133,6 +224,12 @@ public class CacheAuthValues
         return null;
     }
 
+    /**
+     * Buscar el handle de un POJO de autoridad en la tabla hash mediante su valor
+     *
+     * @param value valor de la autoridad
+     * @return el handle o null
+     */
     public String searchHandleFromValue(String value)
     {
         if (!hashtable.isEmpty() && hashtable.containsKey(value)) {
@@ -144,13 +241,36 @@ public class CacheAuthValues
 }
 
 
+/**
+ * @class CacheAuthValue
+ *
+ * Clase POJO para almacenar los datos en dspace de una autoridad
+ *
+ */
 class CacheAuthValue
 {
+    /**
+     * handle relacionado con la autoridad
+     */
     private String handle;
+
+    /**
+     * valor de la autoridad
+     */
     private String value;
+
+    /**
+     * número de coincidencias
+     */
     private int numMatches;
 
 
+    /**
+     * Constructor
+     *
+     * @param value valor de la autoridad
+     * @param handle handle de la autoridad
+     */
     public CacheAuthValue(String value, String handle)
     {
         this.numMatches = 1;
@@ -158,21 +278,40 @@ class CacheAuthValue
         this.value = value;
     }
 
+    /**
+     * Devuelve el valor
+     *
+     * @return el valor
+     */
     public String getValue()
     {
         return value;
     }
 
+    /**
+     * Devuelve el handle
+     *
+     * @return el handle
+     */
     public String getHandle()
     {
         return handle;
     }
 
+    /**
+     * Devuelve el número de coincidencias
+     *
+     * @return el número de coincidencias
+     */
     public int getNumMatches()
     {
         return numMatches;
     }
 
+    /**
+     * Incrementa en uno el número de coincidencias
+     *
+     */
     public void incNumMatches()
     {
         numMatches++;
