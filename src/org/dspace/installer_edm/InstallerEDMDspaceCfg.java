@@ -207,7 +207,15 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
                         installerEDMDisplay.showQuestion(currentStepGlobal, "addAuthDCElement.element.notallowed", new String[]{element});
                         installerEDMDisplay.showLn();
                     } else {
-                        authDCElements.add(elementObj);
+                        boolean exists = false;
+                        for (MetadataField metadataField : authDCElements) {
+                            String element2 = metadataField.getElement() + ((metadataField.getQualifier() != null)?"." + metadataField.getQualifier():"");
+                            if (element2.equals(element)) {
+                                exists = true;
+                                break;
+                            }
+                        }
+                        if (!exists) authDCElements.add(elementObj);
                         return;
                     }
                 }

@@ -388,7 +388,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
      *
      * @param entry entrada del elemento dc con el objeto de autoridad {@link InstallerEDMAuthBO}
      * @param forms conjunto de formularios a los que añadir el vocabulario
-     * @param name nombre del formulario del volcabulario
+     * @param name nombre del formulario del vocabulario
      * @throws XPathExpressionException
      * @throws IOException
      */
@@ -422,7 +422,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
                     Element formNamePageElement = (Element) resultsFormNamePage.item(0);
                     // busca el elemento dc en la página
                     Element element = searchFormNamePageField(formNamePageElement, entry.getValue());
-                    String vocabulary = name + "." + entry.getKey();
+                    String vocabulary = name.replaceAll("\\.", "_") + "_" + entry.getKey().replaceAll("\\.", "_");
                     // lo crea
                     if (element == null) {
                         element = createElementVocabulary(entry.getValue(), vocabulary);
@@ -504,6 +504,9 @@ public class InstallerEDMInputForms extends InstallerEDMBase
         Element elementVocabulary = docInputForms.createElement("vocabulary");
         Text text = docInputForms.createTextNode(vocabulary);
         elementVocabulary.appendChild(text);
+        Attr closedAttr = docInputForms.createAttribute("closed");
+        closedAttr.setValue("false");
+        elementVocabulary.setAttributeNode(closedAttr);
         field.appendChild(elementVocabulary);
         return field;
     }

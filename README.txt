@@ -31,6 +31,7 @@ packages: files required to uncompress, copy and/or modify. List of files:
                                                where the dspace jspui module is deployed.
     commons-dbcp.jar ......................... Library required for Askosi.
     commons-pool.jar ......................... Library required for Askosi.
+    DIM2EDM.xsl .............................. Xsl schema for EDM PluginCrosswalk.
     dspace-api-1.7.2.jar ..................... Dspace library required by the installer. Version 1.7.2 has been chosen
                                                because it's not the newer or an ancient one.
     EDMCrosswalk.java ........................ Java source file to be compiled by the installer and added to the
@@ -56,6 +57,7 @@ lib: libraries required by the installer. List of files:
     commons-io-2.4.jar ....................... Library required for installer.
     lanterna-2.1.1.jar ....................... Library required for installer.
     normalizer.jar ........................... Library required for installer.
+    ojdbc14-10.2.0.2.0.jar ................... Library required for installer.
     postgresql-8.1-408.jdbc3.jar ............. Library required for installer.
 
 

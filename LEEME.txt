@@ -31,6 +31,7 @@ packages: están los archivos que usará el instalador para descomprimir, copiar
                                                esté deplegado el módulo de jspui.
     commons-dbcp.jar ......................... Librería necesaria para Askosi.
     commons-pool.jar ......................... Librería necesaria para Askosi.
+    DIM2EDM.xsl .............................. Plantilla xsl para el PluginCrosswalk de EDM
     dspace-api-1.7.2.jar ..................... Librería de dspace necesaria para el instalador. Se ha elegido la
                                                versión 1.7.2 por ser una intermedia, ni muy nueva ni obsoleta.
     EDMCrosswalk.java ........................ Archivo fuente java para ser compilado por el instalador y añadirlo
@@ -56,6 +57,7 @@ lib: están archivos de librerías necesarios para el instalador. La lista es la
     commons-io-2.4.jar ....................... Librería necesaria para el instalador.
     lanterna-2.1.1.jar ....................... Librería necesaria para el instalador.
     normalizer.jar ........................... Librería necesaria para el instalador.
+    ojdbc14-10.2.0.2.0.jar ................... Librería necesaria para el instalador.
     postgresql-8.1-408.jdbc3.jar ............. Librería necesaria para el instalador.
 
 

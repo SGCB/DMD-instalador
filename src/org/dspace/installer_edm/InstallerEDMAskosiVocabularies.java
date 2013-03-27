@@ -83,7 +83,7 @@ public class InstallerEDMAskosiVocabularies extends InstallerEDMBase
         for (Map.Entry<String, InstallerEDMAuthBO> entry : authBOHashMap.entrySet()) {
             String handle = entry.getValue().getCollection().getHandle();
             String name = removeAccents(entry.getValue().getCollection().getName().toLowerCase());
-            String vocabulary = name + "." + entry.getKey();
+            String vocabulary = name.replaceAll("\\.", "_") + "_" + entry.getKey().replaceAll("\\.", "_");
             String vocabularyCfg = askosiDataDirFile.getAbsolutePath() + fileSeparator + vocabulary + ".cfg";
             String vocabularyPoolCfg = askosiDataDirFile.getAbsolutePath() + fileSeparator + vocabulary + "-pool.cfg";
             installerEDMDisplay.showQuestion(currentStepGlobal, "processAskosiVocabularies.create", new String[] {vocabularyPoolCfg, vocabulary});
@@ -138,7 +138,8 @@ public class InstallerEDMAskosiVocabularies extends InstallerEDMBase
         } else modify = true;
         if (modify) {
             StringBuilder text = new StringBuilder();
-            text.append("validation=SELECT 1\n");
+            String validation = (dbName.equalsIgnoreCase("oracle"))?"SELECT 1 FROM DUAL":"SELECT 1";
+            text.append("validation=").append(validation).append("\n");
             text.append("url=").append(dbUrl).append("\n");
             text.append("driver=").append(dbDriver).append("\n");
             text.append("username=").append(dbUserName).append("\n");
@@ -173,8 +174,8 @@ public class InstallerEDMAskosiVocabularies extends InstallerEDMBase
 
         // consulta sql
         StringBuilder sql = new StringBuilder();
-        String sqlSubstring = (dbName.equalsIgnoreCase("oracle"))?"substr(m.ext_lang, 1, 2)":"substring(m.text_lang from 1 for 2)";
-        sql.append("SELECT hi.handle AS about, lower(").append(sqlSubstring).append(" AS lang, m.text_value AS label FROM metadatavalue m, item i, collection2item c, handle h, handle hi WHERE h.handle='");
+        String sqlSubstring = (dbName.equalsIgnoreCase("oracle"))?"substr(m.text_lang, 1, 2)":"substring(m.text_lang from 1 for 2)";
+        sql.append("SELECT hi.handle AS about, lower(").append(sqlSubstring).append(") AS lang, m.text_value AS label FROM metadatavalue m, item i, collection2item c, handle h, handle hi WHERE h.handle='");
         sql.append(handle);
         sql.append("' AND c.collection_id=h.resource_id AND i.item_id=c.item_id AND m.item_id=i.item_id AND hi.resource_type_id=2 AND hi.resource_id=i.item_id AND m.metadata_field_id=(SELECT f.metadata_field_id FROM metadatafieldregistry f WHERE f.metadata_schema_id=1 AND f.element='");
         sql.append(entry.getValue().getMetadataField().getElement());
@@ -204,6 +205,10 @@ public class InstallerEDMAskosiVocabularies extends InstallerEDMBase
                             modify = true;
                         } else if (property.equals("pool") && !value.equals(vocabulary)) {
                             modify = true;
+                        } else if (property.equals("title-en") && !value.equals(vocabulary)) {
+                            modify = true;
+                        } else if (property.equals("title-es") && !value.equals(vocabulary)) {
+                            modify = true;
                         } else if (property.equals("labels")) {
 
                             if (!value.equalsIgnoreCase(query)) modify = true;
@@ -220,6 +225,8 @@ public class InstallerEDMAskosiVocabularies extends InstallerEDMBase
             if (properties == null) properties = new Properties();
             properties.setProperty("type", "SQL");
             properties.setProperty("pool", vocabulary);
+            properties.setProperty("title-en", vocabulary);
+            properties.setProperty("title-es", vocabulary);
             properties.setProperty("labels", query);
             OutputStreamWriter out = null;
             try {
