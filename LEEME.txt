@@ -90,6 +90,7 @@ Saldría: Use: install.sh: [-d dir_space_runtime] [-h] [-l language] [-s step] [
 Las opciones son las siguientes:
 
 -d: ruta del directorio raíz donde está desplegado dspace.
+-j: ruta del ejecutable java.
 -t: ruta del directorio raíz de Tomcat.
 -s: paso al que queremos ir. Mejor poner 0 para que nos salga el menú principal.
 -v: que sea verboso y nos diga más cosas.

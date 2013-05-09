@@ -89,6 +89,7 @@ Result: Use: install.sh: [-d dir_space_runtime] [-h] [-l language] [-s step] [-t
 The options are:
 
 -d: path to root dir where dspace is deployed.
+-j: path to java command.
 -t: path to Tomcat root dir.
 -s: step to launch. 0 is preferred to see the main menu first.
 -v: verbosity.

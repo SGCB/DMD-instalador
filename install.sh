@@ -88,6 +88,7 @@ dir_space_runtime=""
 tomcat_base=""
 step=1
 language=""
+java_cmd_param=""
 
 
 clean_up ()
@@ -103,7 +104,7 @@ clean_up ()
 
 help_sub()
 {
-    message_sub "${BLUE}Use: "$my_name": [-d dir_space_runtime] [-h] [-l language] [-s step] [-t dir_tomcat_base] [-v] [-g]${NC}" >&2
+    message_sub "${BLUE}Use: "$my_name": [-d dir_space_runtime] [-j java_command] [-h] [-l language] [-s step] [-t dir_tomcat_base] [-v] [-g]${NC}" >&2
     clean_up
     exit 2
 }
@@ -117,6 +118,10 @@ do
         "-d" )
             shift
             dir_space_runtime=$1
+            ;;
+        "-j" )
+            shift
+            java_cmd_param=$1
             ;;
         "-l" )
             shift
@@ -259,7 +264,32 @@ test $debug -eq 1 && arg_str="$arg_str -g"
 JARS=$(echo $my_dir/lib/*.jar | sed 's/ /\:/g')
 JARS2=$(echo $dir_space_runtime/lib/*.jar | sed 's/ /\:/g')
 
-java -cp $JARS:$JARS2:InstallerEDM.jar:.:$dir_space_runtime/config org.dspace.installer_edm.InstallerEDM -d $dir_space_runtime -t $tomcat_base -s $step $arg_str 2>/dev/null
+java_cmd=""
+if [ -n "$JAVA_HOME" -a -d "$JAVA_HOME" ]; then
+    java_cmd="$JAVA_HOME/bin/java"
+else
+    java_cmd=$(which java)
+fi
+
+test -x "$java_cmd" || java_cmd="java"
+
+if [ -z "$java_cmd_param" -o ! -x "$java_cmd_param" ]; then
+    while [ -z "$response" ]; do
+        message_sub "${YELLOW}The java command you gave \"$java_cmd_param\" is not correct. It's been detected one in the system \"$java_cmd\" or give another one${NC}"
+        flush_stdin
+        read response
+        if [ -n "$response" ]; then
+            test -x "$response" && java_cmd_param="$response" && break
+        else
+            java_cmd_param="$java_cmd"
+            break
+        fi
+        response=""
+    done
+fi
+
+
+$java_cmd_param -cp $JARS:$JARS2:InstallerEDM.jar:.:$dir_space_runtime/config org.dspace.installer_edm.InstallerEDM -d $dir_space_runtime -t $tomcat_base -s $step $arg_str 2>/dev/null
 
 clean_up
 exit 0
