@@ -19,13 +19,11 @@ package org.dspace.installer_edm;
 
 import org.apache.commons.cli.*;
 import org.dspace.core.ConfigurationManager;
-import org.dspace.core.Context;
 import org.dspace.servicemanager.DSpaceKernelImpl;
 import org.dspace.servicemanager.DSpaceKernelInit;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.SQLException;
 
 /**
  * @class InstallerEDM
@@ -139,6 +137,7 @@ public class InstallerEDM extends InstallerEDMBase
             Options options = new Options();
             options.addOption("d", "dspace_dir", true, installerEDM.getInstallerEDMDisplay().getQuestion(0, "dspace_dir.option"));
             options.addOption("h", "help", false, installerEDM.getInstallerEDMDisplay().getQuestion(0, "help.option"));
+            options.addOption("j", "java", false, "");
             options.addOption("g", "debug", false, installerEDM.getInstallerEDMDisplay().getQuestion(0, "debug.option"));
             options.addOption("l", "language", true, installerEDM.getInstallerEDMDisplay().getQuestion(0, "language.option"));
             options.addOption("m", "terminal", false, installerEDM.getInstallerEDMDisplay().getQuestion(0, "terminal.option"));
@@ -177,6 +176,11 @@ public class InstallerEDM extends InstallerEDMBase
             // terminal con el que mostrar los mensajes.
             if (line.hasOption('m')) {
                 installerEDM.getInstallerEDMDisplay().setIsTerminal(true);
+            }
+
+            // si se pasa el parámetro j de la ruta de java
+            if (line.hasOption('j')) {
+
             }
 
             // debug, muestra mucha información

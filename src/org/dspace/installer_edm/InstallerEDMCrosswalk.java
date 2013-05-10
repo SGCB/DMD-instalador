@@ -1,6 +1,8 @@
 package org.dspace.installer_edm;
 
 
+import org.apache.commons.io.FileUtils;
+
 import javax.tools.*;
 import java.io.*;
 import java.net.URI;
@@ -466,9 +468,9 @@ public class InstallerEDMCrosswalk extends InstallerEDMBase
 
         // librerías necesarias para linkar con el fuente a compilar
         String myInstallerPackagesDirPath = myInstallerDirPath + fileSeparator + "packages" + fileSeparator;
-        StringBuilder jars = new StringBuilder(myInstallerPackagesDirPath).append("dspace-api-1.7.2.jar:").append(myInstallerPackagesDirPath).append("jdom-1.0.jar:").append(myInstallerPackagesDirPath).append("oaicat-1.5.48.jar");
+        StringBuilder jars = (fileSeparator.equals("\\"))?new StringBuilder(myInstallerPackagesDirPath).append("dspace-api-1.7.2.jar;").append(myInstallerPackagesDirPath).append("jdom-1.0.jar;").append(myInstallerPackagesDirPath).append("oaicat-1.5.48.jar"):new StringBuilder(myInstallerPackagesDirPath).append("dspace-api-1.7.2.jar:").append(myInstallerPackagesDirPath).append("jdom-1.0.jar:").append(myInstallerPackagesDirPath).append("oaicat-1.5.48.jar");
 
-        String[] compileOptions = new String[]{"-d", myInstallerWorkDirPath, "-target", "1.6","-cp", jars.toString()};
+        String[] compileOptions = new String[]{"-d", myInstallerWorkDirPath, "-source", "1.6", "-target", "1.6", "-cp", jars.toString()};
         Iterable<String> compilationOptionss = Arrays.asList(compileOptions);
 
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
@@ -568,9 +570,18 @@ public class InstallerEDMCrosswalk extends InstallerEDMBase
             // borrar jar original
             oaiApiJarWorkFile.delete();
             // cambiar jar original por nuevo
-            if (newJarFile.renameTo(oaiApiJarWorkFile) && oaiApiJarWorkFile.setExecutable(true, true)) {
+            try {
+                /*if (newJarFile.renameTo(oaiApiJarWorkFile) && oaiApiJarWorkFile.setExecutable(true, true)) {
+                    oaiApiJarWorkFile = new File(oaiApiJarName);
+                } else {
+                    throw new IOException();
+                }*/
+                if (jarOutputStream != null) jarOutputStream.close();
+                FileUtils.moveFile(newJarFile, oaiApiJarWorkFile);
+                oaiApiJarWorkFile.setExecutable(true, true);
                 oaiApiJarWorkFile = new File(oaiApiJarName);
-            } else {
+            } catch (Exception io) {
+                io.printStackTrace();
                 throw new IOException();
             }
         } finally {

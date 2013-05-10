@@ -71,7 +71,7 @@ La forma de lanzar el instalador es la siguiente:
 
 Linux/Unix:
 
-$ ./install.sh -d directorio_dspace_desplegado -t directorio_fisico_base_tomcat_u_otro_servlet -v -s 0 -l es_ES
+$ bash ./install.sh -d directorio_dspace_desplegado -t directorio_fisico_base_tomcat_u_otro_servlet -v -s 0 -l es_ES
 
 Para ver la ayuda:
 $ ./install.sh -h
@@ -84,7 +84,7 @@ unidad:\ruta_al_instalador\install.bat -d directorio_dspace_desplegado -t direct
 Para ver la ayuda:
 $ ./install.bat -h
 
-Saldría: Use: install.sh: [-d dir_space_runtime] [-h] [-l language] [-s step] [-t dir_tomcat_base] [-v] [-g]
+Saldría: Use: install.sh: [-d dir_space_runtime] [-j ruta_comando_java] [-h] [-l language] [-s step] [-t dir_tomcat_base] [-v] [-g]
 
 
 Las opciones son las siguientes:

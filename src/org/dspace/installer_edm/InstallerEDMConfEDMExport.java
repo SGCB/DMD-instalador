@@ -1,5 +1,6 @@
 package org.dspace.installer_edm;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
@@ -374,9 +375,19 @@ public class InstallerEDMConfEDMExport extends InstallerEDMBase
             eDMExportWarJarFile.close();
             eDMExportWarWorkFile.delete();
             // sustituimos el viejo por el temporal
-            if (newJarFile.renameTo(eDMExportWarWorkFile) && eDMExportWarWorkFile.setExecutable(true, true)) {
+            try {
+                /*if (newJarFile.renameTo(eDMExportWarWorkFile) && eDMExportWarWorkFile.setExecutable(true, true)) {
+                    eDMExportWarWorkFile = new File(myInstallerWorkDirPath + fileSeparator + eDMExportWarFile.getName());
+                } else {
+                    throw new IOException();
+                }*/
+                if (jarOutputStream != null) jarOutputStream.close();
+                FileUtils.moveFile(newJarFile, eDMExportWarWorkFile);
+                //newJarFile.renameTo(eDMExportWarWorkFile);
+                eDMExportWarWorkFile.setExecutable(true, true);
                 eDMExportWarWorkFile = new File(myInstallerWorkDirPath + fileSeparator + eDMExportWarFile.getName());
-            } else {
+            } catch (Exception io) {
+                io.printStackTrace();
                 throw new IOException();
             }
         } finally {

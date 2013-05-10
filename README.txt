@@ -70,7 +70,7 @@ Thw way to run the installer is:
 
 Linux/Unix:
 
-$ ./install.sh -d dspace_deployed_dir -t tomcat_base_physycal_dir -v -s 0 -l en
+$ bash ./install.sh -d dspace_deployed_dir -t tomcat_base_physycal_dir -v -s 0 -l en
 
 View the help:
 $ ./install.sh -h
@@ -83,13 +83,13 @@ drive:\path2installer\install.bat -d dspace_deployed_dir -t tomcat_base_physycal
 View the help:
 $ ./install.bat -h
 
-Result: Use: install.sh: [-d dir_space_runtime] [-h] [-l language] [-s step] [-t dir_tomcat_base] [-v] [-g]
+Result: Use: install.sh: [-d dir_space_runtime] [-j path_java_command] [-h] [-l language] [-s step] [-t dir_tomcat_base] [-v] [-g]
 
 
 The options are:
 
 -d: path to root dir where dspace is deployed.
--j: path to java command.
+-j: path to java command
 -t: path to Tomcat root dir.
 -s: step to launch. 0 is preferred to see the main menu first.
 -v: verbosity.

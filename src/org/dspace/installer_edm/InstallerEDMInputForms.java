@@ -330,7 +330,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
                 formNamePageElement = addFormNamePage(pageResp);
                 formNameElement.appendChild(formNamePageElement);
 
-                Element elemFormNamePageField = addFieldForm(entry.getValue(), "name");
+                Element elemFormNamePageField = addFieldForm(entry.getValue(), "onebox");
                 formNamePageElement.appendChild(elemFormNamePageField);
                 modified = true;
             } else {
@@ -342,7 +342,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
                 if (resultsFormNamePage.getLength() > 0) {
                     formNamePageElement = (Element) resultsFormNamePage.item(0);
                     if (searchFormNamePageField(formNamePageElement, entry.getValue()) == null) {
-                        Element elemFormNamePageField = addFieldForm(entry.getValue(), "name");
+                        Element elemFormNamePageField = addFieldForm(entry.getValue(), "onebox");
                         formNamePageElement.appendChild(elemFormNamePageField);
                         modified = true;
                     }
@@ -350,7 +350,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
                     formNamePageElement = addFormNamePage(pageResp);
                     formDefinitionsElement.appendChild(formNamePageElement);
                     formNameElement.appendChild(formNamePageElement);
-                    Element elemFormNamePageField = addFieldForm(entry.getValue(), "name");
+                    Element elemFormNamePageField = addFieldForm(entry.getValue(), "onebox");
                     formNamePageElement.appendChild(elemFormNamePageField);
                     modified = true;
                 }
@@ -555,7 +555,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
      */
     private Element searchFormNamePageField(Element formNamePageElement, InstallerEDMAuthBO value)
     {
-        String nameElement = value.getMetadataField().getElement().toLowerCase().toLowerCase();
+        String nameElement = value.getMetadataField().getElement().toLowerCase();
         String qualifierElement = value.getMetadataField().getQualifier();
 
         // recorrer todos los nodos de la página

@@ -311,11 +311,13 @@ public class InstallerEDMAskosi extends InstallerEDMBase
         if (copyPackageZipFile(sourcePackageFile, finalAskosiWebAppDestDirFile.getAbsolutePath() + fileSeparator)) {
             installerEDMDisplay.showLn();
             installerEDMDisplay.showQuestion(currentStepGlobal, "copyAskosiWebApp.ok");
-            File webXmlFile = new File(new StringBuilder(finalAskosiWebAppDestDirFile.getAbsolutePath()).append
-                    (fileSeparator).append("askosi").append(fileSeparator).append("WEB-INF").append(fileSeparator).append("web.xml").toString());
+            String webXmlFileName = new StringBuilder(finalAskosiWebAppDestDirFile.getAbsolutePath()).append
+                    (fileSeparator).append("askosi").append(fileSeparator).append("WEB-INF").append(fileSeparator).append("web.xml").toString();
+            if (fileSeparator.equals("\\")) webXmlFileName = webXmlFileName.replaceAll("%20", " ");
+            File webXmlFile = new File(webXmlFileName);
             if (webXmlFile.exists() && webXmlFile.canWrite()) {
-                changeWebXml(webXmlFile);
-            } else installerEDMDisplay.showQuestion(currentStepGlobal, "copyAskosiWebApp.nowebxml", new String[]{webXmlFile.getAbsolutePath()});
+                changeWebXml(webXmlFile, webXmlFileName);
+            } else installerEDMDisplay.showQuestion(currentStepGlobal, "copyAskosiWebApp.nowebxml", new String[]{webXmlFileName});
             return true;
         } else {
             installerEDMDisplay.showLn();
@@ -330,7 +332,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
      *
      * @param webXmlFile archivo web.xml de Askosi
      */
-    private void changeWebXml(File webXmlFile)
+    private void changeWebXml(File webXmlFile, String webXmlFileName)
     {
         try {
             // se abre con DOM el archivo web.xml
@@ -371,7 +373,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
                             transformer.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, docType.getSystemId());
                         }
                         DOMSource source = new DOMSource(doc);
-                        StreamResult result = new StreamResult(webXmlFile);
+                        StreamResult result = (fileSeparator.equals("\\"))?new StreamResult(webXmlFileName):new StreamResult(webXmlFile);
                         transformer.transform(source, result);
                     }
                 }
@@ -515,6 +517,7 @@ public class InstallerEDMAskosi extends InstallerEDMBase
                 is = url.openStream();
                 properties.load(is);
                 String askosiLog = finalAskosiDataDestDirFile.getAbsolutePath() + fileSeparator + "askosi.log";
+                if (fileSeparator.equals("\\")) askosiLog = askosiLog.replaceAll("\\\\+",  "\\\\\\\\");
                 if (properties.containsKey("log4j.appender.A1.File") && !properties.getProperty("log4j.appender.A1.File").equals(askosiLog)) {
                     String content = org.apache.commons.io.FileUtils.readFileToString(logFile);
                     content = content.replaceFirst("log4j\\.appender\\.A1\\.File\\s*=\\s*.+",

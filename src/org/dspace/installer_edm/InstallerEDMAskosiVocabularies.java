@@ -201,7 +201,7 @@ public class InstallerEDMAskosiVocabularies extends InstallerEDMBase
                     if (value == null || value.isEmpty()) {
                         modify = true;
                     } else {
-                        if (property.equals("type") && !value.equalsIgnoreCase("DYNSQL")) {
+                        if (property.equals("type") && !value.equalsIgnoreCase("SQL")) {
                             modify = true;
                         } else if (property.equals("pool") && !value.equals(vocabulary)) {
                             modify = true;
@@ -223,7 +223,7 @@ public class InstallerEDMAskosiVocabularies extends InstallerEDMBase
 
         if (modify) {
             if (properties == null) properties = new Properties();
-            properties.setProperty("type", "DYNSQL");
+            properties.setProperty("type", "SQL");
             properties.setProperty("pool", vocabulary);
             properties.setProperty("title-en", vocabulary);
             properties.setProperty("title-es", vocabulary);

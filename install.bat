@@ -1,6 +1,7 @@
 @echo off
 
 :: d:\usuario\programacion\batch\edm\install.bat -d d:\usuario\programacion\batch\edm -b d:\usuario\programacion\batch\edm -s 2 -v
+:: c:\tmp>install.bat -d c:\dspace -l es_ES -s 0 -v -g -t "c:\Program Files\Apache Software Foundation\Tomcat 6.0" -j "c:\Program Files\Java\jdk1.7.0_21"
 
 setlocal EnableDelayedExpansion
 
@@ -191,36 +192,53 @@ set "java_where="
 if not "%found%" == "" (
     for /f "delims=" %%a in ('%found% java') do set java_where=%%a
 )
+
 set or_=
-set java_home_var="%JAVA_HOME%"
+set java_home_var=%JAVA_HOME%
 if "%java_home_var%" == "" (
     set or_=true
 ) else (
-    set java_home_var="%java_home_var%\bin\java.exe"
-    if not exist "%java_home_var%" set or_=true
+    set java_home_var=!java_home_var!\bin\java.exe
+    if not exist "!java_home_var!" (
+        set or_=true
+    ) else (
+        set java_cmd_param=!java_home_var!
+    )
 )
+
 if defined or_ (
     set java_home_var=
     set or_=
-    if "%java_where%" == "" set or_=true
-    if not exist "%java_where%" set or_=true
+    if "!java_where!" == "" set or_=true
+    if not exist "!java_where!" set or_=true
     if not defined or_ (
-        set java_home_var="%java_where%"
+        set java_home_var="!java_where!"
     )
 )
 
 :JAVANOK
     set or_=
-    if "%java_cmd_param%" == "" set or_=true
-    if not exist "%java_cmd_param%" set or_=true
+    if "!java_cmd_param!" == "" set or_=true
+    if not defined or_ (
+        if not exist "!java_cmd_param!" set or_=true
+        if not defined or_ (
+            pushd "!java_cmd_param!"
+            if errorlevel 1 ( 
+                set errorlevel=0
+            ) else ( 
+                set or_=true
+                popd
+            )
+        )
+    )
     if defined or_ (
         set java_cmd_param=""
         set response=
-        set /P response=Directory of java command %java_home_var%: || set response=%java_home_var%
+        set /P response=Path of java command !java_home_var!: || set response=!java_home_var!
         if not "!response!" == "" (
             set java_cmd_param=!response!
         ) else (
-            set java_cmd_param=%java_home_var%
+            set java_cmd_param=!java_home_var!
             goto JAVAOK
         )
         goto JAVANOK
@@ -229,10 +247,16 @@ if defined or_ (
     )
 :JAVAOK
 
+echo.To be able to see properly the accented characters the code page is going to be changed to 65001 and you have to change manually the font from the console properties to Lucida console.
 
+(
+chcp 65001
 
-%java_cmd_param% -cp %JARS%%JARS2%InstallerEDM.jar;.;"%dir_space_runtime%\config" org.dspace.installer_edm.InstallerEDM %*
+:: echo.!java_cmd_param! -cp %JARS%%JARS2%InstallerEDM.jar;.;"%dir_space_runtime%\config" org.dspace.installer_edm.InstallerEDM %*
+"!java_cmd_param!" -Dfile.encoding=UTF-8 -cp %JARS%%JARS2%InstallerEDM.jar;.;"%dir_space_runtime%\config" org.dspace.installer_edm.InstallerEDM %*
 
+chcp 850
+)
 
 goto END
 

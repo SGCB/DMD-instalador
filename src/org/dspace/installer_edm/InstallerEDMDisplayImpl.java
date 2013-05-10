@@ -3,6 +3,7 @@ package org.dspace.installer_edm;
 import com.googlecode.lanterna.TerminalFacade;
 import com.googlecode.lanterna.terminal.Terminal;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.Enumeration;
 import java.util.Properties;
@@ -130,8 +131,9 @@ public class InstallerEDMDisplayImpl implements InstallerEDMDisplay
         for (String arg : args) {
             if (arg == null) arg = "";
             //arg = arg.replaceAll("\\\\[^\\\\]*",  " ");
-            arg = arg.replaceFirst("\\\\+$",  "");
-            arg = arg.replaceAll("\\\\+",  "\\\\");
+            arg = arg.replaceFirst("\\\\+$", "");
+            arg = arg.replaceAll("\\\\+", "\\\\\\\\");
+            arg = arg.replaceAll("//+",  "/");
             arg = arg.replaceAll("\\(",  "\\(");
             arg = arg.replaceAll("\\)",  "\\)");
             arg = arg.replaceAll("\\$",  "\\$");
@@ -267,6 +269,11 @@ public class InstallerEDMDisplayImpl implements InstallerEDMDisplay
             String key = e.nextElement();
             String val = loadFileMessages.getString(key);
             properties.setProperty(key, val);
+            /*try {
+                properties.setProperty(key, new String(val.getBytes("UTF-8"), "ISO-8859-1"));
+            } catch (UnsupportedEncodingException e1) {
+                e1.printStackTrace();
+            }*/
         }
     }
 }

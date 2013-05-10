@@ -104,7 +104,7 @@ clean_up ()
 
 help_sub()
 {
-    message_sub "${BLUE}Use: "$my_name": [-d dir_space_runtime] [-j java_command] [-h] [-l language] [-s step] [-t dir_tomcat_base] [-v] [-g]${NC}" >&2
+    message_sub "${BLUE}Use: "$my_name": [-d dir_space_runtime] [-j path_java_command] [-h] [-l language] [-s step] [-t dir_tomcat_base] [-v] [-g]${NC}" >&2
     clean_up
     exit 2
 }
@@ -172,7 +172,7 @@ done
 
 file_lock=$my_dir"/"$file_lock
 if [ -f $file_lock ]; then
-    process=$(ps -ef | grep -m 1 "$my_name" | awk -F " " '{print $2}')
+    process=$(ps aux | grep "$my_name" | grep -v grep | awk -F " " '{print $2}' | head -1)
     if [ -n "$process" -a "$process" = $(cat $file_lock) ]; then
         message_sub "${RED}There's already a process install${NC}" >&2
         exit 1
@@ -273,7 +273,7 @@ fi
 
 test -x "$java_cmd" || java_cmd="java"
 
-if [ -z "$java_cmd_param" -o ! -x "$java_cmd_param" ]; then
+if [ -z "$java_cmd_param" -o ! -f "$java_cmd_param" -o ! -x "$java_cmd_param" ]; then
     while [ -z "$response" ]; do
         message_sub "${YELLOW}The java command you gave \"$java_cmd_param\" is not correct. It's been detected one in the system \"$java_cmd\" or give another one${NC}"
         flush_stdin
@@ -289,7 +289,7 @@ if [ -z "$java_cmd_param" -o ! -x "$java_cmd_param" ]; then
 fi
 
 
-$java_cmd_param -cp $JARS:$JARS2:InstallerEDM.jar:.:$dir_space_runtime/config org.dspace.installer_edm.InstallerEDM -d $dir_space_runtime -t $tomcat_base -s $step $arg_str 2>/dev/null
+$java_cmd_param -Dfile.encoding=UTF-8 -cp $JARS:$JARS2:InstallerEDM.jar:.:$dir_space_runtime/config org.dspace.installer_edm.InstallerEDM -d $dir_space_runtime -t $tomcat_base -s $step $arg_str 2>/dev/null
 
 clean_up
 exit 0
