@@ -201,8 +201,6 @@ if "%java_home_var%" == "" (
     set java_home_var=!java_home_var!\bin\java.exe
     if not exist "!java_home_var!" (
         set or_=true
-    ) else (
-        set java_cmd_param=!java_home_var!
     )
 )
 

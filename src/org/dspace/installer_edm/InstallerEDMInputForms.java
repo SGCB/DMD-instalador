@@ -150,7 +150,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
             modify = readInputFormsDspace();
             // escribe el documento jdom a disco
             if (modify) {
-                out = new OutputStreamWriter(new FileOutputStream(dspaceInputFormsNewFile, false));
+                out = new OutputStreamWriter(new FileOutputStream(dspaceInputFormsNewFile, false), "UTF-8");
                 TransformerFactory transformerFactory = TransformerFactory.newInstance();
                 Transformer transformer = transformerFactory.newTransformer();
                 transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");

@@ -333,13 +333,16 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
             if (debug) installerEDMDisplay.showQuestion(currentStepGlobal, "fillAuthItems.addmetadata", new String[] {element, language, dcValue.value, itemAuth.getHandle()});
             // se añade nuevo elemento dc para la autoridad
             itemAuth.addMetadata(dcSchema.getName(), elementObj.getElement(), elementObj.getQualifier(), language, new String[] {dcValue.value}, new String[] {itemAuth.getHandle()}, null);
+            // se añade el title con el valor del nuevo elemento dc
+            if (!(elementObj.getElement().equals("title") && elementObj.getQualifier() == null))
+                itemAuth.addMetadata(dcSchema.getName(), "title", null, language, new String[] {dcValue.value}, null, null);
             // añade el elemento dc type con valor SKOS_AUTH
             itemAuth.addMetadata(dcSchema.getName(), "type", null, language, new String[] {"SKOS_AUTH"}, null, null);
             //collectionObj.addItem(itemAuth);
             // guardar ítem en bbdd
             itemAuth.update();
             InstallerEDMAuthBO installerEDMAuthBO = new InstallerEDMAuthBO(itemAuth, communityObj, collectionObj, dcSchema, elementObj);
-            // crear POJO con valoers del ítem
+            // crear POJO con valores del ítem
             authBOHashMap.put(element, installerEDMAuthBO);
             context.commit();
             return true;
