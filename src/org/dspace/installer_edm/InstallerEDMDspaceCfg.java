@@ -129,6 +129,10 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
                         }
                     }
                 }
+                if (modified) {
+                    installerEDMDisplay.showLn();
+                    installerEDMDisplay.showQuestion(currentStepGlobal, "configureDspaceCfg.messages");
+                }
             } else if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "configureDspaceCfg.nothing.add");
         } finally {
             if (out != null) {
