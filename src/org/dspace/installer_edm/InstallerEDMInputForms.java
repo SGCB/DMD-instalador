@@ -164,6 +164,8 @@ public class InstallerEDMInputForms extends InstallerEDMBase
                     transformer.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, docType.getSystemId());
                 }
                 transformer.transform(new DOMSource(docInputForms), new StreamResult(out));
+                installerEDMDisplay.showLn();
+                installerEDMDisplay.showQuestion(currentStepGlobal, "readInputFormsDspace.processInputForms.end", null);
             }
         } finally {
             if (out != null) {
