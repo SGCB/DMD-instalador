@@ -75,10 +75,10 @@ import java.util.*;
  *
  * <p>This file also can be modified manually to compile and to add it to the jar file.</p>
  *
- * <p>The classes that are showed are: <tt>edm:ProviderCHO</tt>, <tt>edm:WebResource</tt>, <tt>skos:Concept</tt>
+ * <p>The classes that are showed are: <tt>edm:ProvidedCHO</tt>, <tt>edm:WebResource</tt>, <tt>skos:Concept</tt>
  * and <tt>ore:Aggregation</tt>.
  * </p>
- * <p><tt>edm:ProviderCHO</tt> receives all the data from the dc elements of the dspace item and its handle</p>
+ * <p><tt>edm:ProvidedCHO</tt> receives all the data from the dc elements of the dspace item and its handle</p>
  * <p><tt>edm:WebResource</tt> receives all the data from the handle and bitstream information</p>
  * <p><tt>skos:Concept</tt> receives all the data from authority field of the dc element</p>
  * <p><tt>ore:Aggregation</tt> receives all the data from the dc elements of the dspace item and its handle and bitstream information</p>
@@ -179,7 +179,8 @@ public class EDMCrosswalk extends Crosswalk
     {
 
         // element rdf with all the namespaces
-        Element rdf_RDF = new Element("RDF", "rdf");
+        //Element rdf_RDF = new Element("RDF", "rdf");
+        Element rdf_RDF = new Element("RDF", RDF);
 
         rdf_RDF.addNamespaceDeclaration(DCTERMS);
 
@@ -219,9 +220,9 @@ public class EDMCrosswalk extends Crosswalk
         // Get all the dc elements from the item
         DCValue[] allDC = item.getDC(Item.ANY, Item.ANY, Item.ANY);
 
-        // Creates edm:ProviderCHO element and add to the children list
-        Element ProviderCHO = processProviderCHO(item, baseUrl);
-        listElements.add(ProviderCHO);
+        // Creates edm:ProvidedCHO element and add to the children list
+        Element ProvidedCHO = processProvidedCHO(item, baseUrl);
+        listElements.add(ProvidedCHO);
 
         // Get the original set of bundles from the item
         Bundle[] origBundles = new Bundle[0];
@@ -281,7 +282,7 @@ public class EDMCrosswalk extends Crosswalk
 
     /**
      *
-     * Creates the edm:ProviderCHO element with all the dc and dcterms elements required.
+     * Creates the edm:ProvidedCHO element with all the dc and dcterms elements required.
      * The data is taken from the dc elements of the dspace item
      * To elaborate the types, the terms from the map are searched and matched against the dc.type element
      * and then replaced by the corresponding type
@@ -290,83 +291,83 @@ public class EDMCrosswalk extends Crosswalk
      * @param baseUrl   string with the dspace url
      * @return          jdom element
      */
-    private Element processProviderCHO(Item item, String baseUrl)
+    private Element processProvidedCHO(Item item, String baseUrl)
     {
-        Element ProviderCHO = new Element("ProviderCHO", EDM);
+        Element ProvidedCHO = new Element("ProvidedCHO", EDM);
 
         DCValue[] identifiers = item.getDC("identifier", "uri", null);
-        if (identifiers.length > 0) ProviderCHO.setAttribute(new Attribute("about", identifiers[0].value, RDF));
+        if (identifiers.length > 0) ProvidedCHO.setAttribute(new Attribute("about", identifiers[0].value, RDF));
 
-        createElementEDM(item, "contributor", DC, "contributor", Item.ANY, ProviderCHO, true);
+        createElementEDM(item, "contributor", DC, "contributor", Item.ANY, ProvidedCHO, true);
 
-        createElementEDM(item, "coverage", DC, "coverage", null, ProviderCHO, true);
+        createElementEDM(item, "coverage", DC, "coverage", null, ProvidedCHO, true);
 
-        createElementEDM(item, "creator", DC, "creator", null, ProviderCHO, true);
+        createElementEDM(item, "creator", DC, "creator", null, ProvidedCHO, true);
 
-        createElementEDM(item, "date", DC, "date", null, ProviderCHO, true);
+        createElementEDM(item, "date", DC, "date", null, ProvidedCHO, true);
 
-        createElementEDM(item, "description", DC, "description", Item.ANY, ProviderCHO, true);
+        createElementEDM(item, "description", DC, "description", Item.ANY, ProvidedCHO, true);
 
-        createElementEDM(item, "format", DC, "format", Item.ANY, ProviderCHO, true);
+        createElementEDM(item, "format", DC, "format", Item.ANY, ProvidedCHO, true);
 
-        createElementEDM(item, "identifier", DC, "identifier", Item.ANY, ProviderCHO, true);
+        createElementEDM(item, "identifier", DC, "identifier", Item.ANY, ProvidedCHO, true);
 
-        createElementEDM(item, "language", DC, "language", "iso", ProviderCHO, true);
-        createElementEDM(item, "language", DC, "language", null, ProviderCHO, true);
+        createElementEDM(item, "language", DC, "language", "iso", ProvidedCHO, true);
+        createElementEDM(item, "language", DC, "language", null, ProvidedCHO, true);
 
-        createElementEDM(item, "publisher", DC, "publisher", null, ProviderCHO, false);
+        createElementEDM(item, "publisher", DC, "publisher", null, ProvidedCHO, false);
 
-        createElementEDM(item, "relation", DC, "relation", null, ProviderCHO, false);
+        createElementEDM(item, "relation", DC, "relation", null, ProvidedCHO, false);
 
-        createElementEDM(item, "rights", DC, "rights", "holder", ProviderCHO, true);
-        createElementEDM(item, "rights", DC, "rights", "uri", ProviderCHO, true);
+        createElementEDM(item, "rights", DC, "rights", "holder", ProvidedCHO, true);
+        createElementEDM(item, "rights", DC, "rights", "uri", ProvidedCHO, true);
 
-        createElementEDM(item, "source", DC, "source", null, ProviderCHO, false);
+        createElementEDM(item, "source", DC, "source", null, ProvidedCHO, false);
 
-        createElementEDM(item, "subject", DC, "subject", Item.ANY, ProviderCHO, true);
+        createElementEDM(item, "subject", DC, "subject", Item.ANY, ProvidedCHO, true);
 
-        createElementEDM(item, "title", DC, "title", null, ProviderCHO, true);
+        createElementEDM(item, "title", DC, "title", null, ProvidedCHO, true);
 
-        createElementEDM(item, "type", DC, "type", null, ProviderCHO, true);
+        createElementEDM(item, "type", DC, "type", null, ProvidedCHO, true);
 
-        createElementEDM(item, "alternative", DCTERMS, "title", "alternative", ProviderCHO, true);
+        createElementEDM(item, "alternative", DCTERMS, "title", "alternative", ProvidedCHO, true);
 
-        createElementEDM(item, "created", DCTERMS, "date", "created", ProviderCHO, true);
+        createElementEDM(item, "created", DCTERMS, "date", "created", ProvidedCHO, true);
 
-        createElementEDM(item, "extent", DCTERMS, "format", "extent", ProviderCHO, true);
+        createElementEDM(item, "extent", DCTERMS, "format", "extent", ProvidedCHO, true);
 
-        createElementEDM(item, "hasFormat", DCTERMS, "relation", "hasformatof", ProviderCHO, true);
+        createElementEDM(item, "hasFormat", DCTERMS, "relation", "hasformatof", ProvidedCHO, true);
 
-        createElementEDM(item, "hasPart", DCTERMS, "relation", "haspart", ProviderCHO, true);
+        createElementEDM(item, "hasPart", DCTERMS, "relation", "haspart", ProvidedCHO, true);
 
-        createElementEDM(item, "hasVersion", DCTERMS, "relation", "hasversion", ProviderCHO, true);
+        createElementEDM(item, "hasVersion", DCTERMS, "relation", "hasversion", ProvidedCHO, true);
 
-        createElementEDM(item, "isPartOf", DCTERMS, "relation", "ispartof", ProviderCHO, true);
-        createElementEDM(item, "isPartOf", DCTERMS, "relation", "ispartofseries", ProviderCHO, true);
+        createElementEDM(item, "isPartOf", DCTERMS, "relation", "ispartof", ProvidedCHO, true);
+        createElementEDM(item, "isPartOf", DCTERMS, "relation", "ispartofseries", ProvidedCHO, true);
 
-        createElementEDM(item, "isReferencedBy", DCTERMS, "relation", "isreferencedby", ProviderCHO, true);
+        createElementEDM(item, "isReferencedBy", DCTERMS, "relation", "isreferencedby", ProvidedCHO, true);
 
-        createElementEDM(item, "isReplacedBy", DCTERMS, "relation", "isreplacedby", ProviderCHO, true);
+        createElementEDM(item, "isReplacedBy", DCTERMS, "relation", "isreplacedby", ProvidedCHO, true);
 
-        createElementEDM(item, "issued", DCTERMS, "date", "issued", ProviderCHO, true);
+        createElementEDM(item, "issued", DCTERMS, "date", "issued", ProvidedCHO, true);
 
-        createElementEDM(item, "isVersionOf", DCTERMS, "relation", "isversionof", ProviderCHO, true);
+        createElementEDM(item, "isVersionOf", DCTERMS, "relation", "isversionof", ProvidedCHO, true);
 
-        createElementEDM(item, "medium", DCTERMS, "format", "medium", ProviderCHO, true);
+        createElementEDM(item, "medium", DCTERMS, "format", "medium", ProvidedCHO, true);
 
-        createElementEDM(item, "provenance", DCTERMS, "description", "provenance", ProviderCHO, true);
+        createElementEDM(item, "provenance", DCTERMS, "description", "provenance", ProvidedCHO, true);
 
-        createElementEDM(item, "replaces", DCTERMS, "relation", "replaces", ProviderCHO, true);
+        createElementEDM(item, "replaces", DCTERMS, "relation", "replaces", ProvidedCHO, true);
 
-        createElementEDM(item, "requires", DCTERMS, "relation", "requires", ProviderCHO, true);
+        createElementEDM(item, "requires", DCTERMS, "relation", "requires", ProvidedCHO, true);
 
-        createElementEDM(item, "spatial", DCTERMS, "coverage", "spatial", ProviderCHO, true);
+        createElementEDM(item, "spatial", DCTERMS, "coverage", "spatial", ProvidedCHO, true);
 
-        createElementEDM(item, "tableOfContents", DCTERMS, "description", "tableofcontents", ProviderCHO, true);
+        createElementEDM(item, "tableOfContents", DCTERMS, "description", "tableofcontents", ProvidedCHO, true);
 
-        createElementEDM(item, "temporal", DCTERMS, "coverage", "temporal", ProviderCHO, true);
+        createElementEDM(item, "temporal", DCTERMS, "coverage", "temporal", ProvidedCHO, true);
 
-        createElementEDM(item, "temporal", DCTERMS, "coverage", "temporal", ProviderCHO, true);
+        createElementEDM(item, "temporal", DCTERMS, "coverage", "temporal", ProvidedCHO, true);
 
         String currentLocation = null;
         try {
@@ -374,11 +375,11 @@ public class EDMCrosswalk extends Crosswalk
         } catch (Exception e) {
         }
         if (currentLocation == null || currentLocation.isEmpty()) currentLocation = baseUrl + "/handle/" + item.getHandle();
-        ProviderCHO.addContent(new Element("currentLocation", EDM).setText(currentLocation));
+        ProvidedCHO.addContent(new Element("currentLocation", EDM).setText(currentLocation));
 
-        ProviderCHO.addContent(new Element("type", EDM).setText(processEDMType(item)));
+        ProvidedCHO.addContent(new Element("type", EDM).setText(processEDMType(item)));
 
-        return ProviderCHO;
+        return ProvidedCHO;
     }
 
 

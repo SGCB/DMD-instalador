@@ -1,7 +1,7 @@
 @echo off
 
 :: d:\usuario\programacion\batch\edm\install.bat -d d:\usuario\programacion\batch\edm -b d:\usuario\programacion\batch\edm -s 2 -v
-:: c:\tmp>install.bat -d c:\dspace -l es_ES -s 0 -v -g -t "c:\Program Files\Apache Software Foundation\Tomcat 6.0" -j "c:\Program Files\Java\jdk1.7.0_21"
+:: c:\tmp>install.bat -d c:\dspace_171 -l es_ES -s 0 -v -g -t "c:\Program Files\Apache Software Foundation\Tomcat 6.0" -j "c:\Program Files\Java\jdk1.7.0_21"
 
 setlocal EnableDelayedExpansion
 
@@ -220,7 +220,7 @@ if defined or_ (
     if not defined or_ (
         if not exist "!java_cmd_param!" set or_=true
         if not defined or_ (
-            pushd "!java_cmd_param!"
+            pushd "!java_cmd_param!" 2>NUL
             if errorlevel 1 ( 
                 set errorlevel=0
             ) else ( 
