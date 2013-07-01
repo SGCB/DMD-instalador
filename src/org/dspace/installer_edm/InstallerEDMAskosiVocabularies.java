@@ -83,7 +83,7 @@ public class InstallerEDMAskosiVocabularies extends InstallerEDMBase
         for (Map.Entry<String, InstallerEDMAuthBO> entry : authBOHashMap.entrySet()) {
             String handle = entry.getValue().getCollection().getHandle();
             String name = removeAccents(entry.getValue().getCollection().getName().toLowerCase());
-            String vocabulary = name.replaceAll("\\.", "_") + "_" + entry.getKey().replaceAll("\\.", "_");
+            String vocabulary = name.replaceAll("\\.", "") + "" + entry.getKey().replaceAll("\\.", "");
             String vocabularyCfg = askosiDataDirFile.getAbsolutePath() + fileSeparator + vocabulary + ".cfg";
             String vocabularyPoolCfg = askosiDataDirFile.getAbsolutePath() + fileSeparator + vocabulary + "-pool.cfg";
             installerEDMDisplay.showQuestion(currentStepGlobal, "processAskosiVocabularies.create", new String[] {vocabularyPoolCfg, vocabulary});

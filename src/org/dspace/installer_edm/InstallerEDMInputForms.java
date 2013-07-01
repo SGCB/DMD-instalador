@@ -424,7 +424,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
                     Element formNamePageElement = (Element) resultsFormNamePage.item(0);
                     // busca el elemento dc en la página
                     Element element = searchFormNamePageField(formNamePageElement, entry.getValue());
-                    String vocabulary = name.replaceAll("\\.", "_") + "_" + entry.getKey().replaceAll("\\.", "_");
+                    String vocabulary = name.replaceAll("\\.", "") + "" + entry.getKey().replaceAll("\\.", "");
                     // lo crea
                     if (element == null) {
                         element = createElementVocabulary(entry.getValue(), vocabulary);
