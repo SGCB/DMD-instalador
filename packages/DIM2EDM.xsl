@@ -90,7 +90,7 @@
                 </xsl:attribute>
 
                 <dc:identifier>
-                    <xsl:copy-of select="$ident_uri"/>
+                    <xsl:copy-of select="$ident_uri/text()"/>
                 </dc:identifier>
 
                 <xsl:for-each select="//dim:field[@mdschema='dc'][@element='contributor'][@qualifier='author']">

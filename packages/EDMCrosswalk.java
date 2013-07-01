@@ -484,9 +484,10 @@ public class EDMCrosswalk extends Crosswalk
         for (DCValue dcv : itemDC) {
             String authority;
             if (dcv.authority != null && !dcv.authority.isEmpty()) {
+                Item itemAuth = null;
                 if (!isValidURI(dcv.authority)) {
                     try {
-                        if (dcv.authority.matches(REGEX_HANDLE_PATTERN) && HandleManager.resolveToObject(context, dcv.authority) != null) {
+                        if (dcv.authority.matches(REGEX_HANDLE_PATTERN) && (itemAuth = (Item) HandleManager.resolveToObject(context, dcv.authority)) != null) {
                             authority = prefixUrl + dcv.authority;
                         } else continue;
                     } catch (SQLException e) {
@@ -496,7 +497,7 @@ public class EDMCrosswalk extends Crosswalk
                 } else authority = dcv.authority;
                 Element skosConcept = null;
                 try {
-                    skosConcept = new Element("Concept", SKOS);
+                    skosConcept = (dcv.element.equals("contributor") && dcv.qualifier.equals("author"))?new Element("Agent", EDM):new Element("Concept", SKOS);
                     skosConcept.setAttribute(new Attribute("about", authority, RDF));
                     Element prefLabel = new Element("prefLabel", SKOS);
                     if (dcv.language != null) prefLabel.setAttribute(new Attribute("lang", dcv.language, XML));

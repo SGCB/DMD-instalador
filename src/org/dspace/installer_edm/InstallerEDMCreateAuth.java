@@ -383,7 +383,7 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                 response = response.trim();
                 if (stepCommunity > 1 && response.length() == 0) continue;
                 switch(stepCommunity) {
-                    // verfificar existencia de la comunidad padre
+                    // verfificar existencia de la comunidad
                     case 1:
                         try {
                             if (response.length() > 0) {
@@ -452,7 +452,7 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
         // creación de la colección
         if (response.length() == 0) {
             response = null;
-            int stepCollection = 1;
+            int stepCollection = 2;
             DSpaceObject collectionObjHandle = null;
             while (true) {
                 if (stepCollection > 2) break;
@@ -468,7 +468,7 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                 response = response.trim();
                 if (stepCollection > 1 && response.length() == 0) continue;
                 switch (stepCollection) {
-                    // verfificar existencia de la colección padre
+                    // verfificar existencia de la colección
                     case 1:
                         try {
                             if (response.length() > 0) {
