@@ -3,6 +3,8 @@ package org.dspace.installer_edm;
 
 import org.dspace.handle.HandleManager;
 import org.w3c.dom.*;
+import org.w3c.dom.ls.DOMImplementationLS;
+import org.w3c.dom.ls.LSSerializer;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -79,6 +81,11 @@ public class InstallerEDMInputForms extends InstallerEDMBase
      * Consulta xpath para buscar la configuración de un formulario determinado en una página determinada
      */
     private static final String xpathFormNamePageTemplate = "//form[@name='%s']/page[@number='%s']";
+
+    /**
+     * Consulta xpath para buscar si existe un elemento en un formulario
+     */
+    private static final String xpathFormNameElementTemplate = "//form[@name='%s']/*/field/*[self::dc-element[text()='%s'] or self::dc-qualifier[text()='%s']]/parent::*";
 
     /**
      * ruta del archivo input-forms.xml en el directorio de trabajo del instalador
@@ -377,7 +384,10 @@ public class InstallerEDMInputForms extends InstallerEDMBase
                     }
                 }
             } while (true);
-            if (forms != null) addElements2Forms(entry, forms, name);
+            if (forms != null) {
+                boolean modifiedEF = addElements2Forms(entry, forms, name);
+                if (modifiedEF) modified = true;
+            }
         }
         return modified;
     }
@@ -394,8 +404,9 @@ public class InstallerEDMInputForms extends InstallerEDMBase
      * @throws XPathExpressionException
      * @throws IOException
      */
-    private void addElements2Forms(Map.Entry<String, InstallerEDMAuthBO> entry, HashSet<String> forms, String name) throws XPathExpressionException, IOException
+    private boolean addElements2Forms(Map.Entry<String, InstallerEDMAuthBO> entry, HashSet<String> forms, String name) throws XPathExpressionException, IOException
     {
+        boolean modified = false;
         // recorre los formularios
         for (String form : forms) {
             // busca formulario en las definiciones
@@ -404,6 +415,21 @@ public class InstallerEDMInputForms extends InstallerEDMBase
             NodeList resultsFormName = (NodeList)xpathFormName.evaluate(xpathFormNameExpression, docInputForms, XPathConstants.NODESET);
             // existe
             if (resultsFormName.getLength() > 0) {
+                String vocabulary = name.replaceAll("\\.", "") + "" + entry.getKey().replaceAll("\\.", "");
+
+                // pregunta si ya existe el elemento en el formulario
+                String elementName = entry.getValue().getMetadataField().getElement();
+                String qualifierName = entry.getValue().getMetadataField().getQualifier();
+                XPath xpathFormNameElement = XPathFactory.newInstance().newXPath();
+                String xpathFormNameElementExpression = String.format(xpathFormNameElementTemplate, new Object[] { form, elementName, (qualifierName != null)?qualifierName:"" });
+                NodeList resultsFormNameElement = (NodeList)xpathFormNameElement.evaluate(xpathFormNameElementExpression, docInputForms, XPathConstants.NODESET);
+                if (resultsFormNameElement.getLength() > 0) {
+                    Element element = (Element) resultsFormNameElement.item(0);
+                    if (debug) System.out.println("Ya existe el elemento " + entry.getKey() + " en el formulario " + form + ". Se actualiza con el vocabulario " + vocabulary);
+                    updateElementVocabulary(entry, form, element, vocabulary);
+                    modified = true;
+                    continue;
+                }
                 // pregunta a qué paǵina se añadirá el vocabulario
                 installerEDMDisplay.showQuestion(currentStepGlobal, "readInputFormsDspace.element.page", new String[] {entry.getKey(), form});
                 String pageResp = null;
@@ -420,11 +446,11 @@ public class InstallerEDMInputForms extends InstallerEDMBase
                 String xpathFormNamePageExpression = String.format(xpathFormNamePageTemplate, new Object[] { form, pageResp });
                 NodeList resultsFormNamePage = (NodeList)xpathFormNamePage.evaluate(xpathFormNamePageExpression, docInputForms, XPathConstants.NODESET);
                 if (resultsFormNamePage.getLength() > 0) {
+                    modified = true;
                     // añade vocabulario o lo actualiza
                     Element formNamePageElement = (Element) resultsFormNamePage.item(0);
                     // busca el elemento dc en la página
                     Element element = searchFormNamePageField(formNamePageElement, entry.getValue());
-                    String vocabulary = name.replaceAll("\\.", "") + "" + entry.getKey().replaceAll("\\.", "");
                     // lo crea
                     if (element == null) {
                         element = createElementVocabulary(entry.getValue(), vocabulary);
@@ -437,6 +463,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
                 }
             }
         }
+        return modified;
     }
 
 
@@ -456,6 +483,7 @@ public class InstallerEDMInputForms extends InstallerEDMBase
         NodeList vocabularyList = field.getElementsByTagName("vocabulary");
         // crea uno si no existe
         if (vocabularyList.getLength() == 0) {
+            if (debug) System.out.println("No hay elemento vocabulario, se crea");
             Element elementVocabulary = docInputForms.createElement("vocabulary");
             Text text = docInputForms.createTextNode(vocabulary);
             elementVocabulary.appendChild(text);
@@ -489,6 +517,11 @@ public class InstallerEDMInputForms extends InstallerEDMBase
         } else {
             Text text = docInputForms.createTextNode("onebox");
             inputTypeList.item(0).replaceChild(text, inputTypeList.item(0).getFirstChild());
+        }
+        if (debug) {
+            DOMImplementationLS domImplLS = (DOMImplementationLS) docInputForms.getImplementation();
+            LSSerializer serializer = domImplLS.createLSSerializer();
+            System.out.println(field.getTagName() + " ; " + serializer.writeToString(field));
         }
     }
 
