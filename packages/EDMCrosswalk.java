@@ -64,6 +64,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
@@ -478,6 +480,8 @@ public class EDMCrosswalk extends Crosswalk
     {
         List<Element> listElementsSkosConcept = new ArrayList<Element>();
         final String REGEX_HANDLE_PATTERN = "^\\d+/\\d+$";
+        final String REGEX_HANDLE_VOCAB_PATTERN = "^.+_(\\d+_\\d+)$";
+        Pattern patternHandleVocab = Pattern.compile(REGEX_HANDLE_VOCAB_PATTERN);
         Context context = ((HarvestedItemInfo)nativeItem).context;
         String prefixUrl = baseUrl + "/handle/";
 
@@ -487,6 +491,8 @@ public class EDMCrosswalk extends Crosswalk
                 Item itemAuth = null;
                 if (!isValidURI(dcv.authority)) {
                     try {
+                        Matcher matcherHandleVocab = patternHandleVocab.matcher(dcv.authority);
+                        if (matcherHandleVocab.find()) dcv.authority = ((String) matcherHandleVocab.group(1)).replace('_', '/');
                         if (dcv.authority.matches(REGEX_HANDLE_PATTERN) && (itemAuth = (Item) HandleManager.resolveToObject(context, dcv.authority)) != null) {
                             authority = prefixUrl + dcv.authority;
                         } else continue;
