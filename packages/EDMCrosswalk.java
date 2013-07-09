@@ -226,6 +226,13 @@ public class EDMCrosswalk extends Crosswalk
         Element ProvidedCHO = processProvidedCHO(item, baseUrl);
         listElements.add(ProvidedCHO);
 
+        // Create skos:Concept elements with the authority value of the dc element and add them to the children list
+        List<Element> listSkosConcept = processSkosConcept(allDC, nativeItem, baseUrl);
+        if (listSkosConcept != null && listSkosConcept.size() > 0) {
+            for (Element skosConceptElement : listSkosConcept)
+                listElements.add(skosConceptElement);
+        }
+
         // Get the original set of bundles from the item
         Bundle[] origBundles = new Bundle[0];
         try {
@@ -252,13 +259,6 @@ public class EDMCrosswalk extends Crosswalk
                 // Create edm:WebResource element with the first file and add it to the children list
                 Element WebResource = processWebResource(item, bitstreams[0], baseUrl);
                 if (WebResource != null) listElements.add(WebResource);
-
-                // Create skos:Concept elements with the authority value of the dc element and add them to the children list
-                List<Element> listSkosConcept = processSkosConcept(allDC, nativeItem, baseUrl);
-                if (listSkosConcept != null && listSkosConcept.size() > 0) {
-                    for (Element skosConceptElement : listSkosConcept)
-                        listElements.add(skosConceptElement);
-                }
 
                 // Create ore:Aggregation element with the files and add them to the children list
                 Element oreAggregation = processOreAgreggation(item, origBundles, thumbBundles, bitstreams[0], baseUrl);
