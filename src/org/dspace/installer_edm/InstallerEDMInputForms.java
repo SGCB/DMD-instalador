@@ -364,6 +364,10 @@ public class InstallerEDMInputForms extends InstallerEDMBase
                     modified = true;
                 }
             }
+            if (modified) {
+                Element elemFormTitle = addTitleFieldForm(name);
+                if (elemFormTitle != null) formNamePageElement.appendChild(elemFormTitle);
+            }
 
             // pregunta a qué colecciones el nuevo formulario debe ser asociado
             installerEDMDisplay.showQuestion(currentStepGlobal, "readInputFormsDspace.element.form", new String[] {entry.getKey(), name});
@@ -678,41 +682,67 @@ public class InstallerEDMInputForms extends InstallerEDMBase
     }
 
     /**
-     * Crea un elemento jdom para un elemento dc para una página de formulario, es repetible y requerido
+     * Añadir el campo para el elemento title en el formulario, se comprueba antes si ya existe
      *
-     * @param value elemento dc de la autoridad {@link InstallerEDMAuthBO}
-     * @param inputType tipo de input-type (lo normal es onebox)
-     * @return elemento jdom con el elemento dc para el formulario
-     * @throws IOException
+     * @param form cadena con el nombre del formulario
+     * @return elemento jdom con el campo creado
      */
-    private Element addFieldForm(InstallerEDMAuthBO value, String inputType) throws IOException
+    private Element addTitleFieldForm(String form) throws XPathExpressionException
+    {
+        // pregunta si ya existe el elemento en el formulario
+        String elementName = "title";
+        String qualifierName = null;
+        XPath xpathFormNameElement = XPathFactory.newInstance().newXPath();
+        String xpathFormNameElementExpression = String.format(xpathFormNameElementTemplate, new Object[] { form, elementName, (qualifierName != null)?qualifierName:"" });
+        NodeList resultsFormNameElement = null;
+        resultsFormNameElement = (NodeList)xpathFormNameElement.evaluate(xpathFormNameElementExpression, docInputForms, XPathConstants.NODESET);
+        if (resultsFormNameElement.getLength() == 0) {
+            return addFieldForm("dc", elementName, qualifierName, "false", "onebox", true, "Title", "Enter the main title of the item.");
+        }
+        return null;
+    }
+
+
+    /**
+     * Añadir un campo al formulario
+     * @param schema nombre del esquema
+     * @param element nombre del elemento del esquema
+     * @param qualifier nombre del calificador
+     * @param repeatable cadena con el valor de repeatable
+     * @param inputType valor del tipo de campo
+     * @param required booleano
+     * @param label cadena con la etiqueta
+     * @param hint cadena con la ayuda
+     * @return elemento jdom con el campo creado
+     */
+    private Element addFieldForm(String schema, String element, String qualifier, String repeatable, String inputType, boolean required, String label, String hint)
     {
         // crear nodo field
         Element elem = docInputForms.createElement("field");
 
         // crear nodo dc-schema
         Element elemDCSchema = docInputForms.createElement("dc-schema");
-        Text text = docInputForms.createTextNode("dc");
+        Text text = docInputForms.createTextNode(schema);
         elemDCSchema.appendChild(text);
         elem.appendChild(elemDCSchema);
 
         // crear nodo dc-element
         Element elemDCElement = docInputForms.createElement("dc-element");
-        text = docInputForms.createTextNode(value.getMetadataField().getElement().toLowerCase());
+        text = docInputForms.createTextNode(element);
         elemDCElement.appendChild(text);
         elem.appendChild(elemDCElement);
 
         // crear nodo dc-qualifier
-        if (value.getMetadataField().getQualifier() != null) {
+        if (qualifier != null) {
             Element elemDCQualifier = docInputForms.createElement("dc-qualifier");
-            text = docInputForms.createTextNode(value.getMetadataField().getQualifier().toLowerCase());
+            text = docInputForms.createTextNode(qualifier);
             elemDCQualifier.appendChild(text);
             elem.appendChild(elemDCQualifier);
         }
 
         // crear nodo repeatable
         Element elemRepeatable = docInputForms.createElement("repeatable");
-        text = docInputForms.createTextNode("true");
+        text = docInputForms.createTextNode(repeatable);
         elemRepeatable.appendChild(text);
         elem.appendChild(elemRepeatable);
 
@@ -723,10 +753,37 @@ public class InstallerEDMInputForms extends InstallerEDMBase
         elem.appendChild(elemInputType);
 
         // crear nodo required
-        Element elemRequired = docInputForms.createElement("required");
-        elem.appendChild(elemRequired);
+        if (required) {
+            Element elemRequired = docInputForms.createElement("required");
+            elem.appendChild(elemRequired);
+        }
 
         // crear etiqueta
+        Element elemLabel = docInputForms.createElement("label");
+        text = docInputForms.createTextNode(label);
+        elemLabel.appendChild(text);
+        elem.appendChild(elemLabel);
+
+        // crear descripción
+        Element elemHint = docInputForms.createElement("hint");
+        text = docInputForms.createTextNode(hint);
+        elemHint.appendChild(text);
+        elem.appendChild(elemHint);
+
+        return elem;
+    }
+
+    /**
+     * Crea un elemento jdom para un elemento dc para una página de formulario, es repetible y requerido
+     *
+     * @param value elemento dc de la autoridad {@link InstallerEDMAuthBO}
+     * @param inputType tipo de input-type (lo normal es onebox)
+     * @return elemento jdom con el elemento dc para el formulario
+     * @throws IOException
+     */
+    private Element addFieldForm(InstallerEDMAuthBO value, String inputType) throws IOException
+    {
+        // pedir etiqueta
         installerEDMDisplay.showQuestion(currentStepGlobal, "addFieldForm.label", new String[]{value.getMetadataField().getElement() + "." + value.getMetadataField().getQualifier()});
         String label = null;
         do {
@@ -737,12 +794,8 @@ public class InstallerEDMInputForms extends InstallerEDMBase
                 break;
             }
         } while (true);
-        Element elemLabel = docInputForms.createElement("label");
-        text = docInputForms.createTextNode(label);
-        elemLabel.appendChild(text);
-        elem.appendChild(elemLabel);
 
-        // crear descripción
+        // pedir descripción
         installerEDMDisplay.showQuestion(currentStepGlobal, "addFieldForm.hint", new String[]{value.getMetadataField().getElement() + "." + value.getMetadataField().getQualifier()});
         String hint = null;
         do {
@@ -753,11 +806,11 @@ public class InstallerEDMInputForms extends InstallerEDMBase
                 break;
             }
         } while (true);
-        Element elemHint = docInputForms.createElement("hint");
-        text = docInputForms.createTextNode(hint);
-        elemHint.appendChild(text);
-        elem.appendChild(elemHint);
-        return elem;
+
+        return addFieldForm("dc", value.getMetadataField().getElement().toLowerCase(),
+                (value.getMetadataField().getQualifier() != null)?value.getMetadataField().getQualifier().toLowerCase():null,
+                "true", inputType, true, label, hint);
+
     }
 
 }
