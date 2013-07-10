@@ -554,7 +554,9 @@ public abstract class InstallerEDMBase implements Observer
 
 
     /**
-     * busca en un ítem si tiene ciertos elementos dc de autoridades, crea un POJO de autoridad {@link InstallerEDMAuthBO} y lo añade a authBOHashMap
+     * busca en un ítem si tiene ciertos elementos dc de autoridades, crea un POJO de autoridad {@link InstallerEDMAuthBO} y lo añade a authBOHashMap.
+     * Como se crea el elemento title para cada ítem de autoridad con el valor del elemento real de la autoridad, se comprueba cuántos elementos hay y si sólo
+     * existe uno y es el title, se supone que es el elemento de la autoridad, si no no se almacena porque sólo está para que tenga título el ítem.
      *
      * @param authDCElements lista de elementos dc
      * @param item objeto item de dspace {@link Item}
@@ -564,25 +566,37 @@ public abstract class InstallerEDMBase implements Observer
         DCValue[] listDCValues = item.getMetadata(dcSchema.getName() + ".*.*");
         if (debug) installerEDMDisplay.showQuestion(0, "checkSkosAuthItem.elements", new String[]{Integer.toString(listDCValues.length)});
         if (listDCValues.length > 0) {
+            Community community = null;
+            org.dspace.content.Collection collection = null;
+            try {
+                org.dspace.content.Collection[] collections = item.getCollections();
+                if (collections.length > 0) collection = collections[0];
+                Community[] communities = item.getCommunities();
+                if (communities.length > 0) community = communities[0];
+            } catch (SQLException e) {
+                showException(e);
+            }
+            MetadataField titleMetadataField = null;
+            int numElements = 0;
             for (DCValue dcValue : listDCValues) {
                 if (dcValue.value == null || dcValue.value.isEmpty()) continue;
                 String dcValueName = dcValue.element + ((dcValue.qualifier != null && !dcValue.qualifier.isEmpty())?"." + dcValue.qualifier:"");
                 if (!elementsNotAuthSet.contains(dcValueName) && !authBOHashMap.containsKey(dcValueName)) {
                     if (debug) installerEDMDisplay.showQuestion(0, "checkSkosAuthItem.element", new String[]{dcValueName});
+                    numElements++;
                     MetadataField metadataField = new MetadataField(dcSchema, dcValue.element, dcValue.qualifier, null);
-                    Community community = null;
-                    org.dspace.content.Collection collection = null;
-                    try {
-                        org.dspace.content.Collection[] collections = item.getCollections();
-                        if (collections.length > 0) collection = collections[0];
-                        Community[] communities = item.getCommunities();
-                        if (communities.length > 0) community = communities[0];
-                    } catch (SQLException e) {
-                        showException(e);
+                    if (dcValue.element.equals("title") && dcValue.qualifier == null) {
+                        titleMetadataField = metadataField;
+                        continue;
                     }
                     InstallerEDMAuthBO installerEDMAuthBO = new InstallerEDMAuthBO(item, community, collection, dcSchema, metadataField);
                     authBOHashMap.put(dcValueName, installerEDMAuthBO);
                     authDCElements.add(metadataField);
+                }
+                if (numElements == 1 && titleMetadataField != null) {
+                    InstallerEDMAuthBO installerEDMAuthBO = new InstallerEDMAuthBO(item, community, collection, dcSchema, titleMetadataField);
+                    authBOHashMap.put(dcValueName, installerEDMAuthBO);
+                    authDCElements.add(titleMetadataField);
                 }
             }
         }
