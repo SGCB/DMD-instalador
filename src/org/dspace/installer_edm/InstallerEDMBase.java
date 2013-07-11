@@ -581,23 +581,27 @@ public abstract class InstallerEDMBase implements Observer
             for (DCValue dcValue : listDCValues) {
                 if (dcValue.value == null || dcValue.value.isEmpty()) continue;
                 String dcValueName = dcValue.element + ((dcValue.qualifier != null && !dcValue.qualifier.isEmpty())?"." + dcValue.qualifier:"");
-                if (!elementsNotAuthSet.contains(dcValueName) && !authBOHashMap.containsKey(dcValueName)) {
-                    if (debug) installerEDMDisplay.showQuestion(0, "checkSkosAuthItem.element", new String[]{dcValueName});
+                if (!elementsNotAuthSet.contains(dcValueName)) {
                     numElements++;
-                    MetadataField metadataField = new MetadataField(dcSchema, dcValue.element, dcValue.qualifier, null);
-                    if (dcValue.element.equals("title") && dcValue.qualifier == null) {
-                        titleMetadataField = metadataField;
-                        continue;
+                    if (!authBOHashMap.containsKey(dcValueName)) {
+                        MetadataField metadataField = new MetadataField(dcSchema, dcValue.element, dcValue.qualifier, null);
+                        if (dcValue.element.equals("title") && dcValue.qualifier == null) {
+                            titleMetadataField = metadataField;
+                            continue;
+                        }
+                        if (debug) installerEDMDisplay.showQuestion(0, "checkSkosAuthItem.element", new String[]{dcValueName});
+                        InstallerEDMAuthBO installerEDMAuthBO = new InstallerEDMAuthBO(item, community, collection, dcSchema, metadataField);
+                        authBOHashMap.put(dcValueName, installerEDMAuthBO);
+                        authDCElements.add(metadataField);
                     }
-                    InstallerEDMAuthBO installerEDMAuthBO = new InstallerEDMAuthBO(item, community, collection, dcSchema, metadataField);
-                    authBOHashMap.put(dcValueName, installerEDMAuthBO);
-                    authDCElements.add(metadataField);
                 }
-                if (numElements == 1 && titleMetadataField != null) {
-                    InstallerEDMAuthBO installerEDMAuthBO = new InstallerEDMAuthBO(item, community, collection, dcSchema, titleMetadataField);
-                    authBOHashMap.put(dcValueName, installerEDMAuthBO);
-                    authDCElements.add(titleMetadataField);
-                }
+            }
+            if (numElements == 1 && titleMetadataField != null && !authBOHashMap.containsKey("title")) {
+                System.out.println(numElements);
+                if (debug) installerEDMDisplay.showQuestion(0, "checkSkosAuthItem.element", new String[]{"title"});
+                InstallerEDMAuthBO installerEDMAuthBO = new InstallerEDMAuthBO(item, community, collection, dcSchema, titleMetadataField);
+                authBOHashMap.put("title", installerEDMAuthBO);
+                authDCElements.add(titleMetadataField);
             }
         }
     }

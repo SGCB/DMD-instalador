@@ -320,8 +320,10 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
                     if (handle != null) {
                         // se actualiza la caché
                         cacheAuthValues.get(metadataField).addCacheAuthValue(dcValue.value, handle);
-                        System.out.println(cacheAuthValues.get(metadataField).getNumAuth());
-                        if (debug) installerEDMDisplay.showQuestion(currentStepGlobal, "traverseNonauthItems.changeitem", new String[]{item.getHandle(), handle});
+                        if (debug) {
+                            System.out.println(cacheAuthValues.get(metadataField).getNumAuth());
+                            installerEDMDisplay.showQuestion(currentStepGlobal, "traverseNonauthItems.changeitem", new String[]{item.getHandle(), handle});
+                        }
                         // campo autoridad con el handle de la autoridad
                         dcValue.authority = handle;
                         itemUpdated = true;
