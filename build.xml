@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="InstallerEDM" basedir="." default="usage">
+    <property file="build.properties"/>
+    <property name="src.dir" value="src"/>
+    <property name="build.dir" value="."/>
+    <property name="name" value="InstallerEDM"/>
+    <path id="master-classpath">
+        <fileset dir="lib">
+            <include name="*.jar"/>
+        </fileset>
+        <fileset dir="${appserver.home}/lib">
+            <include name="*.jar"/>
+        </fileset>
+        <pathelement path="${build.dir}"/>
+    </path>
+    <path id="execute-classpath">
+        <fileset dir="${build.dir}/">
+            <include name="${name}.jar"/>
+        </fileset>
+        <fileset dir="lib">
+            <include name="*.jar"/>
+        </fileset>
+        <fileset dir="${appserver.home}/lib">
+            <include name="*.jar"/>
+        </fileset>
+        <pathelement path="${appserver.home}/config" />
+    </path>
+    <target name="usage">
+        <echo message=""/>
+        <echo message="${name} build file"/>
+        <echo message="-----------------------------------"/>
+        <echo message=""/>
+        <echo message="Available targets are:"/>
+        <echo message=""/>
+        <echo message="build --> Build the application"/>
+    	<echo message="jar --> Create application as a WAR file"/>
+        <echo message="execute --> Execute application"/>
+        <echo message=""/>
+    </target>
+    <target name="build" description="Compile main source tree java files">
+        <mkdir dir="${build.dir}"/>
+        <javac destdir="${build.dir}" source="1.6" target="1.6" debug="true"
+                deprecation="false" optimize="false" failonerror="true" encoding="UTF-8">
+            <src path="${src.dir}"/>
+            <classpath refid="master-classpath"/>
+        </javac>
+    </target>
+	<target name="jar" depends="build" description="Create application as a JAR file">
+        <jar destfile="${build.dir}/${name}.jar">
+            <fileset dir="${build.dir}">
+                <include name="**/*.class"/>
+            </fileset>
+            <fileset dir="${src.dir}">
+                <include name="**/messages*.properties"/>
+            </fileset>
+        </jar>
+    </target>
+
+    <target name="execute" depends="jar" description="run the project">
+        <java classname="org.dspace.installer_edm.InstallerEDM" failonerror="true" fork="true">
+            <classpath refid="execute-classpath"/>
+            <arg line="-d ${appserver.home} -t ${tomcat.home} -s 0 -v -g -j ${java.home} 2>/dev/null"/>
+        </java>
+    </target>
+
+    <target name="clean" description="Clean output directories">
+        <delete>
+            <fileset dir="${build.dir}">
+                <include name="**/*.class"/>
+            </fileset>
+        </delete>
+    </target>
+
+</project>
