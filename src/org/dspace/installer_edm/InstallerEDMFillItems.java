@@ -43,6 +43,11 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
     private int numItemsModified = 0;
 
     /**
+     *
+     */
+    private String languageDC;
+
+    /**
      * Constructor
      * Inicializa la lista de elementos dc de las autoridades y la caché
      *
@@ -84,6 +89,21 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
                     // mostrar el menú de escoger elementos dc
                     statusElementsDC = showMenuDCElements(metadataFieldList);
                     if (statusElementsDC > 0) {
+
+                        // recoger el idioma con el que buscar/actualizar los elementos dc
+                        languageDC = language;
+                        installerEDMDisplay.showQuestion(currentStepGlobal, "configure.language", new String[]{languageDC});
+                        String response = null;
+                        try {
+                            response = br.readLine();
+                        } catch (IOException e) {
+                            showException(e);
+                        }
+                        if (response != null && !response.isEmpty()) {
+                            response = response.trim();
+                            languageDC = (response.equals("null"))?null:response;
+                        }
+
                         List<Collection> collectionList = new ArrayList<Collection>();
                         int statusCollection;
                         do {
@@ -299,7 +319,8 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
         // elemento prohibido para autoridad, lo saltamos
         if (elementsNotAuthSet.contains(dcValueName)) return false;
         // valores del elemento dc en este ítem
-        DCValue[] listDCValues = item.getMetadata(dcSchema.getName(), metadataField.getElement(), metadataField.getQualifier(), language);
+        DCValue[] listDCValues = item.getMetadata(dcSchema.getName(), metadataField.getElement(), metadataField.getQualifier(), languageDC);
+        if (debug) System.out.println("Num elementos " + dcValueName + " encontrados: " + listDCValues.length);
         if (listDCValues.length > 0) {
             // recorremos todos los elementos dc con este nombre
             for (DCValue dcValue : listDCValues) {
@@ -356,14 +377,16 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
      */
     private void updateItem(Item item, Map<MetadataField, DCValue[]> metadataField2Clear) throws SQLException, AuthorizeException
     {
+        String languageDCUpdate = (languageDC == null || languageDC.equals("*"))?null:languageDC;
+
         for (MetadataField metadataField : metadataField2Clear.keySet()) {
-            item.clearMetadata(dcSchema.getName(), metadataField.getElement(), metadataField.getQualifier(), language);
+            item.clearMetadata(dcSchema.getName(), metadataField.getElement(), metadataField.getQualifier(), languageDC);
             for (DCValue dcValue : metadataField2Clear.get(metadataField)) {
                 if (debug) {
-                    System.out.format("%s.%s.%s %s %s %s", dcSchema.getName(), metadataField.getElement(), metadataField.getQualifier(), language, dcValue.value, dcValue.authority);
+                    System.out.format("%s.%s.%s %s %s %s", dcSchema.getName(), metadataField.getElement(), metadataField.getQualifier(), (languageDC != null)?languageDC:"null", dcValue.value, dcValue.authority);
                     installerEDMDisplay.showLn();
                 }
-                item.addMetadata(dcSchema.getName(), metadataField.getElement(), metadataField.getQualifier(), language, dcValue.value, dcValue.authority, -1);
+                item.addMetadata(dcSchema.getName(), metadataField.getElement(), metadataField.getQualifier(), languageDCUpdate, dcValue.value, dcValue.authority, -1);
             }
         }
         item.update();
