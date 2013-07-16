@@ -10,6 +10,8 @@ import org.dspace.handle.HandleManager;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @class InstallerEDMFillItems
@@ -290,6 +292,8 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
     private boolean checkMetadataFieldIsModifiable(Item item, MetadataField metadataField, Map<MetadataField, DCValue[]> metadataField2Clear) throws SQLException
     {
         boolean itemUpdated = false;
+        final String REGEX_HANDLE_VOCAB_PATTERN = "^.+_(\\d+_\\d+)$";
+        Pattern patternHandleVocab = Pattern.compile(REGEX_HANDLE_VOCAB_PATTERN);
 
         String dcValueName = metadataField.getElement() + ((metadataField.getQualifier() != null && !metadataField.getQualifier().isEmpty())?"." + metadataField.getQualifier():"");
         // elemento prohibido para autoridad, lo saltamos
@@ -303,6 +307,9 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
                 if (dcValue.authority != null) {
                     // url válida, ya tiene autoridad válida
                     if (isValidURI(dcValue.authority)) continue;
+                    // comprobar si el handle viene con prefijo el nombre del vocabulario de askosi
+                    Matcher matcherHandleVocab = patternHandleVocab.matcher(dcValue.authority);
+                    if (matcherHandleVocab.find()) dcValue.authority = ((String) matcherHandleVocab.group(1)).replace('_', '/');
                     // handle existente, ya tiene autoridad válida
                     if (dcValue.authority.matches("^\\d+\\/\\d+$") && HandleManager.resolveToObject(context,
                             dcValue.authority) != null) continue;
