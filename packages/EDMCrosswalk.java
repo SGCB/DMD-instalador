@@ -131,7 +131,7 @@ public class EDMCrosswalk extends Crosswalk
     private static final String NAMESPACE_URI_DC = "http://purl.org/dc/elements/1.1/";
     private static final String NAMESPACE_URI_XSI = "http://www.w3.org/2001/XMLSchema-instance";
     private static final String NAMESPACE_URI_XML = "http://www.w3.org/XML/1998/namespace";
-    private static final String NAMESPACE_URI_SCHEMALOCATION = "http://www.w3.org/1999/02/22-rdf-syntax-ns# EDM.xsd";
+    private static final String NAMESPACE_URI_SCHEMALOCATION = "http://www.w3.org/1999/02/22-rdf-syntax-ns# http://www.europeana.eu/schemas/edm/EDM.xsd";
 
     private Namespace DCTERMS = Namespace.getNamespace("dcterms", NAMESPACE_URI_DCTERMS);
     private Namespace EDM = Namespace.getNamespace("edm", NAMESPACE_URI_EDM);
