@@ -42,6 +42,7 @@ package org.dspace.app.oai;
 
 import ORG.oclc.oai.server.crosswalk.Crosswalk;
 import ORG.oclc.oai.server.verb.CannotDisseminateFormatException;
+import org.dspace.app.util.MetadataExposure;
 import org.dspace.app.util.Util;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
@@ -636,6 +637,11 @@ public class EDMCrosswalk extends Crosswalk
      */
     private void createElementEDM(Item item, String elementEDM, Namespace nameSpace, String elementDC, String qualifier, Element parent, boolean repeat)
     {
+        try {
+            if (MetadataExposure.isHidden(null, DC.getPrefix(), elementDC, qualifier)) return;
+        } catch (SQLException e) {
+            return;
+        }
         DCValue[] elements = item.getDC(elementDC, qualifier, Item.ANY);
         if (elements.length > 0) {
             for (DCValue element : elements) {
