@@ -77,9 +77,9 @@ public class InstallerEDM extends InstallerEDMBase
     private InstallerEDMConfEDMExport installerEDMConfEDMExport = null;
 
     /**
-     * Clase {@link InstallerEDMCrosswalk} para configurar el plugin en java de OAI para mostrar elementos en formato EDM
+     * Clase {@link InstallerManagerCrosswalk} para configurar el plugin en java de OAI para mostrar elementos en un formato
      */
-    private InstallerEDMCrosswalk installerEDMCrosswalk = null;
+    private InstallerManagerCrosswalk installerManagerCrosswalk = null;
 
     /**
      * Clase {@link InstallerEDMCrosswalkXSL} para configurar el plugin en XSL de OAI para mostrar elementos en formato EDM
@@ -379,9 +379,8 @@ public class InstallerEDM extends InstallerEDMBase
                     installEDM(0);
                     return;
                 }
-                installerEDMCrosswalk = new InstallerEDMCrosswalk(Integer.parseInt(installerEDMDisplay.getQuestion(0, "step.edmcrosswalk")),
-                        myInstallerDirPath + fileSeparator + "packages" + fileSeparator + "EDMCrosswalk.java");
-                installerEDMCrosswalk.configure();
+                installerManagerCrosswalk = new InstallerManagerCrosswalk(Integer.parseInt(installerEDMDisplay.getQuestion(0, "step.edmcrosswalk")));
+                installerManagerCrosswalk.configure();
             }
 
             // configurar el plugin en xsl del oai para EDM
