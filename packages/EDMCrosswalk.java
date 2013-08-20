@@ -380,7 +380,7 @@ public class EDMCrosswalk extends Crosswalk
         if (currentLocation == null || currentLocation.isEmpty()) currentLocation = baseUrl + "/handle/" + item.getHandle();
         ProvidedCHO.addContent(new Element("currentLocation", EDM).setText(currentLocation));
 
-        ProvidedCHO.addContent(new Element("type", EDM).setText(processEDMType(item)));
+        ProvidedCHO.addContent(new Element("type", EDM).setText(processEDMType(item, false)));
 
         return ProvidedCHO;
     }
@@ -391,9 +391,10 @@ public class EDMCrosswalk extends Crosswalk
      * and replaces the terms with a unique main type
      *
      * @param item      dspace item object to get information from
+     * @param multiValued boolean para indicar si recogemos más de un valor
      * @return          string with the content of the edm.type containing the main types
      */
-    private String processEDMType(Item item)
+    private String processEDMType(Item item, boolean multiValued)
     {
         String edmTypeElement = null;
         // Items already has an edm.type element
@@ -415,13 +416,14 @@ public class EDMCrosswalk extends Crosswalk
                     List<String> typeList = EDMTYPES.get(type);
                     for (String patternType : typeList) {
                         if (value.toLowerCase().indexOf(patternType.toLowerCase()) >= 0 && edmType.toString().toLowerCase().indexOf(type.toLowerCase()) < 0) {
-                            edmType.append(type).append(',');
+                            if (multiValued) edmType.append(type).append(',');
+                            else return type;
                         }
                     }
                 }
             }
         }
-        return edmType.toString();
+        return (edmType.length() > 0)?edmType.toString().substring(0, edmType.length() - 1):edmType.toString();
     }
 
 
