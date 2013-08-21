@@ -181,6 +181,19 @@ public class EDMCrosswalk extends Crosswalk
     public String createMetadata(Object nativeItem) throws CannotDisseminateFormatException
     {
 
+        // Cast object received from dspace to an item
+        Item item = ((HarvestedItemInfo) nativeItem).item;
+
+        // Get the original set of bundles from the item
+        Bundle[] origBundles = new Bundle[0];
+        try {
+            origBundles = item.getBundles("ORIGINAL");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        // Just items with digital content
+        if (origBundles.length == 0) return null;
+
         // element rdf with all the namespaces
         //Element rdf_RDF = new Element("RDF", "rdf");
         Element rdf_RDF = new Element("RDF", RDF);
@@ -217,9 +230,6 @@ public class EDMCrosswalk extends Crosswalk
         // List with all the children elements of the root
         List<Element> listElements = new ArrayList<Element>();
 
-        // Cast object received from dspace to an item
-        Item item = ((HarvestedItemInfo) nativeItem).item;
-
         // Get all the dc elements from the item
         DCValue[] allDC = item.getDC(Item.ANY, Item.ANY, Item.ANY);
 
@@ -232,14 +242,6 @@ public class EDMCrosswalk extends Crosswalk
         if (listSkosConcept != null && listSkosConcept.size() > 0) {
             for (Element skosConceptElement : listSkosConcept)
                 listElements.add(skosConceptElement);
-        }
-
-        // Get the original set of bundles from the item
-        Bundle[] origBundles = new Bundle[0];
-        try {
-            origBundles = item.getBundles("ORIGINAL");
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
 
         if (origBundles.length > 0) {
