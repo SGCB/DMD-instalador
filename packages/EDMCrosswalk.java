@@ -99,6 +99,11 @@ public class EDMCrosswalk extends Crosswalk
     private static final String EDMRIGHTS = "";
     /* END EDMRIGHTS */
 
+    // Boolean with the edm:ugc
+    /* BEGIN EDMUGC */
+    private static final boolean EDMUGC = false;
+    /* END EDMUGC */
+
     // Map with the terms to search in dc.type and change if matched with the generic type
     /* BEGIN EDMTYPES */
     private static final Map<String, List<String>> EDMTYPES;
@@ -629,6 +634,11 @@ public class EDMCrosswalk extends Crosswalk
             Element aggregatedCHO = new Element("aggregatedCHO", EDM);
             aggregatedCHO.setAttribute("resource", url, RDF);
             oreAggregation.addContent(aggregatedCHO);
+
+            // edm:ugc
+            if (EDMUGC) {
+                oreAggregation.addContent(new Element("ugc", EDM).setText("true"));
+            }
 
             // edm:dataProvider
             oreAggregation.addContent(new Element("dataProvider", EDM).setText(ConfigurationManager.getProperty("dspace.name")));

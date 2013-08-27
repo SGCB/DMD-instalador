@@ -47,6 +47,8 @@ public class InstallerEDMCrosswalk extends InstallerCrosswalk
     public void configureCrosswalk()
     {
         try {
+            confEDMUgc();
+            installerEDMDisplay.showLn();
             // configura edm.rights
             confEDMRights();
             installerEDMDisplay.showLn();
@@ -54,6 +56,41 @@ public class InstallerEDMCrosswalk extends InstallerCrosswalk
             confEDMTypes();
         } catch (IOException e) {
             showException(e);
+        }
+    }
+
+
+    /**
+     * Busca en EDMCrosswalk.java la variable estática donde se introduce la true a edm:ugc
+     * private static final String EDMUGC
+     *
+     * y la modifica para añadir true
+     *
+     * @throws IOException
+     */
+    private void confEDMUgc() throws IOException
+    {
+        final Pattern EDMUGC_PATTERN = Pattern.compile("private\\s+static\\s+final\\s+boolean\\s+EDMUGC\\s+=\\s+(.*);");
+        String response = null;
+        boolean change = false;
+        do {
+            installerEDMDisplay.showQuestion(currentStepGlobal, "configure.edmcrosswalk.conf.edmugc");
+            response = br.readLine();
+            if (response == null) continue;
+            response = response.trim();
+            if (response.isEmpty()) break;
+            else if (response.equalsIgnoreCase(answerYes)) {
+                change = true;
+                break;
+            } else if (response.equalsIgnoreCase("n")) break;
+        } while (true);
+        Matcher matcherEdmUgc = EDMUGC_PATTERN.matcher(edmCrossWalkContent);
+        if (matcherEdmUgc.find() && matcherEdmUgc.groupCount() == 1) {
+            String edmUgc = matcherEdmUgc.group(1);
+            if (edmUgc != null && !edmUgc.isEmpty()) {
+                edmCrossWalkContent = edmCrossWalkContent.replaceFirst("private\\s+static\\s+final\\s+boolean\\s+EDMUGC\\s+=\\s+" + edmUgc + ";",
+                        "private static final boolean EDMUGC = " + ((change)?"true":"false") + ";");
+            }
         }
     }
 
