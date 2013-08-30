@@ -307,9 +307,12 @@ public class EDMCrosswalk extends Crosswalk
             Bitstream[] bitstreams = origBundles[0].getBitstreams();
             if (bitstreams.length > 0) {
 
-                // Create edm:WebResource element with the first file and add it to the children list
-                Element WebResource = processWebResource(item, bitstreams[0]);
-                if (WebResource != null) listElements.add(WebResource);
+                // Create edm:WebResource element with the bitstream
+                Element[] WebResources = processWebResource(item, origBundles);
+                if (WebResources != null && WebResources.length > 0) {
+                    for (Element element : WebResources)
+                        listElements.add(element);
+                }
 
                 // Create ore:Aggregation element with the files and add them to the children list
                 Element oreAggregation = processOreAgreggation(item, origBundles, thumbBundles, bitstreams[0]);
@@ -377,7 +380,8 @@ public class EDMCrosswalk extends Crosswalk
 
         createElementEDM(item, "source", DC, "source", null, ProvidedCHO, false);
 
-        createElementEDM(item, "subject", DC, "subject", Item.ANY, ProvidedCHO, true);
+        createElementEDM(item, "subject", DC, "subject", null, ProvidedCHO, true, true);
+        createElementEDM(item, "subject", DC, "subject", Item.ANY, ProvidedCHO, true, true);
 
         createElementEDM(item, "title", DC, "title", null, ProvidedCHO, true);
 
@@ -469,6 +473,7 @@ public class EDMCrosswalk extends Crosswalk
         if (edmTypeElement != null && !edmTypeElement.isEmpty()) return edmTypeElement;
 
         // traverse all the dc.type elements and process them
+        boolean found = false;
         StringBuilder edmType = new StringBuilder();
         DCValue[] elements = item.getDC("type", null, Item.ANY);
         if (elements.length > 0) {
@@ -480,60 +485,88 @@ public class EDMCrosswalk extends Crosswalk
                     List<String> typeList = EDMTYPES.get(type);
                     for (String patternType : typeList) {
                         if (value.toLowerCase().indexOf(patternType.toLowerCase()) >= 0 && edmType.toString().toLowerCase().indexOf(type.toLowerCase()) < 0) {
-                            if (multiValued) edmType.append(type).append(',');
+                            if (multiValued) {
+                                edmType.append(type).append(',');
+                                found = true;
+                            }
                             else return type;
                         }
                     }
                 }
             }
         }
+        if (!found) return "TEXT";
         return (edmType.length() > 0)?edmType.toString().substring(0, edmType.length() - 1):edmType.toString();
     }
 
 
     /**
      *
-     * Creates the edm:WebResource from the first original file, the url of dspace and
+     * Creates the edm:WebResource from the bitstreams, the url of dspace and
      * created a the dc.rights and edm.rights
      *
      * @param item          dspace item object to get information from
-     * @param bitstream     dspace bitstream object with the file information
-     * @return              jdom element
+     * @param bundles       array dspace bundle object with the file information
+     * @return              array jdom element
      */
-    private Element processWebResource(Item item, Bitstream bitstream)
+    private Element[] processWebResource(Item item, Bundle[] bundles)
     {
+        List<Element> listWebResources = new ArrayList<Element>();
+
         Element WebResource = null;
 
         try {
             WebResource = new Element("WebResource", EDM);
+            WebResource.setAttribute(new Attribute("about", handleUrl + item.getHandle() + "#&lt;/edm:isShownAt&gt", RDF));
+            fillWebResource(item, WebResource);
+            listWebResources.add(WebResource);
 
-            String url = baseUrl + "/bitstream/"
-                                 + item.getHandle() + "/" + bitstream.getSequenceID() + "/" + Util.encodeBitstreamName(bitstream.getName(), Constants.DEFAULT_ENCODING);
+            for (Bundle bundle: bundles) {
+                Bitstream[] bitstreams = bundle.getBitstreams();
+                for (Bitstream bitstream: bitstreams) {
 
-            WebResource.setAttribute(new Attribute("about", url, RDF));
+                    WebResource = new Element("WebResource", EDM);
 
-            // creates dc.rights
-            createElementEDM(item, "rights", DC, "rights", null, WebResource, true);
+                    String url = baseUrl + "/bitstream/"
+                                         + item.getHandle() + "/" + bitstream.getSequenceID() + "/" + Util.encodeBitstreamName(bitstream.getName(), Constants.DEFAULT_ENCODING);
 
-            createElementEDM(item, "format", DC, "format", "mimetype", WebResource, true);
-
-            createElementEDM(item, "extend", DCTERMS, "format", "extend", WebResource, true);
-
-            createElementEDM(item, "issued", DCTERMS, "date", "available", WebResource, true);
-
-            // creates edm.rights
-            String edmRights = null;
-            try {
-                edmRights = item.getMetadata("edm", "rights", null, Item.ANY)[0].value;
-            } catch (Exception e) {
+                    WebResource.setAttribute(new Attribute("about", url, RDF));
+                    fillWebResource(item, WebResource);
+                    listWebResources.add(WebResource);
+                }
             }
-            if (edmRights == null || edmRights.isEmpty()) edmRights = EDMRIGHTS;
-            WebResource.addContent(new Element("rights", EDM).setText(edmRights));
         } catch (Exception e) {
 
         }
 
-        return WebResource;
+        return listWebResources.toArray(new Element[listWebResources.size()]);
+    }
+
+
+    /**
+     * Fill WebResource with dc and edm elements
+     *
+     * @param item Dspace Item object
+     * @param WebResource parent jdom element
+     */
+    private void fillWebResource(Item item, Element WebResource)
+    {
+        createElementEDM(item, "rights", DC, "rights", null, WebResource, true);
+
+        createElementEDM(item, "format", DC, "format", "mimetype", WebResource, true);
+
+        createElementEDM(item, "extend", DCTERMS, "format", "extend", WebResource, true);
+
+        createElementEDM(item, "issued", DCTERMS, "date", "available", WebResource, true);
+
+        // creates edm.rights
+        String edmRights = null;
+        try {
+            edmRights = item.getMetadata("edm", "rights", null, Item.ANY)[0].value;
+        } catch (Exception e) {
+        }
+        if (edmRights == null || edmRights.isEmpty()) edmRights = EDMRIGHTS;
+        WebResource.addContent(new Element("rights", EDM).setText(edmRights));
     }
 
 
@@ -564,16 +597,6 @@ public class EDMCrosswalk extends Crosswalk
                     if (dcv.language != null) prefLabel.setAttribute(new Attribute("lang", dcv.language, XML));
                     prefLabel.setText(dcv.value);
                     skosConcept.addContent(prefLabel);
-                    DCValue[] elementsTitle = item.getDC("title", null, dcv.language);
-                    if (elementsTitle.length > 0) {
-                        for (DCValue elementDCV : elementsTitle) {
-                            if (dcv.value.equalsIgnoreCase(elementDCV.value)) continue;
-                            prefLabel = new Element("prefLabel", SKOS);
-                            prefLabel.setAttribute(new Attribute("lang", elementDCV.language, XML));
-                            prefLabel.setText(elementDCV.value);
-                            skosConcept.addContent(prefLabel);
-                        }
-                    }
                     DCValue[] elementsTitleAlt = item.getDC("title", "alternative", dcv.language);
                     if (elementsTitleAlt.length > 0) {
                         Element altLabel;
@@ -649,13 +672,13 @@ public class EDMCrosswalk extends Crosswalk
                                        + Util.encodeBitstreamName(bitstream.getName(), Constants.DEFAULT_ENCODING);
 
             // edm:isShownAt
-            oreAggregation.addContent(new Element("isShownAt", EDM).setText(url));
+            oreAggregation.addContent(new Element("isShownAt", EDM).setAttribute("resource", url + "#&lt;/edm:isShownAt&gt", RDF));
 
             // edm:isShownBy
-            oreAggregation.addContent(new Element("isShownBy", EDM).setText(urlObject));
+            oreAggregation.addContent(new Element("isShownBy", EDM).setAttribute("resource", urlObject, RDF));
 
             // edm:object
-            oreAggregation.addContent(new Element("object", EDM).setText(urlObject));
+            oreAggregation.addContent(new Element("object", EDM).setAttribute("resource", urlObject, RDF));
 
             // edm:hasView
             int i = 0;
@@ -668,19 +691,8 @@ public class EDMCrosswalk extends Crosswalk
                         urlObject = baseUrl + "/bitstream/"
                                             + item.getHandle() + "/" + bitstream1.getSequenceID() + "/"
                                             + Util.encodeBitstreamName(bitstream1.getName(), Constants.DEFAULT_ENCODING);
-                        String urlThumb = urlObject;
-                        if (bitstreamsThumb != null) {
-                            for (Bitstream bitThumb : bitstreamsThumb) {
-                                if (bitThumb.getSequenceID() == bitstream1.getSequenceID()) {
-                                    urlThumb = baseUrl + "/bitstream/"
-                                                       + item.getHandle() + "/" + bitThumb.getSequenceID() + "/"
-                                                       + Util.encodeBitstreamName(bitThumb.getName(), Constants.DEFAULT_ENCODING);
-                                    break;
-                                }
-                            }
-                        }
 
-                        oreAggregation.addContent(new Element("hasView", EDM).setText(urlThumb));
+                        oreAggregation.addContent(new Element("hasView", EDM).setAttribute("resource", urlObject, RDF));
                     }
                 } catch (Exception ex) {
 
