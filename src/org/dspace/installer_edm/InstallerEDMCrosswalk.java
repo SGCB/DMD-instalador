@@ -171,7 +171,7 @@ public class InstallerEDMCrosswalk extends InstallerCrosswalk
                 } catch (IndexOutOfBoundsException e) {
                     showException(e);
                 }
-            };
+            }
 
             // recorrer tipos para mostrar palabras
             installerEDMDisplay.showQuestion(currentStepGlobal, "configure.edmcrosswalk.conf.edmtypes.exist");

@@ -366,7 +366,7 @@ public abstract class InstallerCrosswalk extends InstallerEDMBase
             edmCrossWalkScanner = new Scanner(edmCrossWalkFile);
             String lineSeparator = System.getProperty("line.separator");
             while (edmCrossWalkScanner.hasNextLine()) {
-                fileContents.append(edmCrossWalkScanner.nextLine() + lineSeparator);
+                fileContents.append(edmCrossWalkScanner.nextLine()).append(lineSeparator);
             }
             edmCrossWalkContent = fileContents.toString();
         } finally {

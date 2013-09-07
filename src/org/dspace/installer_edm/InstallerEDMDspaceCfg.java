@@ -101,7 +101,7 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
             out = new OutputStreamWriter(new FileOutputStream(dspaceDirConfNewFile, true));
             // añadir directiva de Askosi
             if (AskosiDataDir != null && askosiDataDirAdd) {
-                String plugin = new StringBuilder().append("\nASKOSI.directory = ").append(askosiDataDestDirFile.getAbsolutePath()).append("\nplugin.named.org.dspace.content.authority.ChoiceAuthority = \\\n").append("be.destin.dspace.AskosiPlugin = ASKOSI\n").toString();
+                String plugin = "\nASKOSI.directory = " + askosiDataDestDirFile.getAbsolutePath() + "\nplugin.named.org.dspace.content.authority.ChoiceAuthority = \\\n" + "be.destin.dspace.AskosiPlugin = ASKOSI\n";
                 out.write("\n\n# " + getTime() + " Appended by installerEDM to add the ASKOSI plugin\n");
                 out.write(plugin);
                 modified = true;
@@ -328,10 +328,9 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
      */
     private boolean writeDspaceCfg(Writer out, String element)
     {
-        String choice = new StringBuilder().append("\nchoices.plugin.").append(dcSchema.getName()).append(".").append(element).append(" = ASKOSI\n").append("choices.presentation.").append(dcSchema.getName()).append(".").append(element).append(" = lookup\n").append("authority.controlled.").append(dcSchema.getName()).append(".").append(element).append(" = true")
-                .toString();
+        String choice = "\nchoices.plugin." + dcSchema.getName() + "." + element + " = ASKOSI\n" + "choices.presentation." + dcSchema.getName() + "." + element + " = lookup\n" + "authority.controlled." + dcSchema.getName() + "." + element + " = true";
         try {
-            String element2 = new StringBuilder("\n\n# ").append(getTime()).append(" Appended by installerEDM to add the ").append(dcSchema.getName()).append(".").append(element).append("\n").toString();
+            String element2 = "\n\n# " + getTime() + " Appended by installerEDM to add the " + dcSchema.getName() + "." + element + "\n";
             out.write(element2);
             out.write(choice);
         } catch (IOException e) {

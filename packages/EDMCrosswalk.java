@@ -355,7 +355,7 @@ public class EDMCrosswalk extends Crosswalk
         if (identifiers.length > 0) ProvidedCHO.setAttribute(new Attribute("about", identifiers[0].value, RDF));
         else ProvidedCHO.setAttribute(new Attribute("about", urlH, RDF));
 
-        createElementEDMExclusion(item, "contributor", DC, "contributor", new HashSet<String>(Arrays.asList("author")), ProvidedCHO, true);
+        createElementEDMExclusion(item, "contributor", DC, "contributor", new HashSet<String>(Arrays.asList("author")), ProvidedCHO, true, RDF);
 
         createElementEDM(item, "coverage", DC, "coverage", null, ProvidedCHO, true);
 
@@ -422,7 +422,7 @@ public class EDMCrosswalk extends Crosswalk
         createElementEDMExclusion(item, "references", DCTERMS, "relation",
                 new HashSet<String>(Arrays.asList("isPartOf", "ispartofseries", "hasPart", "isRequiredBy", "isReplacedBy"
                         , "isVersionOf", "hasVersion", "isFormatOf", "hasFormat", "isReferencedBy", "conformsTo"
-                        , "replaces", "requires")), ProvidedCHO, true);
+                        , "replaces", "requires")), ProvidedCHO, true, null);
 
         createElementEDM(item, "issued", DCTERMS, "date", "issued", ProvidedCHO, true);
 
@@ -589,6 +589,7 @@ public class EDMCrosswalk extends Crosswalk
             if (dcv.authority != null && !dcv.authority.isEmpty()) {
                 authority = checkAuthority(dcv.authority);
                 if (authority == null) continue;
+                Item itemAuth = getItemFromAuthority(authority);
                 Element skosConcept = null;
                 try {
                     skosConcept = ((dcv.element.equals("creator") && dcv.qualifier == null) || (dcv.element.equals("contributor") && dcv.qualifier.equals("author")))?new Element("Agent", EDM):new Element("Concept", SKOS);
@@ -597,24 +598,26 @@ public class EDMCrosswalk extends Crosswalk
                     if (dcv.language != null) prefLabel.setAttribute(new Attribute("lang", dcv.language, XML));
                     prefLabel.setText(dcv.value);
                     skosConcept.addContent(prefLabel);
-                    DCValue[] elementsTitleAlt = item.getDC("title", "alternative", dcv.language);
-                    if (elementsTitleAlt.length > 0) {
-                        Element altLabel;
-                        for (DCValue elementDCV : elementsTitleAlt) {
-                            altLabel = new Element("altLabel", SKOS);
-                            altLabel.setAttribute(new Attribute("lang", elementDCV.language, XML));
-                            altLabel.setText(elementDCV.value);
-                            skosConcept.addContent(altLabel);
+                    if (itemAuth != null) {
+                        DCValue[] elementsTitleAlt = itemAuth.getDC("title", "alternative", dcv.language);
+                        if (elementsTitleAlt.length > 0) {
+                            Element altLabel;
+                            for (DCValue elementDCV : elementsTitleAlt) {
+                                altLabel = new Element("altLabel", SKOS);
+                                altLabel.setAttribute(new Attribute("lang", elementDCV.language, XML));
+                                altLabel.setText(elementDCV.value);
+                                skosConcept.addContent(altLabel);
+                            }
                         }
-                    }
-                    DCValue[] elementsDesc = item.getDC("description", null, dcv.language);
-                    if (elementsDesc.length > 0) {
-                        Element note;
-                        for (DCValue elementDCV : elementsDesc) {
-                            note = new Element("note", SKOS);
-                            note.setAttribute(new Attribute("lang", elementDCV.language, XML));
-                            note.setText(elementDCV.value);
-                            skosConcept.addContent(note);
+                        DCValue[] elementsDesc = itemAuth.getDC("description", null, dcv.language);
+                        if (elementsDesc.length > 0) {
+                            Element note;
+                            for (DCValue elementDCV : elementsDesc) {
+                                note = new Element("note", SKOS);
+                                note.setAttribute(new Attribute("lang", elementDCV.language, XML));
+                                note.setText(elementDCV.value);
+                                skosConcept.addContent(note);
+                            }
                         }
                     }
                     listElementsSkosConcept.add(skosConcept);
@@ -678,16 +681,23 @@ public class EDMCrosswalk extends Crosswalk
             oreAggregation.addContent(new Element("isShownBy", EDM).setAttribute("resource", urlObject, RDF));
 
             // edm:object
-            oreAggregation.addContent(new Element("object", EDM).setAttribute("resource", urlObject, RDF));
+            if (thumbBundles != null && thumbBundles.length > 0) {
+                Bitstream[] bitstreamsThumb = thumbBundles[0].getBitstreams();
+                if (bitstreamsThumb != null && bitstreamsThumb.length > 0) {
+                    String urlObjectThumb = baseUrl + "/bitstream/"
+                            + item.getHandle() + "/" + bitstreamsThumb[0].getSequenceID() + "/"
+                            + Util.encodeBitstreamName(bitstreamsThumb[0].getName(), Constants.DEFAULT_ENCODING);
+                    oreAggregation.addContent(new Element("object", EDM).setAttribute("resource", urlObjectThumb, RDF));
+                }
+            }
 
             // edm:hasView
             int i = 0;
             for (Bundle bundle : origBundles) {
                 try {
                     Bitstream[] bitstreamsOrig = bundle.getBitstreams();
-                    Bitstream[] bitstreamsThumb = null;
-                    if (thumbBundles.length > i && thumbBundles[i] != null) bitstreamsThumb = thumbBundles[i].getBitstreams();
                     for (Bitstream bitstream1 : bitstreamsOrig) {
+                        if (i++ == 0) continue;
                         urlObject = baseUrl + "/bitstream/"
                                             + item.getHandle() + "/" + bitstream1.getSequenceID() + "/"
                                             + Util.encodeBitstreamName(bitstream1.getName(), Constants.DEFAULT_ENCODING);
@@ -697,7 +707,6 @@ public class EDMCrosswalk extends Crosswalk
                 } catch (Exception ex) {
 
                 }
-                i++;
             }
 
             // edm.provider
@@ -814,7 +823,7 @@ public class EDMCrosswalk extends Crosswalk
      *
      * @return último elemento Dom creado
      */
-    protected Element createElementEDMExclusion(Item item, String elementEDM, Namespace nameSpace, String elementDC, Set<String> noQualifier, Element ProvidedCHO, boolean repeat)
+    protected Element createElementEDMExclusion(Item item, String elementEDM, Namespace nameSpace, String elementDC, Set<String> noQualifier, Element ProvidedCHO, boolean repeat, Namespace resource)
     {
         Element elementDom = null;
         DCValue[] elements = item.getDC(elementDC, Item.ANY, Item.ANY);
@@ -827,6 +836,13 @@ public class EDMCrosswalk extends Crosswalk
                     continue;
                 }
                 elementDom = new Element(elementEDM, nameSpace).setText(element.value);
+                if (resource != null && elementDom != null) {
+                    if (element.authority != null && !element.authority.isEmpty()) {
+                        String authority = checkAuthority(element.authority);
+                        if (authority != null)
+                            elementDom.setAttribute("resource", authority, resource);
+                    }
+                }
                 ProvidedCHO.addContent(elementDom);
                 if (!repeat) break;
             }
@@ -863,6 +879,26 @@ public class EDMCrosswalk extends Crosswalk
             }
             // es una url válida
         } else return authority;
+    }
+
+
+    /**
+     * Devuelve el ítem a partir de la autoridad que es un handle o su url
+     * @param authority cadena con el handle o su url
+     * @return Item de dspace
+     */
+    protected Item getItemFromAuthority(String authority)
+    {
+        final String REGEX_HANDLE_PATTERN = "^\\d+/\\d+$";
+
+        if (authority.startsWith(handleUrl)) authority = authority.replaceFirst(handleUrl, "");
+        if (authority.matches(REGEX_HANDLE_PATTERN)) {
+            try {
+                return (Item) HandleManager.resolveToObject(context, authority);
+            } catch (Exception e) {
+            }
+        }
+        return null;
     }
 
 

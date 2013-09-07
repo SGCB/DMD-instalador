@@ -124,8 +124,8 @@ public class InstallerEDM extends InstallerEDMBase
             } catch (Exception e1) {
             }
 
-            String message = installerEDM.getInstallerEDMDisplay().getQuestion(0, "error.fail.init", new String[]{e.getMessage()});
-            installerEDM.getInstallerEDMDisplay().showMessage(message + ":" + e);
+            String message = getInstallerEDMDisplay().getQuestion(0, "error.fail.init", new String[]{e.getMessage()});
+            getInstallerEDMDisplay().showMessage(message + ":" + e);
             throw new IllegalStateException(message, e);
         }
 
@@ -135,15 +135,15 @@ public class InstallerEDM extends InstallerEDMBase
         try {
             CommandLineParser parser = new PosixParser();
             Options options = new Options();
-            options.addOption("d", "dspace_dir", true, installerEDM.getInstallerEDMDisplay().getQuestion(0, "dspace_dir.option"));
-            options.addOption("h", "help", false, installerEDM.getInstallerEDMDisplay().getQuestion(0, "help.option"));
+            options.addOption("d", "dspace_dir", true, getInstallerEDMDisplay().getQuestion(0, "dspace_dir.option"));
+            options.addOption("h", "help", false, getInstallerEDMDisplay().getQuestion(0, "help.option"));
             options.addOption("j", "java", false, "");
-            options.addOption("g", "debug", false, installerEDM.getInstallerEDMDisplay().getQuestion(0, "debug.option"));
-            options.addOption("l", "language", true, installerEDM.getInstallerEDMDisplay().getQuestion(0, "language.option"));
-            options.addOption("m", "terminal", false, installerEDM.getInstallerEDMDisplay().getQuestion(0, "terminal.option"));
-            options.addOption("s", "step", true, installerEDM.getInstallerEDMDisplay().getQuestion(0, "step.option"));
-            options.addOption("t", "tomcat_base", true, installerEDM.getInstallerEDMDisplay().getQuestion(0, "tomcat_base.option"));
-            options.addOption("v", "verbose", false, installerEDM.getInstallerEDMDisplay().getQuestion(0, "verbose.option"));
+            options.addOption("g", "debug", false, getInstallerEDMDisplay().getQuestion(0, "debug.option"));
+            options.addOption("l", "language", true, getInstallerEDMDisplay().getQuestion(0, "language.option"));
+            options.addOption("m", "terminal", false, getInstallerEDMDisplay().getQuestion(0, "terminal.option"));
+            options.addOption("s", "step", true, getInstallerEDMDisplay().getQuestion(0, "step.option"));
+            options.addOption("t", "tomcat_base", true, getInstallerEDMDisplay().getQuestion(0, "tomcat_base.option"));
+            options.addOption("v", "verbose", false, getInstallerEDMDisplay().getQuestion(0, "verbose.option"));
 
             CommandLine line = parser.parse(options, args);
 
@@ -175,7 +175,7 @@ public class InstallerEDM extends InstallerEDMBase
 
             // terminal con el que mostrar los mensajes.
             if (line.hasOption('m')) {
-                installerEDM.getInstallerEDMDisplay().setIsTerminal(true);
+                getInstallerEDMDisplay().setIsTerminal(true);
             }
 
             // si se pasa el parámetro j de la ruta de java
@@ -194,14 +194,14 @@ public class InstallerEDM extends InstallerEDMBase
             }
 
             // ha de tener directorio de dspace
-            if (installerEDM.DspaceDir == null) {
-                installerEDM.getInstallerEDMDisplay().getQuestion(0, "error.dspace.dir");
+            if (DspaceDir == null) {
+                getInstallerEDMDisplay().getQuestion(0, "error.dspace.dir");
                 installerEDM.HelpInstallerEDM(options);
             }
 
             // ha de tener directorio de tomcat
-            if (installerEDM.TomcatBase == null) {
-                installerEDM.getInstallerEDMDisplay().getQuestion(0, "error.tomcat.base");
+            if (TomcatBase == null) {
+                getInstallerEDMDisplay().getQuestion(0, "error.tomcat.base");
                 installerEDM.HelpInstallerEDM(options);
             }
 
@@ -561,7 +561,7 @@ class MyShutdown extends Thread
      */
     @Override public void run()
     {
-        if (installerEDM.getVerbose()) installerEDM.getInstallerEDMDisplay().showQuestion(0, "shutdown.hook");
+        if (installerEDM.getVerbose()) InstallerEDMBase.getInstallerEDMDisplay().showQuestion(0, "shutdown.hook");
         DSpaceKernelImpl kernelImpl = InstallerEDM.getKernelImpl();
         if (kernelImpl != null) kernelImpl.destroy();
         installerEDM.finishInstaller();

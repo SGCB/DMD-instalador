@@ -191,7 +191,7 @@ public abstract class InstallerEDMBase implements Observer
     /**
      * firma md5 de los archivos en packages
      */
-    protected static final String[] packagesMD5 = {"f800262e9587383fa0dbd8f748cc831e", "ab932907d73a8031cb266d20d341a6e2", "0bffffb990ea99eb02a989d346454d8e", "2666cfeb7be74b1c2d8a1665ae21192c", "01f9bed60e2f88372132d34040ee81bb", "ab4e80b56d4be535a359faecceed45b6", "05e622edf9972b5bf9f044bd8873283b", "a8c80b89bfec09a0a82b5c58eb1db998", "ac0e35b7978eb4b7d155d7d5f0122a8b", "261968cebe30ffe8adcc201ad0bfa395", "c9803468299ec255c047a280ddec510f", "51e15f798e69358cb893e38c50596b9b", "599b8ba07d1d04f0ea34414e861d7ad1", "1f699edb215bcee75cb6f0616fa56993", "3054aa9109f78903852d38991b5a4ea8", "429d5c7aeaadf81ec4604798d22ce78c", "0b8f97de82fc9529b1028a77125ce4f8"};
+    protected static final String[] packagesMD5 = {"f800262e9587383fa0dbd8f748cc831e", "ab932907d73a8031cb266d20d341a6e2", "0bffffb990ea99eb02a989d346454d8e", "2666cfeb7be74b1c2d8a1665ae21192c", "01f9bed60e2f88372132d34040ee81bb", "5f0075644b900c27e2a3d14e882d9462", "05e622edf9972b5bf9f044bd8873283b", "44eeb3fd752d3bbefe4d73c7d5d11945", "ac0e35b7978eb4b7d155d7d5f0122a8b", "261968cebe30ffe8adcc201ad0bfa395", "c9803468299ec255c047a280ddec510f", "51e15f798e69358cb893e38c50596b9b", "599b8ba07d1d04f0ea34414e861d7ad1", "1f699edb215bcee75cb6f0616fa56993", "3054aa9109f78903852d38991b5a4ea8", "429d5c7aeaadf81ec4604798d22ce78c", "0b8f97de82fc9529b1028a77125ce4f8"};
 
 
     /**
@@ -249,7 +249,7 @@ public abstract class InstallerEDMBase implements Observer
      */
     public void setLanguage(String language)
     {
-        this.language = language;
+        InstallerEDMBase.language = language;
     }
 
     /**
@@ -259,7 +259,7 @@ public abstract class InstallerEDMBase implements Observer
      */
     public void setInstallerEDMBase(InstallerEDM installerEDM)
     {
-        this.installerEDM = installerEDM;
+        InstallerEDMBase.installerEDM = installerEDM;
     }
 
     /**
@@ -269,7 +269,7 @@ public abstract class InstallerEDMBase implements Observer
      */
     public void setDspaceDir(String DspaceDir)
     {
-        this.DspaceDir = DspaceDir;
+        InstallerEDMBase.DspaceDir = DspaceDir;
     }
 
     /**
@@ -279,7 +279,7 @@ public abstract class InstallerEDMBase implements Observer
      */
     public void setTomcatBase(String TomcatBase)
     {
-        this.TomcatBase = TomcatBase;
+        InstallerEDMBase.TomcatBase = TomcatBase;
     }
 
     /**
@@ -289,7 +289,7 @@ public abstract class InstallerEDMBase implements Observer
      */
     public void setAskosiDataDir(String askosiDataDir)
     {
-        this.AskosiDataDir = askosiDataDir;
+        AskosiDataDir = askosiDataDir;
     }
 
     /**
@@ -299,7 +299,7 @@ public abstract class InstallerEDMBase implements Observer
      */
     public void setVerbose(boolean verbose)
     {
-        this.verbose = verbose;
+        InstallerEDMBase.verbose = verbose;
     }
 
     /**
@@ -309,7 +309,7 @@ public abstract class InstallerEDMBase implements Observer
      */
     public void setDebug(boolean debug)
     {
-        this.debug = debug;
+        InstallerEDMBase.debug = debug;
     }
 
     /**

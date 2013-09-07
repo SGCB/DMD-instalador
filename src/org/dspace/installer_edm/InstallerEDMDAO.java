@@ -114,12 +114,12 @@ public class InstallerEDMDAO
         MetadataSchema mds = MetadataSchema.find(context, schema);
         if (mds == null)
         {
-            throw new IllegalArgumentException(new StringBuilder().append("No such metadata schema: ").append(schema).toString());
+            throw new IllegalArgumentException("No such metadata schema: " + schema);
         }
         MetadataField mdf = MetadataField.findByElement(context, mds.getSchemaID(), element, qualifier);
         if (mdf == null)
         {
-            throw new IllegalArgumentException(new StringBuilder().append("No such metadata field: schema=").append(schema).append(", element=").append(element).append(", qualifier=").append(qualifier).toString());
+            throw new IllegalArgumentException("No such metadata field: schema=" + schema + ", element=" + element + ", qualifier=" + qualifier);
         }
 
         String query = "SELECT item.* FROM metadatavalue,item WHERE item.in_archive='1' AND item.item_id = metadatavalue.item_id AND metadata_field_id = ?";
@@ -131,7 +131,7 @@ public class InstallerEDMDAO
         }
         else
         {
-            query = new StringBuilder().append(query).append(" AND to_char(metadatavalue.text_value) = ?").toString();
+            query = query + " AND to_char(metadatavalue.text_value) = ?";
             rows = DatabaseManager.queryTable(context, "item", query, new Object[] { Integer.valueOf(mdf.getFieldID()), value });
         }
         return new ItemIterator(context, rows);
