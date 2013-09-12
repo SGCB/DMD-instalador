@@ -426,6 +426,8 @@ public class EDMCrosswalk extends Crosswalk
 
         ProvidedCHO.addContent(new Element("type", EDM).setText(processEDMType(item, false)));
 
+        getOwlSameAs(item, ProvidedCHO);
+
         return ProvidedCHO;
     }
 
@@ -595,6 +597,7 @@ public class EDMCrosswalk extends Crosswalk
                                 skosConcept.addContent(note);
                             }
                         }
+                        getOwlSameAs(itemAuth, skosConcept);
                     }
                     listElementsSkosConcept.add(skosConcept);
                 } catch (Exception e) {
@@ -875,6 +878,29 @@ public class EDMCrosswalk extends Crosswalk
             }
         }
         return null;
+    }
+
+
+    /**
+     * Recoger elementos owl:sameAs del ítem y añadirlos al elemento DOM
+     *
+     * @param item item objeto item de dspace {@link Item}
+     * @param elementDOMParent elemento DOM al que añadir
+     */
+    private void getOwlSameAs(Item item, Element elementDOMParent)
+    {
+        try {
+            if (MetadataExposure.isHidden(null, OWL.getPrefix(), "sameAs", null)) return;
+        } catch (SQLException e) {
+            return;
+        }
+        DCValue[] elements = item.getMetadata(OWL.getPrefix(), "sameAs", null, Item.ANY);
+        if (elements.length > 0) {
+            for (DCValue element : elements) {
+                Element elementDom = new Element("sameAs", OWL).setAttribute("resource", element.value, RDF);
+                if (elementDOMParent != null) elementDOMParent.addContent(elementDom);
+            }
+        }
     }
 
 
