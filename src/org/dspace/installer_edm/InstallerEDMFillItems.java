@@ -211,18 +211,24 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
                 return -1;
                 // elementos dc separados por ","
             } else {
+                HashSet<String> elementosHash = new HashSet<String>();
                 String[] dcElements = response.split(",");
                 for (String dcElement : dcElements) {
-                    // see validan los elementos dc
-                    MetadataField elementObj = findElementDC(dcElement);
-                    if (elementObj == null) installerEDMDisplay.showQuestion(currentStepGlobal,
+                    // se validan los elementos dc
+                    ArrayList<MetadataField> listElementsObj = findElementsDC(dcElement);
+                    if (listElementsObj == null) installerEDMDisplay.showQuestion(currentStepGlobal,
                             "showMenuDCElements.dcelement.notexist", new String[]{dcElement});
                     else {
-                        String element = elementObj.getElement() + ((elementObj.getQualifier() != null)?"." + elementObj.getQualifier():"");
-                        if (elementsNotAuthSet.contains(element)) {
-                            installerEDMDisplay.showQuestion(currentStepGlobal, "showMenuDCElements.dcelement.notallowed", new String[]{element});
-                            installerEDMDisplay.showLn();
-                        } else metadataFieldList.add(elementObj);
+                        for (MetadataField elementObj : listElementsObj) {
+                            String element = elementObj.getElement() + ((elementObj.getQualifier() != null)?"." + elementObj.getQualifier():"");
+                            if (elementsNotAuthSet.contains(element)) {
+                                installerEDMDisplay.showQuestion(currentStepGlobal, "showMenuDCElements.dcelement.notallowed", new String[]{element});
+                                installerEDMDisplay.showLn();
+                            } else if (!elementosHash.contains(element)) {
+                                elementosHash.add(element);
+                                metadataFieldList.add(elementObj);
+                            }
+                        }
                     }
                 }
                 return metadataFieldList.size();

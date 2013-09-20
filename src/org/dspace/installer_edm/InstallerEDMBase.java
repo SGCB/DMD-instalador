@@ -621,10 +621,43 @@ public abstract class InstallerEDMBase implements Observer
             String qualifier = (pos > 0)?name.substring(pos + 1):null;
             if (debug) installerEDMDisplay.showQuestion(0, "findElementDC", new String[]{Integer.toString(dcSchema.getSchemaID()), element, qualifier});
             MetadataField elementMD = MetadataField.findByElement(context, dcSchema.getSchemaID(), element, qualifier);
-            if (elementMD == null) {
+            return elementMD;
+        } catch (SQLException e) {
+            showException(e);
+        } catch (AuthorizeException e) {
+            showException(e);
+        }
+        return null;
+    }
+
+
+    /**
+     * busca los elementos dc con cierto nombre y calificador
+     *
+     * @param name nombre y calificador
+     * @return lista de elementos dc {@link MetadataField}
+     */
+    protected ArrayList<MetadataField> findElementsDC(String name)
+    {
+        int pos = name.indexOf(".");
+        try {
+            String element = (pos > 0)?name.substring(0, pos):name;
+            String qualifier = (pos > 0)?name.substring(pos + 1):null;
+            if (debug) installerEDMDisplay.showQuestion(0, "findElementDC", new String[]{Integer.toString(dcSchema.getSchemaID()), element, qualifier});
+            ArrayList<MetadataField> elementsMD = null;
+            if (qualifier != null && qualifier.equals("*")) {
+                elementsMD = listAllDCElementsFromName(element);
+            } else {
+                MetadataField elementMD = MetadataField.findByElement(context, dcSchema.getSchemaID(), element, qualifier);
+                if (elementMD != null) {
+                    elementsMD = new ArrayList<MetadataField>();
+                    elementsMD.add(elementMD);
+                }
+            }
+            if (elementsMD == null || elementsMD.size() == 0) {
                 return null;
             } else {
-                return elementMD;
+                return elementsMD;
             }
         } catch (SQLException e) {
             showException(e);
@@ -632,6 +665,22 @@ public abstract class InstallerEDMBase implements Observer
             showException(e);
         }
         return null;
+    }
+
+    /**
+     * devuelve una lista de elementos dc con un elemento
+     *
+     * @param name nombre del elemento
+     * @return lista de elementos
+     */
+    protected ArrayList<MetadataField> listAllDCElementsFromName(String name)
+    {
+        ArrayList<MetadataField> elements = new ArrayList<MetadataField>();
+        for (MetadataField metadataField : metadataFields) {
+            String nameF = metadataField.getElement();
+            if (name.equals(nameF)) elements.add(metadataField);
+        }
+        return elements;
     }
 
 

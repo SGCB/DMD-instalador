@@ -203,24 +203,25 @@ public class InstallerEDMDspaceCfg extends InstallerEDMBase
             if (response.equalsIgnoreCase("x")) {
                 return;
             } else {
-                MetadataField elementObj = findElementDC(response);
-                if (elementObj == null) installerEDMDisplay.showQuestion(currentStepGlobal, "addAuthDCElement.element.notexist", new String[]{response});
+                ArrayList<MetadataField> listElementsObj = findElementsDC(response);
+                if (listElementsObj == null) installerEDMDisplay.showQuestion(currentStepGlobal, "addAuthDCElement.element.notexist", new String[]{response});
                 else {
-                    String element = elementObj.getElement() + ((elementObj.getQualifier() != null)?"." + elementObj.getQualifier():"");
-                    if (elementsNotAuthSet.contains(element)) {
-                        installerEDMDisplay.showQuestion(currentStepGlobal, "addAuthDCElement.element.notallowed", new String[]{element});
-                        installerEDMDisplay.showLn();
-                    } else {
-                        boolean exists = false;
-                        for (MetadataField metadataField : authDCElements) {
-                            String element2 = metadataField.getElement() + ((metadataField.getQualifier() != null)?"." + metadataField.getQualifier():"");
-                            if (element2.equals(element)) {
-                                exists = true;
-                                break;
+                    for (MetadataField elementObj : listElementsObj) {
+                        String element = elementObj.getElement() + ((elementObj.getQualifier() != null)?"." + elementObj.getQualifier():"");
+                        if (elementsNotAuthSet.contains(element)) {
+                            installerEDMDisplay.showQuestion(currentStepGlobal, "addAuthDCElement.element.notallowed", new String[]{element});
+                            installerEDMDisplay.showLn();
+                        } else {
+                            boolean exists = false;
+                            for (MetadataField metadataField : authDCElements) {
+                                String element2 = metadataField.getElement() + ((metadataField.getQualifier() != null)?"." + metadataField.getQualifier():"");
+                                if (element2.equals(element)) {
+                                    exists = true;
+                                    break;
+                                }
                             }
+                            if (!exists) authDCElements.add(elementObj);
                         }
-                        if (!exists) authDCElements.add(elementObj);
-                        return;
                     }
                 }
             }

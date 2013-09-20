@@ -133,7 +133,7 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
     private boolean createElementAuth()
     {
         String element = null;
-        MetadataField elementObj = null;
+        ArrayList<MetadataField> listElementsObj = null;
         String community = null;
         Community communityObj = null;
         String collection = null;
@@ -162,24 +162,29 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                     if (response.length() == 0) continue;
                     if (response.equalsIgnoreCase("x")) return true;
 
-                    // busca el elemento dc con cierto nombre y calificador
-                    elementObj = findElementDC(response);
-                    if (elementObj == null) installerEDMDisplay.showQuestion(currentStepGlobal, "createElementAuth.element.notexist", new String[]{response});
+                    // busca los elementos dc con cierto nombre y calificador
+                    listElementsObj = findElementsDC(response);
+                    if (listElementsObj == null) installerEDMDisplay.showQuestion(currentStepGlobal, "createElementAuth.element.notexist", new String[]{response});
                     else {
-                        element = elementObj.getElement() + ((elementObj.getQualifier() != null)?"." + elementObj.getQualifier():"");
+                        boolean elementOk = false;
+                        for (int i= listElementsObj.size() - 1; i >=0 ; i--) {
+                            MetadataField elementObj = listElementsObj.get(i);
+                            element = elementObj.getElement() + ((elementObj.getQualifier() != null)?"." + elementObj.getQualifier():"");
 
-                        // no esté en dspace.cfg controlado como autoridad
-                        if (!metadataAuthorityManager.isAuthorityControlled(dcSchema.getName(), elementObj.getElement(), elementObj.getQualifier()) && !elementsAuthDspaceCfg.contains(element)) {
-                            installerEDMDisplay.showQuestion(currentStepGlobal, "createElementAuth.element.nonauthcontrolled", new String[]{element});
-                            installerEDMDisplay.showLn();
-                            element = null;
-                        } else if (elementsNotAuthSet.contains(element)) {
-                            installerEDMDisplay.showQuestion(currentStepGlobal, "createElementAuth.element.notallowed", new String[]{element});
-                            installerEDMDisplay.showLn();
-                            element = null;
-                        } else {
-                            step++;
+                            // no esté en dspace.cfg controlado como autoridad
+                            if (!metadataAuthorityManager.isAuthorityControlled(dcSchema.getName(), elementObj.getElement(), elementObj.getQualifier()) && !elementsAuthDspaceCfg.contains(element)) {
+                                installerEDMDisplay.showQuestion(currentStepGlobal, "createElementAuth.element.nonauthcontrolled", new String[]{element});
+                                installerEDMDisplay.showLn();
+                                listElementsObj.remove(i);
+                            } else if (elementsNotAuthSet.contains(element)) {
+                                installerEDMDisplay.showQuestion(currentStepGlobal, "createElementAuth.element.notallowed", new String[]{element});
+                                installerEDMDisplay.showLn();
+                                listElementsObj.remove(i);
+                            } else {
+                                elementOk = true;
+                            }
                         }
+                        if (elementOk) step++;
                     }
                     break;
                 // comunidad
@@ -205,9 +210,10 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                     }
                     break;
             }
-            // se crea la autoridad, se recorren todas colecciones para buscar valores para ese elemento dc y crear ítems
-            if (step == 4 && element != null && community != null && collection != null) {
-                if (!authDCElements.contains(elementObj)) authDCElements.add(elementObj);
+            // se crea la autoridad, se recorren todas colecciones para buscar valores para esos elementos dc y crear ítems
+            if (step == 4 && listElementsObj.size() > 0 && community != null && collection != null) {
+                for (MetadataField elementObj: listElementsObj)
+                    if (!authDCElements.contains(elementObj)) authDCElements.add(elementObj);
                 do {
                     installerEDMDisplay.showQuestion(currentStepGlobal, "createElementAuth.create", new String[] {community, collection, language});
                     response = null;
@@ -221,7 +227,7 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                     response = response.trim();
                     if (response.length() == 0) response = answerYes;
                     if (response.equalsIgnoreCase("n")) break;
-                    else return fillAuthItems(elementObj, communityObj, collectionObj);
+                    else return fillAuthItems(listElementsObj.toArray(new MetadataField[listElementsObj.size()]), communityObj, collectionObj);
                 } while(true);
                 break;
             }
@@ -232,16 +238,15 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
     /**
      * Recorre todas las colecciones para recoger valores para el elemento dc de la autoridad para crear ítems con cada valor distinto
      *
-     * @param elementObj objeto elemento dc de dspace {@link MetadataField}
+     * @param elementsObj array de objetos elemento dc de dspace {@link MetadataField}
      * @param communityObj objeto comunidad de dspace {@link Community}
      * @param collectionObj objeto colección de dspace {@link Collection}
      * @return éxito de la operación
      */
-    private boolean fillAuthItems(MetadataField elementObj, Community communityObj, Collection collectionObj)
+    private boolean fillAuthItems(MetadataField[] elementsObj, Community communityObj, Collection collectionObj)
     {
         try {
             int numItemsModified = 0;
-            String element = elementObj.getElement() + ((elementObj.getQualifier() != null)?"." + elementObj.getQualifier():"");
 
             // listar todas las colecciones
             Collection[] listCollections = Collection.findAll(context);
@@ -262,36 +267,47 @@ public class InstallerEDMCreateAuth extends InstallerEDMBase implements Observer
                     // si este ítem es una autoridad lo saltamos
                     if (searchSkosAuthItem(item)) continue;
 
-                    // recogemos los elementos dc del ítem
-                    DCValue[] listDCValues = item.getMetadata(dcSchema.getName(), elementObj.getElement(), elementObj.getQualifier(), language);
-                    if (listDCValues.length > 0) {
-                        for (DCValue dcValue : listDCValues) {
-                            if (debug) installerEDMDisplay.showQuestion(currentStepGlobal, "fillAuthItems.additem", new String[]{dcValue.value});
-                            boolean isAuth = false;
+                    // recogemos valores de los campos
+                    for (MetadataField elementObj: elementsObj) {
+                        String element = elementObj.getElement() + ((elementObj.getQualifier() != null)?"." + elementObj.getQualifier():"");
+                        // recogemos los elementos dc del ítem
+                        DCValue[] listDCValues = item.getMetadata(dcSchema.getName(), elementObj.getElement(), elementObj.getQualifier(), Item.ANY);
+                        if (listDCValues.length > 0) {
+                            for (DCValue dcValue : listDCValues) {
+                                if (debug) installerEDMDisplay.showQuestion(currentStepGlobal, "fillAuthItems.additem", new String[]{dcValue.value});
+                                boolean isAuth = false;
 
-                            // buscamos ítems de autoridad con este elemento dc y ese valor
-                            ItemIterator iterAuth = InstallerEDMDAO.findByMetadataField(dcSchema.getName(), elementObj.getElement(), elementObj.getQualifier(), dcValue.value);
-                            if (iterAuth != null) {
-                                while (iterAuth.hasNext()) {
-                                    Item itemMatched = iterAuth.next();
-                                    if (searchSkosAuthItem(itemMatched)) {
-                                        if (debug) installerEDMDisplay.showQuestion(currentStepGlobal, "fillAuthItems.canceladd");
-                                        isAuth = true;
-                                        break;
+                                // buscamos ítems de autoridad con este elemento dc y ese valor
+                                ItemIterator iterAuth = InstallerEDMDAO.findByMetadataField(dcSchema.getName(), elementObj.getElement(), elementObj.getQualifier(), dcValue.value);
+                                if (iterAuth != null) {
+                                    while (iterAuth.hasNext()) {
+                                        Item itemMatched = iterAuth.next();
+                                        if (searchSkosAuthItem(itemMatched)) {
+                                            if (debug) installerEDMDisplay.showQuestion(currentStepGlobal, "fillAuthItems.canceladd");
+                                            isAuth = true;
+                                            break;
+                                        }
                                     }
+                                    iterAuth.close();
                                 }
-                                iterAuth.close();
-                            }
-                            // si ya existe una autoridad se salta este valor
-                            if (isAuth) continue;
+                                // si ya existe una autoridad se salta este valor
+                                if (isAuth) continue;
 
-                            // crea el nuevo ítem para la autoridad
-                            if (createAuth(elementObj, communityObj, collectionObj, element, dcValue)) numItemsModified++;
-                        }
-                    } else if (debug) installerEDMDisplay.showQuestion(currentStepGlobal, "fillAuthItems.collection.item.noelement", new String[] {collection.getName(), item.getHandle(), element, language});
+                                // crea el nuevo ítem para la autoridad
+                                if (createAuth(elementObj, communityObj, collectionObj, element, dcValue)) numItemsModified++;
+                            }
+                        } else if (debug) installerEDMDisplay.showQuestion(currentStepGlobal, "fillAuthItems.collection.item.noelement", new String[] {collection.getName(), item.getHandle(), element, language});
+                    }
                 }
             }
-            if (verbose) installerEDMDisplay.showQuestion(currentStepGlobal, "fillAuthItems.numItemsModified", new String[]{element, Integer.toString(numItemsModified)});
+            if (verbose) {
+                String element = "";
+                if (elementsObj.length > 1) {
+                    element = elementsObj[0].getElement() + ".*";
+                } else element = elementsObj[0].getElement() + ((elementsObj[0].getQualifier() != null)?"." + elementsObj[0].getQualifier():"");
+                installerEDMDisplay.showQuestion(currentStepGlobal, "fillAuthItems.numItemsModified", new String[]{
+                        element, Integer.toString(numItemsModified)});
+            }
             installerEDMDisplay.showLn();
             return true;
         } catch (SQLException e) {
