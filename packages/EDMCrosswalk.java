@@ -714,14 +714,16 @@ public class EDMCrosswalk extends Crosswalk
     /**
      * Creates a new element getting the information from another and adding it to the parent element
      *
-     * @param item objeto Item de dspace {@link Item} para obtener sus elementos dc
-     * @param elementEDM elemento EDM al que irán los datos
-     * @param nameSpace namespace del nuevo elemento EDM
-     * @param elementDC elemento DC del que se sacarán los datos
-     * @param qualifier calificador del elemento DC del que se sacarán los datos
-     * @param ProvidedCHO elemento jdom con la clase EDM ProvidedCHO
-     * @param repeat indica si se ha de buscar más elementos DC con ese nombre y calificador en el ítem
-     * @param resource indica si la autoridad se ha de añadir como resource
+     * @param item Item object from dspace {@link Item} to get its dc elements
+     * @param elementEDM EDM element to add data to
+     * @param nameSpace namespace of the new EDM element
+     * @param elementDC DC element to get the data from
+     * @param qualifier DC element qualifier to get the data from
+     * @param ProvidedCHO jdom element with the class EDM ProvidedCHO
+     * @param repeat earch more than one element
+     * @param resource authority to be added as resource
+     *
+     * @return array of objects
      */
     protected Object[] createElementEDM(Item item, String elementEDM, Namespace nameSpace, String elementDC, String qualifier
             , Element ProvidedCHO, boolean repeat, boolean resource)
@@ -789,18 +791,17 @@ public class EDMCrosswalk extends Crosswalk
 
 
     /**
-     * Creación de un elemento dc para añadir a la clase EDM ProvidedCHO
-     * <p>Actúa en las clases que heradena de ésta</p>
+     * Creates a new dc element to add to the class EDM ProvidedCHO
      *
-     * @param item objeto Item de dspace {@link Item} para obtener sus elementos dc
-     * @param elementEDM elemento EDM al que irán los datos
-     * @param nameSpace namespace del nuevo elemento EDM
-     * @param elementDC elemento DC del que se sacarán los datos
-     * @param noQualifier calificadores del elemento DC del que no se sacarán los datos
-     * @param ProvidedCHO elemento jdom con la clase EDM ProvidedCHO
-     * @param repeat indica si se ha de buscar más elementos DC con ese nombre y calificador en el ítem
+     * @param item object Item from dspace {@link Item} to get the dc elements
+     * @param elementEDM EDM element with the resulting elements
+     * @param nameSpace namespace from new EDM element
+     * @param elementDC DC element from which to get the elements
+     * @param noQualifier qualifiers forbidden to get data from
+     * @param ProvidedCHO jdom element with class EDM ProvidedCHO
+     * @param repeat search for more dc elements in the item
      *
-     * @return último elemento Dom creado
+     * @return last dom element created
      */
     protected Element createElementEDMExclusion(Item item, String elementEDM, Namespace nameSpace, String elementDC, Set<String> noQualifier, Element ProvidedCHO, boolean repeat, Namespace resource)
     {
@@ -831,11 +832,11 @@ public class EDMCrosswalk extends Crosswalk
 
 
     /**
-     * Comprueba si una autoridad es válida: o es una url correcta o un handle existente y se construye la url
+     * Check whether an authoriy is valid: must be an url or an existing handle. The url is built
      *
-     * @param authority la autoridad a comprobar
+     * @param authority The authority to check
      *
-     * @return la autoridad válida o un null
+     * @return authority or null
      */
     protected String checkAuthority(String authority)
     {
@@ -848,7 +849,7 @@ public class EDMCrosswalk extends Crosswalk
             try {
                 Matcher matcherHandleVocab = patternHandleVocab.matcher(authority);
                 if (matcherHandleVocab.find()) authority = ((String) matcherHandleVocab.group(1)).replace('_', '/');
-                // comprobamos que es un handle y que existe en nuestro dspace
+                // check it's a handle and from our dspace
                 if (authority.matches(REGEX_HANDLE_PATTERN) && (itemAuth = (Item) HandleManager.resolveToObject(context, authority)) != null) {
                     authority = handleUrl + authority;
                     return authority;
@@ -856,15 +857,16 @@ public class EDMCrosswalk extends Crosswalk
             } catch (Exception e) {
                 return null;
             }
-            // es una url válida
+            // a valid url
         } else return authority;
     }
 
 
     /**
-     * Devuelve el ítem a partir de la autoridad que es un handle o su url
-     * @param authority cadena con el handle o su url
-     * @return Item de dspace
+     * Returns the item from the handle or its url
+     *
+     * @param authority string with the handle or the url
+     * @return Item from dspace
      */
     protected Item getItemFromAuthority(String authority)
     {
@@ -882,10 +884,10 @@ public class EDMCrosswalk extends Crosswalk
 
 
     /**
-     * Recoger elementos owl:sameAs del ítem y añadirlos al elemento DOM
+     * Get elements owl:sameAs from the item and add them to the jdom element
      *
-     * @param item item objeto item de dspace {@link Item}
-     * @param elementDOMParent elemento DOM al que añadir
+     * @param item Item object from dspace {@link Item}
+     * @param elementDOMParent Deom element to add to
      */
     private void getOwlSameAs(Item item, Element elementDOMParent)
     {
