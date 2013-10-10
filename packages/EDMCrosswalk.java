@@ -570,7 +570,7 @@ public class EDMCrosswalk extends Crosswalk
                 Item itemAuth = getItemFromAuthority(authority);
                 Element skosConcept = null;
                 try {
-                    skosConcept = ((dcv.element.equals("creator") && dcv.qualifier == null) || (dcv.element.equals("contributor") && dcv.qualifier.equals("author")))?new Element("Agent", EDM):new Element("Concept", SKOS);
+                    skosConcept = ((dcv.element.equals("creator") && dcv.qualifier == null) || dcv.element.equals("contributor"))?new Element("Agent", EDM):new Element("Concept", SKOS);
                     skosConcept.setAttribute(new Attribute("about", authority, RDF));
                     Element prefLabel = new Element("prefLabel", SKOS);
                     if (dcv.language != null) prefLabel.setAttribute(new Attribute("lang", dcv.language, XML));
