@@ -38,6 +38,8 @@ packages: files required to uncompress, copy and/or modify. List of files:
                                                dspace oai api jar library.
     EDMExport.war ............................ War file to be modified by the installer and deployed manually in the
                                                Tomcat web apps dir or wherever the admin decides to.
+    ESECrosswalk.java ........................ Java source file to be compiled by the installer and added to the
+                                               dspace oai api jar library.
     exampleAskosiData.zip .................... Compressed file required by Askosi and processesed by the installer
                                                to create the Asosi data dir.
     jaxb-xalan-1.5.jar ....................... Library required for Askosi.
@@ -70,7 +72,7 @@ Thw way to run the installer is:
 
 Linux/Unix:
 
-$ bash ./install.sh -d dspace_deployed_dir -t tomcat_base_physycal_dir -v -s 0 -l en
+$ bash ./install.sh -d dspace_deployed_dir -t tomcat_base_physycal_dir -v -s 0 -l en -j /usr/local/jdk-1.7.0/bin/java
 
 View the help:
 $ ./install.sh -h
@@ -126,7 +128,7 @@ Installer has the next steps:
 3: Create Auth Items
 4: Configuring dspace: input-forms.xml and askosi
 5: Configure EDMExport
-6: Configure EDMCrosswalk
+6: Configure EDMCrosswalk/ESECrosswalk
 7: Configure EDMCrosswalk with xsl
 8: Fill skos:about items with values of authorities
 9: Exit
@@ -140,6 +142,8 @@ Second step copies dspace configuraction file "dspace.cfg" to a directory
 called "work" located in the installer directory.
 It will ask whether more authority elements will be added to the files
 dspace.cfg.
+If a pattern as contributor.* is given, then at dspace.cfg an entry for Askosi will be added with all the elements
+contributor from dspace.
 This file will be modified with the new properties. It's now a task for the admin to check this file.
 The admin will copy manually the files to dspace to deploy them.
 The Servlet container is mandatory to be restarted and the installer thereafter.
@@ -151,6 +155,8 @@ It's mandatory to be validated as a dspace user.
 For every dc element required as an authority is necessary to link it to a community and a collection. If they don't exist
 they'll have to be created.
 These dc elements have to exist in the file "dspace.cfg" and be authority controlled.
+If a pattern as contributor.* is given, new items will be created in this community for all the elements crontributor
+from the dspace schema.
 They are searched on the collections with no authorities and fullfilled with their unique values.
 The Servlet container is not required to be restarted.
 
@@ -167,8 +173,9 @@ The final war file has to be copied manually to be deployed.
 The Servlet container is mandatory to be restarted and the installer thereafter.
 
 
-Sixth step copies the EDMCrosswalk.java file from packages to work and the dspace oai api file to work.
-A set of edm specific parameters will be asked and the java file modified:
+Sixth step copies the EDMCrosswalk.java/ESECrosswal.java file from packages to work and the dspace oai api file to work.
+The schema to compile will be asked for: EDM or ESE.
+A set of EDM/ESE specific parameters will be asked and the java file modified:
 An url for the element edm.rights.
 For the edm.types words to be matched against the dc.types values and replaced by their type.
 The java file is compiled and add to the jar file.
@@ -198,6 +205,8 @@ This step is incompatible with "Configure EDMCrosswalk" one.
 
 Eighth step traverse all the colecctions with authority items to collect the dc elements.
 It will traverse the collections with nonauthority items to collect the items with the dc elements from the former traversing.
+If a pattern as contributor.* is given, all the contributor elements from the authorities items will be linked with the normal items.
+The handle of the auhtority item will be written at the authority field of the normal item.
 If there's a match the handle of the authority will be stored in the field authority of the table metadatavalue in the row belonging
 to the item.
 The Servlet container is not required to be restarted.

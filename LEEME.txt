@@ -38,6 +38,8 @@ packages: están los archivos que usará el instalador para descomprimir, copiar
                                                a la librería jar del api de oai de dspace.
     EDMExport.war ............................ Archivo war para modificarse por el instalador y desplegarse manualmente
                                                en el directorio webapps del servlet o donde se quiera.
+    ESECrosswalk.java......................... Archivo fuente java para ser compilado por el instalador y añadirlo
+                                               a la librería jar del api de oai de dspace.
     exampleAskosiData.zip .................... Archivo comprimido necesario para Askosi que procesará el instalador
                                                para crear el directorio de datos de Askosi.
     jaxb-xalan-1.5.jar ....................... Librería necesaria para Askosi.
@@ -71,7 +73,7 @@ La forma de lanzar el instalador es la siguiente:
 
 Linux/Unix:
 
-$ bash ./install.sh -d directorio_dspace_desplegado -t directorio_fisico_base_tomcat_u_otro_servlet -v -s 0 -l es_ES
+$ bash ./install.sh -d directorio_dspace_desplegado -t directorio_fisico_base_tomcat_u_otro_servlet -v -s 0 -l es_ES -j /usr/local/jdk-1.7.0/bin/java
 
 Para ver la ayuda:
 $ ./install.sh -h
@@ -131,7 +133,7 @@ El instalador consta de los siguientes pasos:
 3: Crear Items de Autoridad
 4: Configurar Dspace: input-forms.xml y askosi
 5: Configurar EDMExport
-6: Configurar EDMCrosswalk
+6: Configurar EDMCrosswalk/ESECrosswalk
 7: Configurar EDMCrosswalk mediante xsl
 8: Rellenar skos:about de ítems con valores de autoridades
 9: Salir
@@ -146,6 +148,8 @@ Sería necesario reiniciar el Tomcat o Dspace al realizar este paso y luego el i
 El segundo paso copia el fichero de configuración de Dspace "dspace.cfg"
 a un directorio llamado work en el directorio donde está el instalador.
 Se preguntará si se quieren añadir más elementos como autoridad en dspace.cfg.
+Si se suministra un elemento como contributor.*, en dspace.cfg te añade una entrada para askosi con todos los elementos 
+contributor del esquema dc de dspace.
 Lo modifica con las directivas o propiedades nuevas y los deja ahí para revisión del administrador.
 Éste es el que manualmente (como medida de seguridad) tendrá que llevarlos a Dspace.
 Sería necesario reiniciar el Tomcat o Dspace al realizar este paso y luego el instalador.
@@ -160,6 +164,8 @@ Estos elementos han de estar configurados en el archivo de configuración de dsp
 por autoridades.
 Esos elementos se buscan en el resto de colecciones de no autoridades para identificar valores únicos y asignarlos al
 ítem de la colección de la autoridad.
+Si se suministra un elemento como contributor.*, see crean ítems de autoridad para todos los elementos contributor 
+del esquema dc de dspace para la colección creada/seleccionada.
 No sería necesario reiniciar el Tomcat o Dspace.
 
 
@@ -176,8 +182,9 @@ Este war se tendría que copiar manualmente luego al directorio webapps de nuest
 Sería necesario reiniciar el Tomcat si no está configurado para desplegar de forma automática y luego el instalador.
 
 
-El sexto paso copia el archivo EDMCrosswalk.java de packages a work y el jar de la api de oai de dspace a work.
-Se piden datos para parámetros exclusivos de EDM y se modifica el java:
+El sexto paso copia el archivo EDMCrosswalk.java/ESECrosswalk.java de packages a work y el jar de la api de oai de dspace a work.
+Se pide qué esquema compilar: EDM o ESE.
+Se piden datos para parámetros exclusivos de EDM/ESE y se modifica el java:
 Se pide una url para el elemento edm.rights.
 Se piden términos para el elemento edm.types para que cuando se cree el esquema oai con los datos del ítem, sean buscados
 y si coinciden sean reemplazados por el tipo asociado a ellos.
@@ -209,6 +216,9 @@ Este paso es incompatible con el de Configurar EDMCrosswalk.
 El octavo paso se recorrerá todas las colecciones con ítems que son autoridades para recoger los elementos dc asociados.
 Se recorrerá todas las colecciones con ítems que no son autoridades para recoger los elementos dc que se corresponden con
 los recogidos de las autoridades.
+Si se suministra un elemento como contributor.*, se enlazan de todos los ítems que no son autoridades todos los elementos contributor
+del esquema dc de dspace con los ítems de autoridad con estos elementos dc.
+El handle del ítem de la autoridad será escrito en el campo autoridad del ítem normal.
 Si hay una coincidencia se almacenará el handle de la autoridad en el campo authority de la tabla metadatavalue de la
 bbdd para el element dc del ítem normal.
 No sería necesario reiniciar el Tomcat o Dspace.
