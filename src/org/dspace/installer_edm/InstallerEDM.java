@@ -1,17 +1,19 @@
 /**
- * Created with IntelliJ IDEA.
- * User: salvazm-adm
- * Date: 22/10/12
- * Time: 17:40
- * To change this template use File | Settings | File Templates.
+ *  Copyright 2013 Spanish Minister of Education, Culture and Sport
  *
- * cd /home/europeana/instalador_edm
- * jar cf out/production/instalador_edm/InstallerEDM.jar out/production/instalador_edm/org/dspace/installer_edm/*.class
- * JARS=$(echo /home/europeana/instalador_edm/lib/*.jar | sed 's/ /\:/g'); JARS2=$(echo /home/europeana/runtime/lib/*.jar | sed 's/ /\:/g'); java -cp $JARS:$JARS2:out/production/instalador_edm/InstallerEDM.jar:out/production/instalador_edm:/home/europeana/runtime/config org.dspace.installer_edm.InstallerEDM -d /home/europeana/runtime/ -t /usr/share/tomcat5.5/ -v -s 2
+ *  written by MasMedios
  *
- * JARS=$(echo /home/salzaru/Download/instalador_edm/lib/*.jar | sed 's/ /\:/g'); JARS2=$(echo /home/salzaru/Download/dspace/lib/*.jar | sed 's/ /\:/g'); java -cp $JARS:$JARS2:out/production/instalador_edm/InstallerEDM.jar:out/production/instalador_edm:/home/salzaru/Download/dspace/config org.dspace.installer_edm.InstallerEDM -d /home/salzaru/Download/dspace/ -t /usr/local/apache-tomcat-6.0/ -v -s 2
+ *  Licensed under the EUPL, Version 1.1 or – as soon they will be approved by the European Commission - subsequent versions of the EUPL (the "Licence");
  *
- * ant jar && ./install.sh -d /home/europeana/runtime/ -t /usr/share/tomcat5.5 -v -s 2
+ *  You may not use this work  except in compliance with the License. You may obtain a copy of the License at:
+ *
+ *  http://ec.europa.eu/idabc/servlets/Docbb6d.pdf?id=31979
+ *
+ *  Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" basis,
+ *
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *
+ *  See the License for the specific language governing permissions and limitations under the License.
  */
 
 
