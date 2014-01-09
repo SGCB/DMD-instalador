@@ -401,13 +401,14 @@ public class InstallerEDMFillItems extends InstallerEDMBase implements Observer
      */
     private void updateItem(Item item, Map<MetadataField, DCValue[]> metadataField2Clear) throws SQLException, AuthorizeException
     {
-        String languageDCUpdate = (languageDC == null || languageDC.equals("*"))?null:languageDC;
+        String languageDCUpdate = null;
 
         for (MetadataField metadataField : metadataField2Clear.keySet()) {
             item.clearMetadata(dcSchema.getName(), metadataField.getElement(), metadataField.getQualifier(), languageDC);
             for (DCValue dcValue : metadataField2Clear.get(metadataField)) {
+                languageDCUpdate = (languageDC.equals("*"))?dcValue.language:languageDC;
                 if (debug) {
-                    System.out.format("%s.%s.%s %s %s %s", dcSchema.getName(), metadataField.getElement(), metadataField.getQualifier(), (languageDC != null)?languageDC:"null", dcValue.value, dcValue.authority);
+                    System.out.format("%s.%s.%s %s %s %s", dcSchema.getName(), metadataField.getElement(), metadataField.getQualifier(), languageDCUpdate, languageDC, dcValue.value, dcValue.authority);
                     installerEDMDisplay.showLn();
                 }
                 item.addMetadata(dcSchema.getName(), metadataField.getElement(), metadataField.getQualifier(), languageDCUpdate, dcValue.value, dcValue.authority, -1);
